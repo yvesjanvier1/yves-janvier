@@ -10,7 +10,6 @@ import ContactPage from './pages/ContactPage';
 import NotFound from './pages/NotFound';
 import Layout from './components/layout/Layout';
 import DashboardLoginPage from './pages/DashboardLoginPage';
-import DashboardPage from './pages/DashboardPage';
 import ProtectedRoute from './components/dashboard/ProtectedRoute';
 import DashboardLayout from './components/dashboard/DashboardLayout';
 import { AuthProvider } from './components/dashboard/AuthProvider';

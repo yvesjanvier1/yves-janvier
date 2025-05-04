@@ -14,12 +14,13 @@ interface BlogPost {
   cover_image: string;
   tags: string[];
   created_at: string;
-  content?: string; // Make content optional
-  author?: {          // Make author optional
+  content?: string; 
+  author?: {          
     name: string;
     avatar: string;
   };
-  date?: string; // For compatibility with BlogCard component
+  date?: string; 
+  coverImage?: string; // Added to match the BlogCard component expectations
 }
 
 const BlogPage = () => {
@@ -46,7 +47,8 @@ const BlogPage = () => {
           // Format posts for compatibility with the BlogCard component
           const formattedPosts = data.map(post => ({
             ...post,
-            date: post.created_at // Make sure we have a date field for the BlogCard component
+            date: post.created_at, // Make sure we have a date field for the BlogCard component
+            coverImage: post.cover_image // Map cover_image to coverImage
           }));
           
           setBlogPosts(formattedPosts);

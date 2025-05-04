@@ -5,22 +5,22 @@ import { SectionHeader } from "@/components/ui/section-header";
 import ProjectCard from "@/components/portfolio/project-card";
 import ProjectFilters from "@/components/portfolio/project-filters";
 import { toast } from "sonner";
-import { Json } from "@/integrations/supabase/types"; // Import Json type from supabase
+import { Json } from "@/integrations/supabase/types";
 
 // Update Project interface to align with both Supabase data and ProjectCard component
 interface Project {
   id: string;
   title: string;
-  summary?: string;
+  summary: string; // Required for ProjectCard
   description: string;
-  coverImage?: string;
-  categories?: string[]; // To satisfy ProjectCard
+  coverImage: string; // Required for ProjectCard
+  categories: string[]; // Required for ProjectCard
   category?: string; // From Supabase
   tech_stack?: string[];
-  tools?: string[]; // To satisfy ProjectCard
+  tools: string[]; // Required for ProjectCard
   featured: boolean;
   created_at: string;
-  date?: string; // To satisfy ProjectCard
+  date: string; // Required for ProjectCard
   images?: string[];
   links?: {
     title: string;
@@ -56,9 +56,11 @@ const PortfolioPage = () => {
               if (Array.isArray(project.links)) {
                 formattedLinks = project.links.map(link => {
                   if (typeof link === 'object' && link !== null) {
+                    // Check if the object has title and url properties
+                    const linkObj = link as { [key: string]: Json };
                     return {
-                      title: String(link.title || ''),
-                      url: String(link.url || '')
+                      title: String(linkObj.title || ''),
+                      url: String(linkObj.url || '')
                     };
                   }
                   return { title: 'Link', url: String(link) };
@@ -76,7 +78,7 @@ const PortfolioPage = () => {
               title: project.title,
               summary: project.description.substring(0, 150) + "...", // Create a summary from the description
               description: project.description,
-              coverImage: project.images && project.images.length > 0 ? project.images[0] : undefined,
+              coverImage: project.images && project.images.length > 0 ? project.images[0] : "/placeholder.svg",
               category: project.category || "Uncategorized",
               // Create categories array to satisfy ProjectCard component
               categories: project.category ? [project.category] : ["Uncategorized"],

@@ -1,7 +1,8 @@
+
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, ExternalLink, Github } from "lucide-react";
+import { ArrowLeft, ExternalLink } from "lucide-react";
 import { SectionHeader } from "@/components/ui/section-header";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -57,9 +58,11 @@ const ProjectDetailPage = () => {
           if (Array.isArray(data.links)) {
             formattedLinks = data.links.map(link => {
               if (typeof link === 'object' && link !== null) {
+                // Check if the object has title and url properties
+                const linkObj = link as { [key: string]: Json };
                 return {
-                  title: String(link.title || ''),
-                  url: String(link.url || '')
+                  title: String(linkObj.title || ''),
+                  url: String(linkObj.url || '')
                 };
               }
               return { title: 'Link', url: String(link) };
@@ -90,7 +93,11 @@ const ProjectDetailPage = () => {
   if (isLoading) {
     return (
       <div className="container px-4 py-16 md:py-24 mx-auto">
-        <SectionHeader title={<Skeleton className="h-8 w-80" />} subtitle={<Skeleton className="h-6 w-64" />} centered />
+        <SectionHeader 
+          title="Loading..." 
+          subtitle="Please wait while we load the project details" 
+          centered 
+        />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-10">
           <Skeleton className="h-64" />
           <div>
