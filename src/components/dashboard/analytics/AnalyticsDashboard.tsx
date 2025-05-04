@@ -1,9 +1,10 @@
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ResponsiveContainer, LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, Legend } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
+import { StatCard } from "./StatCard";
+import { PieChartDisplay, BarChartDisplay, LineChartDisplay } from "./AnalyticsCharts";
+import { PageDetailsTable } from "./PageDetailsTable";
 
 interface AnalyticsSummary {
   page: string;
@@ -77,43 +78,26 @@ export function AnalyticsDashboard() {
     { date: "2025-09", views: 870 },
   ];
 
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658'];
-
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total Page Views</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {isLoading ? "Loading..." : totalViews.toLocaleString()}
-            </div>
-          </CardContent>
-        </Card>
+        <StatCard 
+          title="Total Page Views" 
+          value={totalViews.toLocaleString()} 
+          isLoading={isLoading} 
+        />
         
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Unique Visitors</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {isLoading ? "Loading..." : uniqueVisitors.toLocaleString()}
-            </div>
-          </CardContent>
-        </Card>
+        <StatCard 
+          title="Unique Visitors" 
+          value={uniqueVisitors.toLocaleString()} 
+          isLoading={isLoading} 
+        />
         
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Pages Tracked</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {isLoading ? "Loading..." : pageSummary.length}
-            </div>
-          </CardContent>
-        </Card>
+        <StatCard 
+          title="Pages Tracked" 
+          value={pageSummary.length} 
+          isLoading={isLoading} 
+        />
       </div>
       
       <Tabs defaultValue="overview" className="space-y-4">
@@ -124,122 +108,19 @@ export function AnalyticsDashboard() {
         </TabsList>
         
         <TabsContent value="overview" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Page Views Distribution</CardTitle>
-              <CardDescription>View distribution across different pages</CardDescription>
-            </CardHeader>
-            <CardContent className="h-[400px]">
-              {isLoading ? (
-                <div className="h-full flex items-center justify-center">Loading chart data...</div>
-              ) : (
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={pieChartData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      outerRadius={150}
-                      fill="#8884d8"
-                      dataKey="value"
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                    >
-                      {pieChartData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              )}
-            </CardContent>
-          </Card>
+          <PieChartDisplay data={pieChartData} isLoading={isLoading} />
         </TabsContent>
         
         <TabsContent value="pages" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Page Performance</CardTitle>
-              <CardDescription>Views and visitors by page</CardDescription>
-            </CardHeader>
-            <CardContent className="h-[400px]">
-              {isLoading ? (
-                <div className="h-full flex items-center justify-center">Loading chart data...</div>
-              ) : (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={barChartData}>
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="views" name="Total Views" fill="#0088FE" />
-                    <Bar dataKey="visitors" name="Unique Visitors" fill="#00C49F" />
-                  </BarChart>
-                </ResponsiveContainer>
-              )}
-            </CardContent>
-          </Card>
+          <BarChartDisplay data={barChartData} isLoading={isLoading} />
         </TabsContent>
         
         <TabsContent value="timeline" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Traffic Over Time</CardTitle>
-              <CardDescription>Monthly page views</CardDescription>
-            </CardHeader>
-            <CardContent className="h-[400px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={timelineData}>
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line type="monotone" dataKey="views" stroke="#0088FE" activeDot={{ r: 8 }} />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+          <LineChartDisplay data={timelineData} />
         </TabsContent>
       </Tabs>
       
-      <Card>
-        <CardHeader>
-          <CardTitle>Page Details</CardTitle>
-          <CardDescription>Detailed analytics by page</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="text-center py-4">Loading data...</div>
-          ) : (
-            <div className="border rounded-lg overflow-hidden">
-              <table className="w-full">
-                <thead>
-                  <tr className="bg-muted">
-                    <th className="text-left p-3">Page</th>
-                    <th className="text-right p-3">Total Views</th>
-                    <th className="text-right p-3">Unique Visitors</th>
-                    <th className="text-right p-3">Last View</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {pageSummary.map((item, index) => (
-                    <tr key={index} className={index % 2 === 0 ? "bg-background" : "bg-muted/20"}>
-                      <td className="p-3 font-medium">{item.page}</td>
-                      <td className="p-3 text-right">{item.views.toLocaleString()}</td>
-                      <td className="p-3 text-right">{item.unique_visitors.toLocaleString()}</td>
-                      <td className="p-3 text-right">
-                        {new Date(item.last_view).toLocaleDateString()}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <PageDetailsTable data={pageSummary} isLoading={isLoading} />
     </div>
   );
 }

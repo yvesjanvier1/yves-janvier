@@ -7,30 +7,37 @@ import ProjectFilters from "@/components/portfolio/project-filters";
 import { toast } from "sonner";
 import { Json } from "@/integrations/supabase/types";
 
-// Update Project interface to align with both Supabase data and ProjectCard component
-interface Project {
+// Interface for data from Supabase
+interface SupabaseProject {
   id: string;
   title: string;
-  summary: string; // Required for ProjectCard
   description: string;
-  coverImage: string; // Required for ProjectCard
-  categories: string[]; // Required for ProjectCard
-  category?: string; // From Supabase
+  category?: string;
   tech_stack?: string[];
-  tools: string[]; // Required for ProjectCard
   featured: boolean;
   created_at: string;
-  date: string; // Required for ProjectCard
   images?: string[];
-  links?: {
-    title: string;
-    url: string;
-  }[];
+  links?: Json;
+  slug: string;
+}
+
+// Interface that matches what ProjectCard component expects
+interface ProjectCardData {
+  id: string;
+  title: string;
+  summary: string;
+  description: string;
+  coverImage: string;
+  categories: string[];
+  tools: string[];
+  featured: boolean;
+  date: string;
+  links: { title: string; url: string }[];
 }
 
 const PortfolioPage = () => {
   const [activeCategory, setActiveCategory] = useState("All");
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [projects, setProjects] = useState<ProjectCardData[]>([]);
   const [categories, setCategories] = useState<string[]>(["All"]);
   const [isLoading, setIsLoading] = useState(true);
   
@@ -48,25 +55,24 @@ const PortfolioPage = () => {
         // Process projects and extract unique categories
         if (data) {
           // Format projects for compatibility with the ProjectCard component
-          const formattedProjects = data.map(project => {
-            // Parse links from JSON if necessary
+          const formattedProjects = data.map((project: SupabaseProject): ProjectCardData => {
+            // Parse links from JSON
             let formattedLinks: { title: string; url: string }[] = [];
             
             if (project.links) {
               if (Array.isArray(project.links)) {
-                formattedLinks = project.links.map(link => {
+                formattedLinks = (project.links as any[]).map(link => {
                   if (typeof link === 'object' && link !== null) {
-                    // Check if the object has title and url properties
-                    const linkObj = link as { [key: string]: Json };
                     return {
-                      title: String(linkObj.title || ''),
-                      url: String(linkObj.url || '')
+                      title: String(link.title || ''),
+                      url: String(link.url || '')
                     };
                   }
                   return { title: 'Link', url: String(link) };
                 });
               } else if (typeof project.links === 'object' && project.links !== null) {
-                formattedLinks = Object.entries(project.links).map(([title, url]) => ({ 
+                const linksObj = project.links as Record<string, any>;
+                formattedLinks = Object.entries(linksObj).map(([title, url]) => ({ 
                   title, 
                   url: String(url) 
                 }));
@@ -76,19 +82,14 @@ const PortfolioPage = () => {
             return {
               id: project.id,
               title: project.title,
-              summary: project.description.substring(0, 150) + "...", // Create a summary from the description
+              summary: project.description.substring(0, 150) + "...", // Create a summary from description
               description: project.description,
               coverImage: project.images && project.images.length > 0 ? project.images[0] : "/placeholder.svg",
-              category: project.category || "Uncategorized",
-              // Create categories array to satisfy ProjectCard component
               categories: project.category ? [project.category] : ["Uncategorized"],
               tech_stack: project.tech_stack || [],
-              // Create tools array to satisfy ProjectCard component
               tools: project.tech_stack || [],
               featured: project.featured || false,
-              created_at: project.created_at,
-              date: project.created_at, // For compatibility with ProjectCard
-              images: project.images || [],
+              date: project.created_at,
               links: formattedLinks
             };
           });
@@ -119,7 +120,7 @@ const PortfolioPage = () => {
   // Filter projects by category
   const filteredProjects = activeCategory === "All"
     ? projects
-    : projects.filter(project => project.category === activeCategory);
+    : projects.filter(project => project.categories.includes(activeCategory));
 
   return (
     <div className="container px-4 py-16 md:py-24 mx-auto">

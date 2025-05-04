@@ -6,7 +6,8 @@ import BlogCard from "@/components/blog/blog-card";
 import BlogFilters from "@/components/blog/blog-filters";
 import { toast } from "sonner";
 
-interface BlogPost {
+// Define interfaces for both data sources
+interface SupabaseBlogPost {
   id: string;
   title: string;
   slug: string;
@@ -15,18 +16,29 @@ interface BlogPost {
   tags: string[];
   created_at: string;
   content?: string; 
+  author_id?: string;
+}
+
+// Interface matching what BlogCard expects
+interface BlogCardPost {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  coverImage: string; 
+  tags: string[];
+  date: string;
   author?: {          
     name: string;
     avatar: string;
   };
-  date?: string; 
-  coverImage?: string; // Added to match the BlogCard component expectations
 }
 
 const BlogPage = () => {
   const [activeTag, setActiveTag] = useState("All");
   const [searchValue, setSearchValue] = useState("");
-  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
+  const [blogPosts, setBlogPosts] = useState<BlogCardPost[]>([]);
   const [tags, setTags] = useState<string[]>(["All"]);
   const [isLoading, setIsLoading] = useState(true);
   
@@ -45,10 +57,19 @@ const BlogPage = () => {
         // Process posts and extract unique tags
         if (data) {
           // Format posts for compatibility with the BlogCard component
-          const formattedPosts = data.map(post => ({
-            ...post,
+          const formattedPosts = data.map((post: SupabaseBlogPost) => ({
+            id: post.id,
+            title: post.title,
+            slug: post.slug,
+            excerpt: post.excerpt || "",
+            content: post.content || "",  // Ensure content is always provided
+            coverImage: post.cover_image || "", // Map cover_image to coverImage
+            tags: post.tags || [],
             date: post.created_at, // Make sure we have a date field for the BlogCard component
-            coverImage: post.cover_image // Map cover_image to coverImage
+            author: {
+              name: "Admin",
+              avatar: "/placeholder.svg"
+            }
           }));
           
           setBlogPosts(formattedPosts);
