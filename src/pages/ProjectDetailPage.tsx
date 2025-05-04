@@ -1,138 +1,194 @@
 
-import { useParams, Link } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
-import { projects } from "@/data/projects";
+import { useState, useEffect } from "react";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { formatDate } from "@/lib/utils";
+import { ArrowLeft, Link2 } from "lucide-react";
+import { toast } from "sonner";
+
+interface Project {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  tech_stack: string[];
+  images: string[];
+  links: {
+    title: string;
+    url: string;
+  }[];
+  created_at: string;
+}
 
 const ProjectDetailPage = () => {
-  const { projectId } = useParams<{ projectId: string }>();
-  const project = projects.find(p => p.id === projectId);
-  
-  if (!project) {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [project, setProject] = useState<Project | null>(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProject = async () => {
+      if (!id) return;
+
+      try {
+        setIsLoading(true);
+        const { data, error } = await supabase
+          .from("portfolio_projects")
+          .select("*")
+          .eq("id", id)
+          .single();
+
+        if (error) throw error;
+
+        if (data) {
+          // Parse links from JSON if necessary
+          const links = Array.isArray(data.links) 
+            ? data.links
+            : typeof data.links === 'object' && data.links !== null
+              ? Object.entries(data.links).map(([title, url]) => ({ title, url }))
+              : [];
+
+          setProject({
+            ...data,
+            links
+          });
+        } else {
+          // No project found
+          navigate("/portfolio");
+          toast.error("Project not found");
+        }
+      } catch (error) {
+        console.error("Error fetching project:", error);
+        toast.error("Failed to load project");
+        navigate("/portfolio");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProject();
+  }, [id, navigate]);
+
+  const nextImage = () => {
+    if (!project || !project.images.length) return;
+    setCurrentImageIndex((prev) => (prev + 1) % project.images.length);
+  };
+
+  const prevImage = () => {
+    if (!project || !project.images.length) return;
+    setCurrentImageIndex((prev) => (prev - 1 + project.images.length) % project.images.length);
+  };
+
+  if (isLoading) {
     return (
-      <div className="container px-4 py-16 text-center">
-        <h2 className="text-2xl font-bold mb-4">Project not found</h2>
-        <p className="mb-6">Sorry, the project you're looking for doesn't exist.</p>
-        <Button asChild>
-          <Link to="/portfolio">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Portfolio
-          </Link>
-        </Button>
+      <div className="container max-w-6xl px-4 py-16 mx-auto">
+        <div className="animate-pulse">
+          <div className="h-8 bg-muted rounded w-3/4 mb-4"></div>
+          <div className="h-4 bg-muted rounded w-1/4 mb-8"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+            <div className="h-96 bg-muted rounded"></div>
+            <div className="space-y-4">
+              <div className="h-4 bg-muted rounded w-full"></div>
+              <div className="h-4 bg-muted rounded w-full"></div>
+              <div className="h-4 bg-muted rounded w-5/6"></div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
-  
+
+  if (!project) return null;
+
   return (
-    <div className="container px-4 py-16 mx-auto">
+    <div className="container max-w-6xl px-4 py-16 mx-auto">
       <div className="mb-8">
-        <Button asChild variant="outline" className="mb-6">
+        <Button variant="ghost" asChild>
           <Link to="/portfolio">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Portfolio
           </Link>
         </Button>
-        
-        <h1 className="text-3xl md:text-4xl font-bold mb-4">{project.title}</h1>
-        
-        <div className="flex flex-wrap gap-2 mb-4">
-          {project.categories.map((category) => (
-            <span 
-              key={category} 
-              className="text-sm px-3 py-1 bg-secondary text-secondary-foreground rounded-full"
-            >
-              {category}
-            </span>
-          ))}
-        </div>
-        
-        <p className="text-muted-foreground mb-8">
-          Completed on {formatDate(project.date)}
-        </p>
       </div>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 mb-12">
-        <div className="lg:col-span-2">
-          <div className="rounded-lg overflow-hidden border mb-8">
-            <img 
-              src={project.coverImage} 
-              alt={project.title}
-              className="w-full h-auto"
-            />
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <div className="space-y-6">
+          <h1 className="text-4xl font-bold">{project.title}</h1>
+          
+          <div className="flex flex-wrap gap-2">
+            <Badge variant="secondary">{project.category}</Badge>
+            {project.tech_stack && project.tech_stack.map((tech) => (
+              <Badge key={tech} variant="outline">{tech}</Badge>
+            ))}
           </div>
           
-          <div className="prose max-w-none dark:prose-invert">
-            <h2 className="text-2xl font-semibold mb-4">Project Overview</h2>
-            <p className="mb-6">{project.description}</p>
-            
-            {project.caseStudy && (
-              <>
-                <h2 className="text-2xl font-semibold mt-12 mb-4">Case Study</h2>
-                
-                <h3 className="text-xl font-semibold mt-8 mb-2">The Challenge</h3>
-                <p className="mb-6">{project.caseStudy.challenge}</p>
-                
-                <h3 className="text-xl font-semibold mt-8 mb-2">The Solution</h3>
-                <p className="mb-6">{project.caseStudy.solution}</p>
-                
-                <h3 className="text-xl font-semibold mt-8 mb-2">The Results</h3>
-                <p className="mb-6">{project.caseStudy.results}</p>
-              </>
-            )}
-          </div>
+          {project.images && project.images.length > 0 && (
+            <div className="relative aspect-video rounded-lg overflow-hidden">
+              <img 
+                src={project.images[currentImageIndex]} 
+                alt={`${project.title} - Image ${currentImageIndex + 1}`}
+                className="w-full h-full object-cover"
+              />
+              
+              {project.images.length > 1 && (
+                <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
+                  {project.images.map((_, index) => (
+                    <button
+                      key={index}
+                      className={`w-3 h-3 rounded-full ${
+                        index === currentImageIndex ? "bg-primary" : "bg-muted"
+                      }`}
+                      onClick={() => setCurrentImageIndex(index)}
+                      aria-label={`Go to image ${index + 1}`}
+                    />
+                  ))}
+                </div>
+              )}
+              
+              {project.images.length > 1 && (
+                <>
+                  <button
+                    className="absolute top-1/2 left-4 -translate-y-1/2 bg-background/80 rounded-full p-2"
+                    onClick={prevImage}
+                    aria-label="Previous image"
+                  >
+                    <ArrowLeft className="h-5 w-5" />
+                  </button>
+                  <button
+                    className="absolute top-1/2 right-4 -translate-y-1/2 bg-background/80 rounded-full p-2"
+                    onClick={nextImage}
+                    aria-label="Next image"
+                  >
+                    <ArrowLeft className="h-5 w-5 transform rotate-180" />
+                  </button>
+                </>
+              )}
+            </div>
+          )}
         </div>
         
-        <div>
-          <div className="bg-card border rounded-lg p-6 shadow-sm sticky top-24">
-            <h2 className="text-xl font-semibold mb-4">Project Details</h2>
-            
-            <div className="mb-6">
-              <h3 className="text-sm font-medium text-muted-foreground mb-2">Technologies & Tools</h3>
-              <div className="flex flex-wrap gap-2">
-                {project.tools.map((tool) => (
-                  <span 
-                    key={tool} 
-                    className="text-xs px-2 py-1 bg-secondary text-secondary-foreground rounded-full"
-                  >
-                    {tool}
-                  </span>
+        <div className="space-y-6">
+          <div className="prose dark:prose-invert max-w-none">
+            <div className="mt-4" dangerouslySetInnerHTML={{ __html: project.description.replace(/\n/g, '<br />') }} />
+          </div>
+
+          {project.links && project.links.length > 0 && (
+            <div className="space-y-3">
+              <h3 className="text-xl font-semibold">Project Links</h3>
+              <div className="flex flex-wrap gap-3">
+                {project.links.map((link, index) => (
+                  <Button key={index} variant="outline" asChild>
+                    <a href={link.url} target="_blank" rel="noopener noreferrer">
+                      <Link2 className="mr-2 h-4 w-4" />
+                      {link.title}
+                    </a>
+                  </Button>
                 ))}
               </div>
             </div>
-            
-            {project.links && (
-              <div className="space-y-3">
-                <h3 className="text-sm font-medium text-muted-foreground">Project Links</h3>
-                
-                {project.links.live && (
-                  <div>
-                    <a 
-                      href={project.links.live}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary hover:underline block w-full text-center py-2 border border-input rounded-md"
-                    >
-                      View Live Project
-                    </a>
-                  </div>
-                )}
-                
-                {project.links.github && (
-                  <div>
-                    <a 
-                      href={project.links.github}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary hover:underline block w-full text-center py-2 border border-input rounded-md"
-                    >
-                      View Source Code
-                    </a>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+          )}
         </div>
       </div>
     </div>
