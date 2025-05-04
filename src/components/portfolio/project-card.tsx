@@ -1,6 +1,23 @@
 
 import { Link } from "react-router-dom";
-import { type Project } from "@/data/projects";
+
+interface ProjectLink {
+  title: string;
+  url: string;
+}
+
+export interface Project {
+  id: string;
+  title: string;
+  summary: string;
+  description: string;
+  coverImage: string;
+  categories: string[];
+  tools: string[];
+  featured: boolean;
+  date: string;
+  links: ProjectLink[];
+}
 
 interface ProjectCardProps {
   project: Project;

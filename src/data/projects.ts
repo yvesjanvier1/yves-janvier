@@ -1,4 +1,9 @@
 
+export interface ProjectLink {
+  title: string;
+  url: string;
+}
+
 export interface Project {
   id: string;
   title: string;
@@ -14,11 +19,7 @@ export interface Project {
     solution: string;
     results: string;
   };
-  links?: {
-    live?: string;
-    github?: string;
-    case_study?: string;
-  };
+  links: ProjectLink[];
 }
 
 export const projectCategories = [
@@ -45,10 +46,10 @@ export const projects: Project[] = [
       solution: "Developed a custom dashboard that integrates market data APIs, internal databases, and predictive models into a unified interface with role-based access controls.",
       results: "Reduced analysis time by 60%, increased data accuracy by 35%, and enabled more informed investment decisions resulting in improved portfolio performance."
     },
-    links: {
-      live: "https://example.com/demo",
-      github: "https://github.com/example"
-    }
+    links: [
+      { title: "Live Demo", url: "https://example.com/demo" },
+      { title: "GitHub", url: "https://github.com/example" }
+    ]
   },
   {
     id: "ai-recommendation-system",
@@ -64,7 +65,8 @@ export const projects: Project[] = [
       challenge: "An e-commerce client was struggling with low conversion rates and needed a way to improve cross-selling opportunities.",
       solution: "Implemented a hybrid recommendation system combining collaborative filtering and content-based approaches, integrated with their existing e-commerce platform.",
       results: "Increased conversion rates by 24%, improved average order value by 18%, and enhanced customer satisfaction scores."
-    }
+    },
+    links: []
   },
   {
     id: "healthcare-management-platform",
@@ -80,7 +82,8 @@ export const projects: Project[] = [
       challenge: "Healthcare providers needed a secure, efficient way to manage patient information across multiple facilities while ensuring regulatory compliance.",
       solution: "Built a cloud-based platform with role-based access controls, audit trails, and integrated telemedicine capabilities that works across desktop and mobile devices.",
       results: "Reduced administrative workload by 40%, improved appointment attendance rates by 28%, and enabled seamless transition to hybrid care models."
-    }
+    },
+    links: []
   },
   {
     id: "crypto-payment-gateway",
@@ -91,7 +94,8 @@ export const projects: Project[] = [
     categories: ["Fintech", "Web Development"],
     tools: ["Blockchain", "React", "Node.js", "Express", "MongoDB"],
     date: "2023-01-18",
-    featured: false
+    featured: false,
+    links: []
   },
   {
     id: "supply-chain-analytics",
@@ -102,7 +106,8 @@ export const projects: Project[] = [
     categories: ["Data Analytics", "SaaS"],
     tools: ["Python", "R", "Tableau", "AWS", "React"],
     date: "2022-09-30",
-    featured: false
+    featured: false,
+    links: []
   },
   {
     id: "smart-city-dashboard",
@@ -113,6 +118,7 @@ export const projects: Project[] = [
     categories: ["Data Analytics", "Web Development"],
     tools: ["IoT", "React", "Node.js", "Time Series DB", "D3.js"],
     date: "2022-06-15",
-    featured: false
+    featured: false,
+    links: []
   }
 ];
