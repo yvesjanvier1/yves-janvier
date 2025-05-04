@@ -1,11 +1,12 @@
-
 import { useState, useEffect } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, ExternalLink, Github } from "lucide-react";
+import { SectionHeader } from "@/components/ui/section-header";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Link2 } from "lucide-react";
-import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import { Json } from "@/integrations/supabase/types";
 
 interface Project {
   id: string;
@@ -13,20 +14,20 @@ interface Project {
   description: string;
   category: string;
   tech_stack: string[];
+  featured: boolean;
+  created_at: string;
   images: string[];
-  links: {
+  links?: {
     title: string;
     url: string;
   }[];
-  created_at: string;
 }
 
 const ProjectDetailPage = () => {
-  const { id } = useParams();
-  const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
   const [project, setProject] = useState<Project | null>(null);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -34,161 +35,144 @@ const ProjectDetailPage = () => {
 
       try {
         setIsLoading(true);
+        setError(null);
+
         const { data, error } = await supabase
           .from("portfolio_projects")
           .select("*")
           .eq("id", id)
-          .single();
+          .maybeSingle();
 
         if (error) throw error;
 
-        if (data) {
-          // Parse links from JSON if necessary
-          const links = Array.isArray(data.links) 
-            ? data.links
-            : typeof data.links === 'object' && data.links !== null
-              ? Object.entries(data.links).map(([title, url]) => ({ title, url }))
-              : [];
-
-          setProject({
-            ...data,
-            links
-          });
-        } else {
-          // No project found
-          navigate("/portfolio");
-          toast.error("Project not found");
+        if (!data) {
+          setError("Project not found");
+          return;
         }
-      } catch (error) {
-        console.error("Error fetching project:", error);
-        toast.error("Failed to load project");
-        navigate("/portfolio");
+
+        // Format links from JSON
+        let formattedLinks: { title: string; url: string }[] = [];
+        
+        if (data.links) {
+          if (Array.isArray(data.links)) {
+            formattedLinks = data.links.map(link => {
+              if (typeof link === 'object' && link !== null) {
+                return {
+                  title: String(link.title || ''),
+                  url: String(link.url || '')
+                };
+              }
+              return { title: 'Link', url: String(link) };
+            });
+          } else if (typeof data.links === 'object' && data.links !== null) {
+            formattedLinks = Object.entries(data.links).map(([title, url]) => ({ 
+              title, 
+              url: String(url) 
+            }));
+          }
+        }
+
+        setProject({
+          ...data,
+          links: formattedLinks
+        });
+      } catch (err) {
+        console.error("Error fetching project:", err);
+        setError("Failed to load project details");
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchProject();
-  }, [id, navigate]);
-
-  const nextImage = () => {
-    if (!project || !project.images.length) return;
-    setCurrentImageIndex((prev) => (prev + 1) % project.images.length);
-  };
-
-  const prevImage = () => {
-    if (!project || !project.images.length) return;
-    setCurrentImageIndex((prev) => (prev - 1 + project.images.length) % project.images.length);
-  };
+  }, [id]);
 
   if (isLoading) {
     return (
-      <div className="container max-w-6xl px-4 py-16 mx-auto">
-        <div className="animate-pulse">
-          <div className="h-8 bg-muted rounded w-3/4 mb-4"></div>
-          <div className="h-4 bg-muted rounded w-1/4 mb-8"></div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-            <div className="h-96 bg-muted rounded"></div>
-            <div className="space-y-4">
-              <div className="h-4 bg-muted rounded w-full"></div>
-              <div className="h-4 bg-muted rounded w-full"></div>
-              <div className="h-4 bg-muted rounded w-5/6"></div>
-            </div>
+      <div className="container px-4 py-16 md:py-24 mx-auto">
+        <SectionHeader title={<Skeleton className="h-8 w-80" />} subtitle={<Skeleton className="h-6 w-64" />} centered />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-10">
+          <Skeleton className="h-64" />
+          <div>
+            <Skeleton className="h-8 w-48 mb-4" />
+            <Skeleton className="h-4 w-full mb-2" />
+            <Skeleton className="h-4 w-full mb-2" />
+            <Skeleton className="h-4 w-full mb-2" />
+            <Skeleton className="h-4 w-full mb-2" />
           </div>
         </div>
       </div>
     );
   }
 
-  if (!project) return null;
+  if (error) {
+    return (
+      <div className="container px-4 py-16 md:py-24 mx-auto text-center">
+        <SectionHeader title="Error" subtitle={error} centered />
+      </div>
+    );
+  }
+
+  if (!project) {
+    return (
+      <div className="container px-4 py-16 md:py-24 mx-auto text-center">
+        <SectionHeader title="Project Not Found" subtitle="The requested project could not be found." centered />
+      </div>
+    );
+  }
 
   return (
-    <div className="container max-w-6xl px-4 py-16 mx-auto">
+    <div className="container px-4 py-16 md:py-24 mx-auto">
       <div className="mb-8">
-        <Button variant="ghost" asChild>
-          <Link to="/portfolio">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Portfolio
-          </Link>
-        </Button>
+        <Link to="/portfolio" className="inline-flex items-center text-primary hover:underline">
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Portfolio
+        </Link>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-        <div className="space-y-6">
-          <h1 className="text-4xl font-bold">{project.title}</h1>
-          
-          <div className="flex flex-wrap gap-2">
-            <Badge variant="secondary">{project.category}</Badge>
-            {project.tech_stack && project.tech_stack.map((tech) => (
-              <Badge key={tech} variant="outline">{tech}</Badge>
-            ))}
-          </div>
-          
-          {project.images && project.images.length > 0 && (
-            <div className="relative aspect-video rounded-lg overflow-hidden">
-              <img 
-                src={project.images[currentImageIndex]} 
-                alt={`${project.title} - Image ${currentImageIndex + 1}`}
-                className="w-full h-full object-cover"
-              />
-              
-              {project.images.length > 1 && (
-                <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
-                  {project.images.map((_, index) => (
-                    <button
-                      key={index}
-                      className={`w-3 h-3 rounded-full ${
-                        index === currentImageIndex ? "bg-primary" : "bg-muted"
-                      }`}
-                      onClick={() => setCurrentImageIndex(index)}
-                      aria-label={`Go to image ${index + 1}`}
-                    />
-                  ))}
-                </div>
-              )}
-              
-              {project.images.length > 1 && (
-                <>
-                  <button
-                    className="absolute top-1/2 left-4 -translate-y-1/2 bg-background/80 rounded-full p-2"
-                    onClick={prevImage}
-                    aria-label="Previous image"
-                  >
-                    <ArrowLeft className="h-5 w-5" />
-                  </button>
-                  <button
-                    className="absolute top-1/2 right-4 -translate-y-1/2 bg-background/80 rounded-full p-2"
-                    onClick={nextImage}
-                    aria-label="Next image"
-                  >
-                    <ArrowLeft className="h-5 w-5 transform rotate-180" />
-                  </button>
-                </>
-              )}
+      <SectionHeader title={project.title} subtitle={project.description.substring(0, 150) + "..."} centered />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-10">
+        <div>
+          {project.images && project.images.length > 0 ? (
+            <img src={project.images[0]} alt={project.title} className="w-full rounded-md shadow-md" />
+          ) : (
+            <div className="bg-secondary rounded-md aspect-video flex items-center justify-center text-secondary-foreground">
+              No Image Available
             </div>
           )}
         </div>
-        
-        <div className="space-y-6">
-          <div className="prose dark:prose-invert max-w-none">
-            <div className="mt-4" dangerouslySetInnerHTML={{ __html: project.description.replace(/\n/g, '<br />') }} />
+        <div>
+          <h3 className="text-xl font-semibold mb-4">Project Details</h3>
+          <p className="text-muted-foreground mb-6">{project.description}</p>
+
+          <div className="mb-4">
+            <h4 className="text-lg font-semibold mb-2">Category</h4>
+            <Badge>{project.category}</Badge>
           </div>
 
-          {project.links && project.links.length > 0 && (
-            <div className="space-y-3">
-              <h3 className="text-xl font-semibold">Project Links</h3>
-              <div className="flex flex-wrap gap-3">
-                {project.links.map((link, index) => (
-                  <Button key={index} variant="outline" asChild>
-                    <a href={link.url} target="_blank" rel="noopener noreferrer">
-                      <Link2 className="mr-2 h-4 w-4" />
-                      {link.title}
-                    </a>
-                  </Button>
-                ))}
-              </div>
+          <div className="mb-4">
+            <h4 className="text-lg font-semibold mb-2">Technologies Used</h4>
+            <div className="flex flex-wrap gap-2">
+              {project.tech_stack && project.tech_stack.map((tech, index) => (
+                <Badge key={index} variant="secondary">{tech}</Badge>
+              ))}
             </div>
-          )}
+          </div>
+
+          <div>
+            <h4 className="text-lg font-semibold mb-2">Links</h4>
+            <div className="flex flex-col gap-2">
+              {project.links && project.links.map((link, index) => (
+                <Button key={index} asChild variant="outline">
+                  <a href={link.url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between w-full">
+                    {link.title}
+                    <ExternalLink className="h-4 w-4 ml-2" />
+                  </a>
+                </Button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </div>

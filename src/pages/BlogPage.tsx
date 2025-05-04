@@ -14,6 +14,11 @@ interface BlogPost {
   cover_image: string;
   tags: string[];
   created_at: string;
+  content?: string; // Make content optional
+  author?: {          // Make author optional
+    name: string;
+    avatar: string;
+  };
   date?: string; // For compatibility with BlogCard component
 }
 

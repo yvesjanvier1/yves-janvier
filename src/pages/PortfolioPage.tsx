@@ -5,19 +5,24 @@ import { SectionHeader } from "@/components/ui/section-header";
 import ProjectCard from "@/components/portfolio/project-card";
 import ProjectFilters from "@/components/portfolio/project-filters";
 import { toast } from "sonner";
+import { Json } from "@/integrations/supabase/types"; // Import Json type from supabase
 
+// Update Project interface to align with both Supabase data and ProjectCard component
 interface Project {
   id: string;
   title: string;
   summary?: string;
   description: string;
   coverImage?: string;
-  category: string;
-  tech_stack: string[];
+  categories?: string[]; // To satisfy ProjectCard
+  category?: string; // From Supabase
+  tech_stack?: string[];
+  tools?: string[]; // To satisfy ProjectCard
   featured: boolean;
   created_at: string;
-  images: string[];
-  links: {
+  date?: string; // To satisfy ProjectCard
+  images?: string[];
+  links?: {
     title: string;
     url: string;
   }[];
@@ -45,11 +50,26 @@ const PortfolioPage = () => {
           // Format projects for compatibility with the ProjectCard component
           const formattedProjects = data.map(project => {
             // Parse links from JSON if necessary
-            const links = Array.isArray(project.links) 
-              ? project.links
-              : typeof project.links === 'object' && project.links !== null
-                ? Object.entries(project.links).map(([title, url]) => ({ title, url }))
-                : [];
+            let formattedLinks: { title: string; url: string }[] = [];
+            
+            if (project.links) {
+              if (Array.isArray(project.links)) {
+                formattedLinks = project.links.map(link => {
+                  if (typeof link === 'object' && link !== null) {
+                    return {
+                      title: String(link.title || ''),
+                      url: String(link.url || '')
+                    };
+                  }
+                  return { title: 'Link', url: String(link) };
+                });
+              } else if (typeof project.links === 'object' && project.links !== null) {
+                formattedLinks = Object.entries(project.links).map(([title, url]) => ({ 
+                  title, 
+                  url: String(url) 
+                }));
+              }
+            }
                 
             return {
               id: project.id,
@@ -58,11 +78,16 @@ const PortfolioPage = () => {
               description: project.description,
               coverImage: project.images && project.images.length > 0 ? project.images[0] : undefined,
               category: project.category || "Uncategorized",
+              // Create categories array to satisfy ProjectCard component
+              categories: project.category ? [project.category] : ["Uncategorized"],
               tech_stack: project.tech_stack || [],
+              // Create tools array to satisfy ProjectCard component
+              tools: project.tech_stack || [],
               featured: project.featured || false,
               created_at: project.created_at,
+              date: project.created_at, // For compatibility with ProjectCard
               images: project.images || [],
-              links
+              links: formattedLinks
             };
           });
           
