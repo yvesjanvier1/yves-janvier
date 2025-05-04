@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,8 +9,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { ArrowLeft, Plus, Trash2, Link2 } from "lucide-react";
-import { Json } from "@/integrations/supabase/types"; // Import the Json type from Supabase types
+import { FormField } from "@/components/ui/form-field";
+import { Json } from "@/integrations/supabase/types";
+import { FormHeader } from "@/components/dashboard/portfolio/form/form-header";
+import { TechStackField } from "@/components/dashboard/portfolio/form/tech-stack-field";
+import { ImageField } from "@/components/dashboard/portfolio/form/image-field";
+import { LinkField } from "@/components/dashboard/portfolio/form/link-field";
 
 interface ProjectLink {
   title: string;
@@ -44,11 +49,6 @@ const PortfolioFormPage = () => {
     images: [],
     featured: false
   });
-
-  const [techInput, setTechInput] = useState("");
-  const [imageInput, setImageInput] = useState("");
-  const [linkTitle, setLinkTitle] = useState("");
-  const [linkUrl, setLinkUrl] = useState("");
 
   useEffect(() => {
     if (isEditing) {
@@ -109,14 +109,11 @@ const PortfolioFormPage = () => {
     }));
   };
 
-  const addTechnology = () => {
-    if (techInput.trim() && !formData.tech_stack.includes(techInput.trim())) {
-      setFormData(prev => ({
-        ...prev,
-        tech_stack: [...prev.tech_stack, techInput.trim()]
-      }));
-      setTechInput("");
-    }
+  const addTechnology = (tech: string) => {
+    setFormData(prev => ({
+      ...prev,
+      tech_stack: [...prev.tech_stack, tech]
+    }));
   };
 
   const removeTechnology = (techToRemove: string) => {
@@ -126,14 +123,11 @@ const PortfolioFormPage = () => {
     }));
   };
 
-  const addImage = () => {
-    if (imageInput.trim() && !formData.images.includes(imageInput.trim())) {
-      setFormData(prev => ({
-        ...prev,
-        images: [...prev.images, imageInput.trim()]
-      }));
-      setImageInput("");
-    }
+  const addImage = (image: string) => {
+    setFormData(prev => ({
+      ...prev,
+      images: [...prev.images, image]
+    }));
   };
 
   const removeImage = (imageToRemove: string) => {
@@ -143,15 +137,11 @@ const PortfolioFormPage = () => {
     }));
   };
 
-  const addLink = () => {
-    if (linkTitle.trim() && linkUrl.trim()) {
-      setFormData(prev => ({
-        ...prev,
-        links: [...prev.links, { title: linkTitle.trim(), url: linkUrl.trim() }]
-      }));
-      setLinkTitle("");
-      setLinkUrl("");
-    }
+  const addLink = (link: ProjectLink) => {
+    setFormData(prev => ({
+      ...prev,
+      links: [...prev.links, link]
+    }));
   };
 
   const removeLink = (linkToRemove: ProjectLink) => {
@@ -214,18 +204,11 @@ const PortfolioFormPage = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" onClick={() => navigate("/dashboard/portfolio")}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Projects
-        </Button>
-        <h1 className="text-3xl font-bold">{isEditing ? "Edit" : "Create"} Portfolio Project</h1>
-      </div>
+      <FormHeader isEditing={isEditing} />
       
       <Card className="p-6">
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="title">Title *</Label>
+          <FormField id="title" label="Title" required>
             <Input
               id="title"
               name="title"
@@ -234,10 +217,9 @@ const PortfolioFormPage = () => {
               required
               placeholder="Project title"
             />
-          </div>
+          </FormField>
           
-          <div className="space-y-2">
-            <Label htmlFor="slug">Slug *</Label>
+          <FormField id="slug" label="Slug" required>
             <Input
               id="slug"
               name="slug"
@@ -246,10 +228,9 @@ const PortfolioFormPage = () => {
               required
               placeholder="project-url-slug"
             />
-          </div>
+          </FormField>
           
-          <div className="space-y-2">
-            <Label htmlFor="category">Category</Label>
+          <FormField id="category" label="Category">
             <Input
               id="category"
               name="category"
@@ -257,10 +238,9 @@ const PortfolioFormPage = () => {
               onChange={handleChange}
               placeholder="e.g. Web Development, Data Analytics"
             />
-          </div>
+          </FormField>
           
-          <div className="space-y-2">
-            <Label htmlFor="description">Description *</Label>
+          <FormField id="description" label="Description" required>
             <Textarea
               id="description"
               name="description"
@@ -270,134 +250,25 @@ const PortfolioFormPage = () => {
               placeholder="Project description (Markdown supported)"
               rows={8}
             />
-          </div>
+          </FormField>
           
-          <div className="space-y-2">
-            <Label htmlFor="tech_stack">Technologies Used</Label>
-            <div className="flex gap-2">
-              <Input
-                id="techInput"
-                value={techInput}
-                onChange={(e) => setTechInput(e.target.value)}
-                placeholder="Add technology"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    addTechnology();
-                  }
-                }}
-              />
-              <Button type="button" onClick={addTechnology}>Add</Button>
-            </div>
-            {formData.tech_stack.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-2">
-                {formData.tech_stack.map((tech, index) => (
-                  <div key={index} className="flex items-center gap-1 bg-muted rounded-full px-3 py-1">
-                    <span>{tech}</span>
-                    <button
-                      type="button"
-                      onClick={() => removeTechnology(tech)}
-                      className="text-muted-foreground hover:text-destructive"
-                    >
-                      &times;
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <TechStackField 
+            techStack={formData.tech_stack}
+            onAddTech={addTechnology}
+            onRemoveTech={removeTechnology}
+          />
           
-          <div className="space-y-2">
-            <Label>Links</Label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              <Input
-                value={linkTitle}
-                onChange={(e) => setLinkTitle(e.target.value)}
-                placeholder="Link title (e.g. GitHub, Demo)"
-              />
-              <div className="flex gap-2">
-                <Input
-                  value={linkUrl}
-                  onChange={(e) => setLinkUrl(e.target.value)}
-                  placeholder="URL (https://...)"
-                />
-                <Button type="button" onClick={addLink} className="shrink-0">
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-            
-            {formData.links.length > 0 && (
-              <div className="space-y-2 mt-2">
-                {formData.links.map((link, index) => (
-                  <div key={index} className="flex items-center justify-between bg-muted rounded-md p-2">
-                    <div className="flex items-center gap-2">
-                      <Link2 className="h-4 w-4" />
-                      <span className="font-medium">{link.title}:</span>
-                      <a 
-                        href={link.url} 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className="text-blue-500 hover:underline truncate max-w-[200px]"
-                      >
-                        {link.url}
-                      </a>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => removeLink(link)}
-                      className="text-muted-foreground hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <LinkField 
+            links={formData.links}
+            onAddLink={addLink}
+            onRemoveLink={removeLink}
+          />
           
-          <div className="space-y-2">
-            <Label htmlFor="images">Images</Label>
-            <div className="flex gap-2">
-              <Input
-                id="imageInput"
-                value={imageInput}
-                onChange={(e) => setImageInput(e.target.value)}
-                placeholder="Image URL (https://...)"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    addImage();
-                  }
-                }}
-              />
-              <Button type="button" onClick={addImage}>Add</Button>
-            </div>
-            
-            {formData.images.length > 0 && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
-                {formData.images.map((image, index) => (
-                  <div key={index} className="relative group rounded-md overflow-hidden">
-                    <img
-                      src={image}
-                      alt={`Project image ${index + 1}`}
-                      className="w-full h-32 object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = "https://placehold.co/600x400?text=Image+Error";
-                      }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeImage(image)}
-                      className="absolute top-2 right-2 p-1 bg-black/60 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <ImageField 
+            images={formData.images}
+            onAddImage={addImage}
+            onRemoveImage={removeImage}
+          />
           
           <div className="flex items-center space-x-2">
             <Switch

@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { StatCard } from "./StatCard";
 import { PieChartDisplay, BarChartDisplay, LineChartDisplay } from "./AnalyticsCharts";
 import { PageDetailsTable } from "./PageDetailsTable";
+import { StatsChartWrapper } from "./stats-chart-wrapper";
 
 interface AnalyticsSummary {
   page: string;
@@ -108,15 +109,35 @@ export function AnalyticsDashboard() {
         </TabsList>
         
         <TabsContent value="overview" className="space-y-4">
-          <PieChartDisplay data={pieChartData} isLoading={isLoading} />
+          <StatsChartWrapper 
+            title="Page Views Distribution" 
+            description="Views by page relative to total"
+            isLoading={isLoading}
+            hasData={pieChartData.length > 0}
+          >
+            <PieChartDisplay data={pieChartData} />
+          </StatsChartWrapper>
         </TabsContent>
         
         <TabsContent value="pages" className="space-y-4">
-          <BarChartDisplay data={barChartData} isLoading={isLoading} />
+          <StatsChartWrapper 
+            title="Page Analytics" 
+            description="Views and unique visitors by page"
+            isLoading={isLoading}
+            hasData={barChartData.length > 0}
+          >
+            <BarChartDisplay data={barChartData} />
+          </StatsChartWrapper>
         </TabsContent>
         
         <TabsContent value="timeline" className="space-y-4">
-          <LineChartDisplay data={timelineData} />
+          <StatsChartWrapper 
+            title="Timeline View" 
+            description="Page views over time"
+            hasData={timelineData.length > 0}
+          >
+            <LineChartDisplay data={timelineData} />
+          </StatsChartWrapper>
         </TabsContent>
       </Tabs>
       

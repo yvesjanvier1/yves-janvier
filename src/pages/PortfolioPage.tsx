@@ -62,19 +62,16 @@ const PortfolioPage = () => {
             if (project.links) {
               if (Array.isArray(project.links)) {
                 formattedLinks = (project.links as any[]).map(link => {
-                  if (typeof link === 'object' && link !== null) {
-                    return {
-                      title: String(link.title || ''),
-                      url: String(link.url || '')
-                    };
-                  }
-                  return { title: 'Link', url: String(link) };
+                  return {
+                    title: typeof link.title === 'string' ? link.title : 'Link',
+                    url: typeof link.url === 'string' ? link.url : ''
+                  };
                 });
               } else if (typeof project.links === 'object' && project.links !== null) {
                 const linksObj = project.links as Record<string, any>;
                 formattedLinks = Object.entries(linksObj).map(([title, url]) => ({ 
                   title, 
-                  url: String(url) 
+                  url: typeof url === 'string' ? url : '' 
                 }));
               }
             }
@@ -86,7 +83,6 @@ const PortfolioPage = () => {
               description: project.description,
               coverImage: project.images && project.images.length > 0 ? project.images[0] : "/placeholder.svg",
               categories: project.category ? [project.category] : ["Uncategorized"],
-              tech_stack: project.tech_stack || [],
               tools: project.tech_stack || [],
               featured: project.featured || false,
               date: project.created_at,

@@ -29,7 +29,7 @@ interface BlogCardPost {
   coverImage: string; 
   tags: string[];
   date: string;
-  author?: {          
+  author: {          
     name: string;
     avatar: string;
   };
@@ -57,7 +57,7 @@ const BlogPage = () => {
         // Process posts and extract unique tags
         if (data) {
           // Format posts for compatibility with the BlogCard component
-          const formattedPosts = data.map((post: SupabaseBlogPost) => ({
+          const formattedPosts = data.map((post: SupabaseBlogPost): BlogCardPost => ({
             id: post.id,
             title: post.title,
             slug: post.slug,

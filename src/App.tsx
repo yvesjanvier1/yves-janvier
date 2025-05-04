@@ -46,23 +46,18 @@ function App() {
             <Route path="/admin" element={<DashboardLoginPage />} />
             
             {/* Dashboard Routes */}
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <DashboardLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<DashboardHomePage />} />
-              <Route path="blog" element={<BlogManagePage />} />
-              <Route path="blog/new" element={<BlogFormPage />} />
-              <Route path="blog/edit/:id" element={<BlogFormPage />} />
-              <Route path="portfolio" element={<PortfolioManagePage />} />
-              <Route path="portfolio/new" element={<PortfolioFormPage />} />
-              <Route path="portfolio/edit/:id" element={<PortfolioFormPage />} />
-              <Route path="messages" element={<MessagesPage />} />
-              <Route path="analytics" element={<AnalyticsPage />} />
+            <Route path="/dashboard" element={<ProtectedRoute />}>
+              <Route element={<DashboardLayout />}>
+                <Route index element={<DashboardHomePage />} />
+                <Route path="blog" element={<BlogManagePage />} />
+                <Route path="blog/new" element={<BlogFormPage />} />
+                <Route path="blog/edit/:id" element={<BlogFormPage />} />
+                <Route path="portfolio" element={<PortfolioManagePage />} />
+                <Route path="portfolio/new" element={<PortfolioFormPage />} />
+                <Route path="portfolio/edit/:id" element={<PortfolioFormPage />} />
+                <Route path="messages" element={<MessagesPage />} />
+                <Route path="analytics" element={<AnalyticsPage />} />
+              </Route>
             </Route>
 
             {/* Not Found */}
