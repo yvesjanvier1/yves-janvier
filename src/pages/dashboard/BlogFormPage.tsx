@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -118,7 +117,7 @@ const BlogFormPage = () => {
       const postData = {
         ...formData,
         author_id: user?.id,
-        updated_at: new Date()
+        updated_at: new Date().toISOString() // Convert Date to ISO string
       };
       
       let result;

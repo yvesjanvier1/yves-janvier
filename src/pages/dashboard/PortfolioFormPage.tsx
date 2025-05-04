@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { ArrowLeft, Plus, Trash2, Link2 } from "lucide-react";
+import { Json } from "@/integrations/supabase/types"; // Import the Json type from Supabase types
 
 interface ProjectLink {
   title: string;
@@ -63,9 +63,18 @@ const PortfolioFormPage = () => {
             
           if (error) throw error;
           if (data) {
-            // Make sure links is parsed as an array of objects
-            const links = Array.isArray(data.links) ? data.links : [];
-            setFormData({ ...data, links });
+            // Parse the links JSON as ProjectLink array
+            const links = Array.isArray(data.links) 
+              ? data.links.map((link: any) => ({
+                  title: link.title || '',
+                  url: link.url || ''
+                }))
+              : [];
+              
+            setFormData({
+              ...data,
+              links
+            });
           }
         } catch (error) {
           console.error("Error fetching project:", error);
@@ -164,7 +173,9 @@ const PortfolioFormPage = () => {
 
       const projectData = {
         ...formData,
-        updated_at: new Date()
+        // Convert links array to JSON compatible format for Supabase
+        links: formData.links as unknown as Json,
+        updated_at: new Date().toISOString() // Convert Date to ISO string
       };
       
       let result;
