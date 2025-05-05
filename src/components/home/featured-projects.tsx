@@ -1,15 +1,73 @@
 
+import { useState, useEffect } from "react";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { SectionHeader } from "@/components/ui/section-header";
-import { projects } from "@/data/projects";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+
+interface ProjectLink {
+  title: string;
+  url: string;
+}
+
+interface Project {
+  id: string;
+  title: string;
+  description: string;
+  slug: string;
+  category: string;
+  tech_stack: string[];
+  featured: boolean;
+  images?: string[];
+  coverImage?: string;
+  links?: ProjectLink[];
+}
 
 const FeaturedProjects = () => {
-  // Get only featured projects (limit to 3)
-  const featuredProjects = projects
-    .filter(project => project.featured)
-    .slice(0, 3);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        setIsLoading(true);
+        const { data, error } = await supabase
+          .from("portfolio_projects")
+          .select("*")
+          .eq("featured", true)
+          .order("created_at", { ascending: false })
+          .limit(3);
+
+        if (error) throw error;
+
+        if (data) {
+          // Transform the data to match the expected format
+          const formattedProjects = data.map((project) => ({
+            id: project.id,
+            title: project.title,
+            description: project.description,
+            slug: project.slug,
+            category: project.category || "",
+            tech_stack: project.tech_stack || [],
+            featured: project.featured || false,
+            coverImage: project.images && project.images.length > 0 ? project.images[0] : "/placeholder.svg",
+            links: project.links as ProjectLink[] || []
+          }));
+          
+          setProjects(formattedProjects);
+        }
+      } catch (error) {
+        console.error("Error fetching featured projects:", error);
+        toast.error("Failed to load featured projects");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProjects();
+  }, []);
 
   return (
     <section className="section">
@@ -20,48 +78,57 @@ const FeaturedProjects = () => {
           centered
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {featuredProjects.map((project) => (
-            <div 
-              key={project.id} 
-              className="group bg-card rounded-lg overflow-hidden border shadow-sm hover:shadow-md transition-all"
-            >
-              <div className="aspect-video relative overflow-hidden">
-                <img
-                  src={project.coverImage}
-                  alt={project.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <Button asChild variant="secondary">
-                    <Link to={`/portfolio/${project.id}`}>View Project</Link>
-                  </Button>
+        {isLoading ? (
+          <div className="flex justify-center items-center py-16">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          </div>
+        ) : projects.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {projects.map((project) => (
+              <div 
+                key={project.id} 
+                className="group bg-card rounded-lg overflow-hidden border shadow-sm hover:shadow-md transition-all"
+              >
+                <div className="aspect-video relative overflow-hidden">
+                  <img
+                    src={project.coverImage}
+                    alt={project.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <Button asChild variant="secondary">
+                      <Link to={`/portfolio/${project.slug}`}>View Project</Link>
+                    </Button>
+                  </div>
+                </div>
+                <div className="p-5">
+                  <div className="flex gap-2 mb-2">
+                    {project.category && (
+                      <span 
+                        className="text-xs px-2 py-1 bg-secondary text-secondary-foreground rounded-full"
+                      >
+                        {project.category}
+                      </span>
+                    )}
+                  </div>
+                  <h3 className="font-semibold text-xl mb-2">{project.title}</h3>
+                  <p className="text-muted-foreground line-clamp-2 mb-4">{project.description.substring(0, 150)}...</p>
+                  <Link 
+                    to={`/portfolio/${project.slug}`}
+                    className="text-primary font-medium inline-flex items-center hover:underline"
+                  >
+                    Read Case Study
+                    <ArrowRight className="ml-1 h-4 w-4" />
+                  </Link>
                 </div>
               </div>
-              <div className="p-5">
-                <div className="flex gap-2 mb-2">
-                  {project.categories.slice(0, 2).map((category) => (
-                    <span 
-                      key={category} 
-                      className="text-xs px-2 py-1 bg-secondary text-secondary-foreground rounded-full"
-                    >
-                      {category}
-                    </span>
-                  ))}
-                </div>
-                <h3 className="font-semibold text-xl mb-2">{project.title}</h3>
-                <p className="text-muted-foreground line-clamp-2 mb-4">{project.summary}</p>
-                <Link 
-                  to={`/portfolio/${project.id}`}
-                  className="text-primary font-medium inline-flex items-center hover:underline"
-                >
-                  Read Case Study
-                  <ArrowRight className="ml-1 h-4 w-4" />
-                </Link>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-16">
+            <p className="text-muted-foreground">No featured projects found.</p>
+          </div>
+        )}
 
         <div className="mt-12 text-center">
           <Button asChild variant="outline" size="lg">
