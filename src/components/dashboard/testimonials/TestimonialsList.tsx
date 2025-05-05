@@ -94,9 +94,10 @@ export function TestimonialsList() {
         title="Delete Testimonial"
         description="Are you sure you want to delete this testimonial? This action cannot be undone."
         confirmLabel="Delete"
-        onConfirm={handleDeleteClick}
+        onConfirm={handleDeleteTestimonial}
         destructive
       />
     </div>
   );
 };
+

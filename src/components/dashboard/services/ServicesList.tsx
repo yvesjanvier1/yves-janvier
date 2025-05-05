@@ -19,7 +19,7 @@ export function ServicesList() {
       const { data, error } = await supabase
         .from("services")
         .select("*")
-        .order("created_at", { ascending: true });
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       setServices(data || []);

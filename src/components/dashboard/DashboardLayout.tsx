@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import { Link, NavLink } from "react-router-dom";
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger } from "@/components/ui/sidebar";
-import { LayoutDashboard, FileText, Briefcase, MessageSquare, BarChart2, User, LogOut, MessageCircleQuote, Briefcase as Services, UserRound } from "lucide-react";
+import { LayoutDashboard, FileText, Briefcase, MessageSquare, BarChart2, User, LogOut, MessageCircle, Services, UserRound } from "lucide-react";
 import { useAuth } from "./AuthProvider";
 import { Button } from "@/components/ui/button";
 
@@ -56,7 +56,7 @@ const DashboardLayout = () => {
                 <SidebarMenuButton asChild>
                   <NavLink to="/dashboard/testimonials" 
                     className={({ isActive }) => isActive ? "text-primary font-medium" : "text-foreground"}>
-                    <MessageCircleQuote className="w-5 h-5 mr-2" />
+                    <MessageCircle className="w-5 h-5 mr-2" />
                     <span>Testimonials</span>
                   </NavLink>
                 </SidebarMenuButton>
@@ -66,7 +66,7 @@ const DashboardLayout = () => {
                 <SidebarMenuButton asChild>
                   <NavLink to="/dashboard/services" 
                     className={({ isActive }) => isActive ? "text-primary font-medium" : "text-foreground"}>
-                    <Services className="w-5 h-5 mr-2" />
+                    <Briefcase className="w-5 h-5 mr-2" />
                     <span>Services</span>
                   </NavLink>
                 </SidebarMenuButton>
