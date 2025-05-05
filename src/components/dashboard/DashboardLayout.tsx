@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import { Link, NavLink } from "react-router-dom";
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger } from "@/components/ui/sidebar";
-import { LayoutDashboard, FileText, Briefcase, MessageSquare, BarChart2, User, LogOut, MessageCircle, Services, UserRound } from "lucide-react";
+import { LayoutDashboard, FileText, Briefcase, MessageSquare, BarChart2, User, LogOut, MessageCircle, UserRound } from "lucide-react";
 import { useAuth } from "./AuthProvider";
 import { Button } from "@/components/ui/button";
 
