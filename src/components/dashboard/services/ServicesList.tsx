@@ -71,6 +71,7 @@ export function ServicesList() {
     service.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Define columns for the data table
   const columns = [
     {
       key: "title",
@@ -89,9 +90,19 @@ export function ServicesList() {
     {
       key: "actions",
       header: "Actions",
-      cell: (item: Service) => getServicesColumns({ onDeleteClick: handleDeleteClick }).find(
-        col => col.id === "actions"
-      )?.cell?.({ row: { original: item } } as any)
+      cell: (item: Service) => {
+        // Find the actions column from the original columns and safely use its cell function
+        const actionsColumn = getServicesColumns({ onDeleteClick: handleDeleteClick }).find(
+          col => col.id === "actions"
+        );
+        
+        // Make sure the cell exists and is callable before invoking it
+        if (actionsColumn?.cell && typeof actionsColumn.cell === 'function') {
+          return actionsColumn.cell({ row: { original: item } } as any);
+        }
+        
+        return null;
+      }
     }
   ];
 
