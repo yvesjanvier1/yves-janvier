@@ -2,6 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { blogPosts } from "@/data/blog-posts";
 import { projects } from "@/data/projects";
+import { Json } from "@/integrations/supabase/types";
 
 export async function migrateDataToSupabase() {
   try {
@@ -46,6 +47,9 @@ export async function migrateDataToSupabase() {
     console.log("Starting portfolio projects migration...");
     
     for (const project of projects) {
+      // Convert links to JSON format that Supabase accepts
+      const formattedLinks = project.links ? JSON.parse(JSON.stringify(project.links)) : [];
+      
       // Convert project to the format expected by Supabase
       const supabaseProject = {
         title: project.title,
@@ -56,7 +60,7 @@ export async function migrateDataToSupabase() {
         featured: project.featured,
         created_at: project.date,
         images: [project.coverImage],
-        links: project.links || []
+        links: formattedLinks as Json
       };
       
       // Check if project already exists

@@ -44,17 +44,31 @@ const FeaturedProjects = () => {
 
         if (data) {
           // Transform the data to match the expected format
-          const formattedProjects = data.map((project) => ({
-            id: project.id,
-            title: project.title,
-            description: project.description,
-            slug: project.slug,
-            category: project.category || "",
-            tech_stack: project.tech_stack || [],
-            featured: project.featured || false,
-            coverImage: project.images && project.images.length > 0 ? project.images[0] : "/placeholder.svg",
-            links: project.links as ProjectLink[] || []
-          }));
+          const formattedProjects = data.map((project) => {
+            // Handle links data appropriately
+            let formattedLinks: ProjectLink[] = [];
+            if (project.links) {
+              // Type assertion to handle potential different formats
+              if (Array.isArray(project.links)) {
+                formattedLinks = project.links.map((link: any) => ({
+                  title: link.title || "Link",
+                  url: link.url || "#"
+                }));
+              }
+            }
+            
+            return {
+              id: project.id,
+              title: project.title,
+              description: project.description,
+              slug: project.slug,
+              category: project.category || "",
+              tech_stack: project.tech_stack || [],
+              featured: project.featured || false,
+              coverImage: project.images && project.images.length > 0 ? project.images[0] : "/placeholder.svg",
+              links: formattedLinks
+            };
+          });
           
           setProjects(formattedProjects);
         }
