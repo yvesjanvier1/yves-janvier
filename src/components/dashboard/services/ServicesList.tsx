@@ -71,7 +71,29 @@ export function ServicesList() {
     service.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const columns = getServicesColumns({ onDeleteClick: handleDeleteClick });
+  const columns = [
+    {
+      key: "title",
+      header: "Title",
+      cell: (item: Service) => <div className="font-medium">{item.title}</div>
+    },
+    {
+      key: "description",
+      header: "Description",
+      cell: (item: Service) => (
+        <div className="max-w-[300px] truncate">
+          {item.description}
+        </div>
+      )
+    },
+    {
+      key: "actions",
+      header: "Actions",
+      cell: (item: Service) => getServicesColumns({ onDeleteClick: handleDeleteClick }).find(
+        col => col.id === "actions"
+      )?.cell?.({ row: { original: item } } as any)
+    }
+  ];
 
   return (
     <div className="space-y-6">
