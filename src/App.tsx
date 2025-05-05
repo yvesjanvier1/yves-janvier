@@ -20,6 +20,11 @@ import MessagesPage from './pages/dashboard/MessagesPage';
 import AnalyticsPage from './pages/dashboard/AnalyticsPage';
 import BlogFormPage from './pages/dashboard/BlogFormPage';
 import PortfolioFormPage from './pages/dashboard/PortfolioFormPage';
+import TestimonialsManagePage from './pages/dashboard/TestimonialsManagePage';
+import TestimonialsFormPage from './pages/dashboard/TestimonialsFormPage';
+import ServicesManagePage from './pages/dashboard/ServicesManagePage';
+import ServiceFormPage from './pages/dashboard/ServiceFormPage';
+import AboutManagePage from './pages/dashboard/AboutManagePage';
 import { ThemeProvider } from './components/theme/theme-provider';
 import { Toaster } from './components/ui/toaster';
 import { PageViewTracker } from './components/PageViewTracker';
@@ -57,6 +62,13 @@ function App() {
                 <Route path="portfolio/edit/:id" element={<PortfolioFormPage />} />
                 <Route path="messages" element={<MessagesPage />} />
                 <Route path="analytics" element={<AnalyticsPage />} />
+                <Route path="testimonials" element={<TestimonialsManagePage />} />
+                <Route path="testimonials/new" element={<TestimonialsFormPage />} />
+                <Route path="testimonials/edit/:id" element={<TestimonialsFormPage />} />
+                <Route path="services" element={<ServicesManagePage />} />
+                <Route path="services/new" element={<ServiceFormPage />} />
+                <Route path="services/edit/:id" element={<ServiceFormPage />} />
+                <Route path="about" element={<AboutManagePage />} />
               </Route>
             </Route>
 

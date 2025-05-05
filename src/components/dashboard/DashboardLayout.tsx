@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import { Link, NavLink } from "react-router-dom";
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger } from "@/components/ui/sidebar";
-import { LayoutDashboard, FileText, Briefcase, MessageSquare, BarChart2, User, LogOut } from "lucide-react";
+import { LayoutDashboard, FileText, Briefcase, MessageSquare, BarChart2, User, LogOut, MessageCircleQuote, Briefcase as Services, UserRound } from "lucide-react";
 import { useAuth } from "./AuthProvider";
 import { Button } from "@/components/ui/button";
 
@@ -48,6 +48,36 @@ const DashboardLayout = () => {
                     className={({ isActive }) => isActive ? "text-primary font-medium" : "text-foreground"}>
                     <Briefcase className="w-5 h-5 mr-2" />
                     <span>Portfolio</span>
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <NavLink to="/dashboard/testimonials" 
+                    className={({ isActive }) => isActive ? "text-primary font-medium" : "text-foreground"}>
+                    <MessageCircleQuote className="w-5 h-5 mr-2" />
+                    <span>Testimonials</span>
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <NavLink to="/dashboard/services" 
+                    className={({ isActive }) => isActive ? "text-primary font-medium" : "text-foreground"}>
+                    <Services className="w-5 h-5 mr-2" />
+                    <span>Services</span>
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <NavLink to="/dashboard/about" 
+                    className={({ isActive }) => isActive ? "text-primary font-medium" : "text-foreground"}>
+                    <UserRound className="w-5 h-5 mr-2" />
+                    <span>About Page</span>
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
