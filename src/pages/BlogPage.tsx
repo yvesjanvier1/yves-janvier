@@ -17,6 +17,7 @@ interface BlogPost {
   tags: string[];
   created_at: string;
   author_id?: string;
+  published: boolean;
 }
 
 const BlogPage = () => {

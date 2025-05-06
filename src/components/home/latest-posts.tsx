@@ -17,6 +17,7 @@ interface BlogPost {
   cover_image?: string;
   tags: string[];
   created_at: string;
+  published: boolean;
 }
 
 const LatestPosts = () => {
