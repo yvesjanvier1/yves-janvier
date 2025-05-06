@@ -21,23 +21,9 @@ interface SupabaseProject {
   slug: string;
 }
 
-// Interface that matches what ProjectCard component expects
-interface ProjectCardData {
-  id: string;
-  title: string;
-  summary: string;
-  description: string;
-  coverImage: string;
-  categories: string[];
-  tools: string[];
-  featured: boolean;
-  date: string;
-  links: { title: string; url: string }[];
-}
-
 const PortfolioPage = () => {
   const [activeCategory, setActiveCategory] = useState("All");
-  const [projects, setProjects] = useState<ProjectCardData[]>([]);
+  const [projects, setProjects] = useState<SupabaseProject[]>([]);
   const [categories, setCategories] = useState<string[]>(["All"]);
   const [isLoading, setIsLoading] = useState(true);
   
@@ -54,43 +40,7 @@ const PortfolioPage = () => {
 
         // Process projects and extract unique categories
         if (data) {
-          // Format projects for compatibility with the ProjectCard component
-          const formattedProjects = data.map((project: SupabaseProject): ProjectCardData => {
-            // Parse links from JSON
-            let formattedLinks: { title: string; url: string }[] = [];
-            
-            if (project.links) {
-              if (Array.isArray(project.links)) {
-                formattedLinks = (project.links as any[]).map(link => {
-                  return {
-                    title: typeof link.title === 'string' ? link.title : 'Link',
-                    url: typeof link.url === 'string' ? link.url : ''
-                  };
-                });
-              } else if (typeof project.links === 'object' && project.links !== null) {
-                const linksObj = project.links as Record<string, any>;
-                formattedLinks = Object.entries(linksObj).map(([title, url]) => ({ 
-                  title, 
-                  url: typeof url === 'string' ? url : '' 
-                }));
-              }
-            }
-                
-            return {
-              id: project.id,
-              title: project.title,
-              summary: project.description.substring(0, 150) + "...", // Create a summary from description
-              description: project.description,
-              coverImage: project.images && project.images.length > 0 ? project.images[0] : "/placeholder.svg",
-              categories: project.category ? [project.category] : ["Uncategorized"],
-              tools: project.tech_stack || [],
-              featured: project.featured || false,
-              date: project.created_at,
-              links: formattedLinks
-            };
-          });
-          
-          setProjects(formattedProjects);
+          setProjects(data);
           
           // Extract unique categories
           const allCategories = ["All"];
@@ -116,7 +66,7 @@ const PortfolioPage = () => {
   // Filter projects by category
   const filteredProjects = activeCategory === "All"
     ? projects
-    : projects.filter(project => project.categories.includes(activeCategory));
+    : projects.filter(project => project.category === activeCategory);
 
   return (
     <div className="container px-4 py-16 md:py-24 mx-auto">
@@ -138,9 +88,45 @@ const PortfolioPage = () => {
         </div>
       ) : filteredProjects.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredProjects.map(project => (
-            <ProjectCard key={project.id} project={project} />
-          ))}
+          {filteredProjects.map(project => {
+            // Parse links from JSON
+            let formattedLinks: { title: string; url: string }[] = [];
+            
+            if (project.links) {
+              if (Array.isArray(project.links)) {
+                formattedLinks = (project.links as any[]).map(link => {
+                  return {
+                    title: typeof link.title === 'string' ? link.title : 'Link',
+                    url: typeof link.url === 'string' ? link.url : ''
+                  };
+                });
+              } else if (typeof project.links === 'object' && project.links !== null) {
+                const linksObj = project.links as Record<string, any>;
+                formattedLinks = Object.entries(linksObj).map(([title, url]) => ({ 
+                  title, 
+                  url: typeof url === 'string' ? url : '' 
+                }));
+              }
+            }
+            
+            return (
+              <ProjectCard 
+                key={project.id} 
+                project={{
+                  id: project.slug || project.id,
+                  title: project.title,
+                  summary: project.description.substring(0, 150) + "...",
+                  description: project.description,
+                  coverImage: project.images && project.images.length > 0 ? project.images[0] : "/placeholder.svg",
+                  categories: project.category ? [project.category] : ["Uncategorized"],
+                  tools: project.tech_stack || [],
+                  featured: project.featured || false,
+                  date: project.created_at,
+                  links: formattedLinks
+                }} 
+              />
+            );
+          })}
         </div>
       ) : (
         <div className="text-center py-16">

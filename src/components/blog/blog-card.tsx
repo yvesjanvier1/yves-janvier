@@ -1,7 +1,20 @@
 
 import { Link } from "react-router-dom";
-import { type BlogPost } from "@/data/blog-posts";
 import { formatDate } from "@/lib/utils";
+
+export interface BlogPost {
+  id: string;
+  title: string;
+  excerpt: string;
+  content: string;
+  coverImage: string;
+  tags: string[];
+  date: string;
+  author: {
+    name: string;
+    avatar: string;
+  };
+}
 
 interface BlogCardProps {
   post: BlogPost;

@@ -57,6 +57,12 @@ const FeaturedProjects = () => {
                   title: link.title || "Link",
                   url: link.url || "#"
                 }));
+              } else if (typeof project.links === 'object' && project.links !== null) {
+                const linksObj = project.links as Record<string, any>;
+                formattedLinks = Object.entries(linksObj).map(([title, url]) => ({ 
+                  title, 
+                  url: typeof url === 'string' ? url : '' 
+                }));
               }
             }
             

@@ -30,12 +30,23 @@ const BlogPostPage = () => {
 
       try {
         setIsLoading(true);
-        const { data, error } = await supabase
+        // First try to fetch by slug
+        let { data, error } = await supabase
           .from("blog_posts")
           .select("*")
-          .eq("id", id)
+          .eq("slug", id)
           .eq("published", true)
-          .single();
+          .maybeSingle();
+
+        if (!data && !error) {
+          // If no post found by slug, try by id
+          ({ data, error } = await supabase
+            .from("blog_posts")
+            .select("*")
+            .eq("id", id)
+            .eq("published", true)
+            .maybeSingle());
+        }
 
         if (error) throw error;
 

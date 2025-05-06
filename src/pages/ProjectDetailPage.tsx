@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Link as LinkIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -76,6 +76,7 @@ const TechStack = ({ technologies }: { technologies?: string[] }) => (
 
 const ProjectDetailPage = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [project, setProject] = useState<ProjectDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -85,11 +86,21 @@ const ProjectDetailPage = () => {
       
       try {
         setIsLoading(true);
-        const { data, error } = await supabase
+        // First try to fetch by slug
+        let { data, error } = await supabase
           .from("portfolio_projects")
           .select("*")
           .eq("slug", id)
-          .single();
+          .maybeSingle();
+
+        if (!data && !error) {
+          // If no project found by slug, try by id
+          ({ data, error } = await supabase
+            .from("portfolio_projects")
+            .select("*")
+            .eq("id", id)
+            .maybeSingle());
+        }
         
         if (error) throw error;
         
@@ -120,17 +131,22 @@ const ProjectDetailPage = () => {
             ...data,
             links: formattedLinks
           });
+        } else {
+          // No project found
+          toast.error("Project not found");
+          navigate("/portfolio");
         }
       } catch (error) {
         console.error("Error fetching project:", error);
         toast.error("Failed to load project details");
+        navigate("/portfolio");
       } finally {
         setIsLoading(false);
       }
     };
     
     fetchProject();
-  }, [id]);
+  }, [id, navigate]);
 
   if (isLoading) {
     return (
