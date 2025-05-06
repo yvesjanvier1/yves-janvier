@@ -22,11 +22,14 @@ interface BlogPost {
 const LatestPosts = () => {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchPosts = async () => {
       try {
         setIsLoading(true);
+        setError(null);
+        
         const { data, error } = await supabase
           .from("blog_posts")
           .select("*")
@@ -42,6 +45,7 @@ const LatestPosts = () => {
         }
       } catch (error) {
         console.error("Error fetching latest posts:", error);
+        setError("Failed to load latest blog posts");
         toast.error("Failed to load latest blog posts");
       } finally {
         setIsLoading(false);
@@ -50,6 +54,24 @@ const LatestPosts = () => {
 
     fetchPosts();
   }, []);
+
+  if (error) {
+    return (
+      <section className="section">
+        <div className="container px-4 mx-auto">
+          <SectionHeader
+            title="Latest from the Blog"
+            subtitle="Insights, tutorials, and thoughts on data and tech"
+            centered
+          />
+          <div className="text-center py-12">
+            <p className="text-destructive mb-4">{error}</p>
+            <Button onClick={() => window.location.reload()} variant="outline">Retry</Button>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="section">
@@ -107,7 +129,8 @@ const LatestPosts = () => {
           </div>
         ) : (
           <div className="text-center py-16">
-            <p className="text-muted-foreground">No blog posts found.</p>
+            <p className="text-muted-foreground mb-4">No blog posts found.</p>
+            <p className="text-sm text-muted-foreground">Check back later for new content.</p>
           </div>
         )}
 

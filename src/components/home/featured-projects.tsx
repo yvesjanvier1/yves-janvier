@@ -28,11 +28,14 @@ interface Project {
 const FeaturedProjects = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProjects = async () => {
       try {
         setIsLoading(true);
+        setError(null);
+        
         const { data, error } = await supabase
           .from("portfolio_projects")
           .select("*")
@@ -74,6 +77,7 @@ const FeaturedProjects = () => {
         }
       } catch (error) {
         console.error("Error fetching featured projects:", error);
+        setError("Failed to load featured projects");
         toast.error("Failed to load featured projects");
       } finally {
         setIsLoading(false);
@@ -82,6 +86,24 @@ const FeaturedProjects = () => {
 
     fetchProjects();
   }, []);
+
+  if (error) {
+    return (
+      <section className="section">
+        <div className="container px-4 mx-auto">
+          <SectionHeader
+            title="Featured Projects"
+            subtitle="Showcasing some of my best work and achievements"
+            centered
+          />
+          <div className="text-center py-12">
+            <p className="text-destructive mb-4">{error}</p>
+            <Button onClick={() => window.location.reload()} variant="outline">Retry</Button>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="section">
@@ -140,7 +162,8 @@ const FeaturedProjects = () => {
           </div>
         ) : (
           <div className="text-center py-16">
-            <p className="text-muted-foreground">No featured projects found.</p>
+            <p className="text-muted-foreground mb-4">No featured projects found.</p>
+            <p className="text-sm text-muted-foreground">Check back later for updates.</p>
           </div>
         )}
 
