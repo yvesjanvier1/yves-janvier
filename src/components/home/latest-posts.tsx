@@ -29,6 +29,7 @@ const LatestPosts = () => {
       try {
         setIsLoading(true);
         setError(null);
+        console.log("Fetching latest blog posts...");
         
         const { data, error } = await supabase
           .from("blog_posts")
@@ -37,7 +38,12 @@ const LatestPosts = () => {
           .order("created_at", { ascending: false })
           .limit(3);
 
-        if (error) throw error;
+        if (error) {
+          console.error("Supabase error:", error);
+          throw error;
+        }
+
+        console.log("Latest blog posts data:", data);
 
         if (data) {
           // Transform the data to match the expected format

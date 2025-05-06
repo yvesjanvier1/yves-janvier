@@ -86,6 +86,8 @@ const ProjectDetailPage = () => {
       
       try {
         setIsLoading(true);
+        console.log(`Fetching project with id/slug: ${id}`);
+        
         // First try to fetch by slug
         let { data, error } = await supabase
           .from("portfolio_projects")
@@ -94,6 +96,7 @@ const ProjectDetailPage = () => {
           .maybeSingle();
 
         if (!data && !error) {
+          console.log("No project found by slug, trying by ID");
           // If no project found by slug, try by id
           ({ data, error } = await supabase
             .from("portfolio_projects")
@@ -102,7 +105,12 @@ const ProjectDetailPage = () => {
             .maybeSingle());
         }
         
-        if (error) throw error;
+        if (error) {
+          console.error("Supabase error:", error);
+          throw error;
+        }
+        
+        console.log("Project data:", data);
         
         if (data) {
           // Format links if they exist
@@ -133,6 +141,7 @@ const ProjectDetailPage = () => {
           });
         } else {
           // No project found
+          console.error("No project found with this ID/slug");
           toast.error("Project not found");
           navigate("/portfolio");
         }

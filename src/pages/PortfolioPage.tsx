@@ -31,12 +31,18 @@ const PortfolioPage = () => {
     const fetchProjects = async () => {
       try {
         setIsLoading(true);
+        console.log("Fetching portfolio projects...");
         const { data, error } = await supabase
           .from("portfolio_projects")
           .select("*")
           .order("created_at", { ascending: false });
 
-        if (error) throw error;
+        if (error) {
+          console.error("Supabase error:", error);
+          throw error;
+        }
+
+        console.log("Portfolio projects data:", data);
 
         // Process projects and extract unique categories
         if (data) {

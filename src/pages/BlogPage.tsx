@@ -30,14 +30,20 @@ const BlogPage = () => {
     const fetchPosts = async () => {
       try {
         setIsLoading(true);
+        console.log("Fetching blog posts...");
         const { data, error } = await supabase
           .from("blog_posts")
           .select("*")
           .eq("published", true)
           .order("created_at", { ascending: false });
 
-        if (error) throw error;
+        if (error) {
+          console.error("Supabase error:", error);
+          throw error;
+        }
 
+        console.log("Blog posts data:", data);
+        
         // Process posts and extract unique tags
         if (data) {
           setBlogPosts(data);

@@ -35,6 +35,7 @@ const FeaturedProjects = () => {
       try {
         setIsLoading(true);
         setError(null);
+        console.log("Fetching featured projects...");
         
         const { data, error } = await supabase
           .from("portfolio_projects")
@@ -43,7 +44,12 @@ const FeaturedProjects = () => {
           .order("created_at", { ascending: false })
           .limit(3);
 
-        if (error) throw error;
+        if (error) {
+          console.error("Supabase error:", error);
+          throw error;
+        }
+
+        console.log("Featured projects data:", data);
 
         if (data) {
           // Transform the data to match the expected format

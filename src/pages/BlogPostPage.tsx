@@ -30,6 +30,8 @@ const BlogPostPage = () => {
 
       try {
         setIsLoading(true);
+        console.log(`Fetching blog post with id/slug: ${id}`);
+        
         // First try to fetch by slug
         let { data, error } = await supabase
           .from("blog_posts")
@@ -39,6 +41,7 @@ const BlogPostPage = () => {
           .maybeSingle();
 
         if (!data && !error) {
+          console.log("No post found by slug, trying by ID");
           // If no post found by slug, try by id
           ({ data, error } = await supabase
             .from("blog_posts")
@@ -48,12 +51,18 @@ const BlogPostPage = () => {
             .maybeSingle());
         }
 
-        if (error) throw error;
+        if (error) {
+          console.error("Supabase error:", error);
+          throw error;
+        }
+
+        console.log("Blog post data:", data);
 
         if (data) {
           setPost(data);
         } else {
           // No post found
+          console.error("No blog post found with this ID/slug");
           navigate("/blog");
           toast.error("Blog post not found");
         }

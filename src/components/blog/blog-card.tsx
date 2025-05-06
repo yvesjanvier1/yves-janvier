@@ -32,7 +32,7 @@ const BlogCard = ({ post }: BlogCardProps) => {
       </Link>
       <div className="p-5 flex flex-col flex-grow">
         <div className="flex flex-wrap gap-2 mb-2">
-          {post.tags.slice(0, 3).map((tag) => (
+          {post.tags && post.tags.slice(0, 3).map((tag) => (
             <span 
               key={tag} 
               className="text-xs px-2 py-1 bg-secondary text-secondary-foreground rounded-full"
