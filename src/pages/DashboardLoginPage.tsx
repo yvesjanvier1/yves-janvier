@@ -4,20 +4,25 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/components/dashboard/AuthProvider";
 import { Navigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const DashboardLoginPage = () => {
   const { signIn, isLoading, user } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError(null);
+    
     try {
       await signIn(email, password);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login failed:", error);
+      setError(error?.message || "Failed to sign in. Please check your credentials.");
     } finally {
       setIsSubmitting(false);
     }
@@ -36,6 +41,12 @@ const DashboardLoginPage = () => {
       </div>
       
       <div className="bg-card border rounded-lg shadow-sm p-8">
+        {error && (
+          <div className="bg-destructive/10 text-destructive p-3 rounded-md mb-4">
+            {error}
+          </div>
+        )}
+        
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label htmlFor="email" className="block text-sm font-medium mb-1">
@@ -49,6 +60,7 @@ const DashboardLoginPage = () => {
               onChange={(e) => setEmail(e.target.value)}
               required
               disabled={isSubmitting}
+              placeholder="Enter your email"
             />
           </div>
           
@@ -64,12 +76,21 @@ const DashboardLoginPage = () => {
               onChange={(e) => setPassword(e.target.value)}
               required
               disabled={isSubmitting}
+              placeholder="Enter your password"
             />
           </div>
           
-          <Button type="submit" className="w-full" disabled={isSubmitting || isLoading}>
+          <Button 
+            type="submit" 
+            className="w-full" 
+            disabled={isSubmitting || isLoading}
+          >
             {isSubmitting ? "Signing In..." : "Sign In"}
           </Button>
+          
+          <div className="text-center text-sm text-muted-foreground">
+            <p>For dashboard access, please use your administrator credentials.</p>
+          </div>
         </form>
       </div>
     </div>

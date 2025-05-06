@@ -48,7 +48,7 @@ function App() {
             </Route>
 
             {/* Auth Routes */}
-            <Route path="/admin" element={<DashboardLoginPage />} />
+            <Route path="/dashboard/login" element={<DashboardLoginPage />} />
             
             {/* Dashboard Routes */}
             <Route path="/dashboard" element={<ProtectedRoute />}>
