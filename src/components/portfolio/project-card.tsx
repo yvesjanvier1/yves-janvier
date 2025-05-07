@@ -9,14 +9,17 @@ interface ProjectLink {
 export interface Project {
   id: string;
   title: string;
-  summary: string;
+  summary?: string;
   description: string;
-  coverImage: string;
-  categories: string[];
-  tools: string[];
-  featured: boolean;
-  date: string;
-  links: ProjectLink[];
+  coverImage?: string;
+  image?: string; // Added for compatibility with PortfolioPage
+  categories?: string[];
+  tools?: string[];
+  tags?: string[]; // Added for compatibility with PortfolioPage
+  category?: string; // Added for compatibility with PortfolioPage
+  featured?: boolean;
+  date?: string;
+  links?: ProjectLink[];
 }
 
 interface ProjectCardProps {
@@ -24,11 +27,23 @@ interface ProjectCardProps {
 }
 
 const ProjectCard = ({ project }: ProjectCardProps) => {
+  // Extract categories from either project.categories array or single project.category
+  const categories = project.categories || (project.category ? [project.category] : []);
+  
+  // Use either coverImage, image, or a placeholder
+  const imageUrl = project.coverImage || project.image || "/placeholder.svg";
+  
+  // Use either tools or tags
+  const tags = project.tools || project.tags || [];
+  
+  // Use either summary or truncated description
+  const summary = project.summary || (project.description ? project.description.substring(0, 120) + '...' : '');
+
   return (
     <div className="group bg-card rounded-lg overflow-hidden border shadow-sm hover:shadow-md transition-all h-full flex flex-col">
       <div className="aspect-video relative overflow-hidden">
         <img
-          src={project.coverImage}
+          src={imageUrl}
           alt={project.title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
@@ -43,9 +58,9 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
       </div>
       <div className="p-5 flex flex-col flex-grow">
         <div className="flex flex-wrap gap-2 mb-2">
-          {project.categories.map((category) => (
+          {categories.map((category, index) => (
             <span 
-              key={category} 
+              key={`${category}-${index}`} 
               className="text-xs px-2 py-1 bg-secondary text-secondary-foreground rounded-full"
             >
               {category}
@@ -53,7 +68,7 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
           ))}
         </div>
         <h3 className="font-semibold text-xl mb-2">{project.title}</h3>
-        <p className="text-muted-foreground flex-grow mb-4">{project.summary}</p>
+        <p className="text-muted-foreground flex-grow mb-4">{summary}</p>
         <Link 
           to={`/portfolio/${project.id}`}
           className="text-primary font-medium hover:underline"

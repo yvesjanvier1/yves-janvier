@@ -128,7 +128,7 @@ const PortfolioPage = () => {
                 id: project.slug || project.id,
                 title: project.title,
                 description: project.description,
-                image: project.images && project.images.length > 0 
+                coverImage: project.images && project.images.length > 0 
                   ? project.images[0] 
                   : "/placeholder.svg",
                 tags: project.tech_stack || [],
