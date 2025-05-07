@@ -5,6 +5,7 @@ import ProjectCard from "@/components/portfolio/project-card";
 import ProjectFilters from "@/components/portfolio/project-filters";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Interface for project data from Supabase
 interface Project {
@@ -15,10 +16,7 @@ interface Project {
   images: string[];
   category?: string;
   tech_stack?: string[];
-  links: {
-    demo?: string;
-    github?: string;
-    other?: string;
+  links?: {
     title?: string;
     url?: string;
   }[];
@@ -32,12 +30,15 @@ const PortfolioPage = () => {
   const [searchValue, setSearchValue] = useState("");
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
   useEffect(() => {
     const fetchProjects = async () => {
       try {
         setIsLoading(true);
+        setError(null);
         console.log("PortfolioPage: Fetching projects...");
+        
         const { data, error } = await supabase
           .from("portfolio_projects")
           .select("*")
@@ -51,9 +52,10 @@ const PortfolioPage = () => {
         console.log("PortfolioPage: Projects data:", data);
         
         if (data) {
-          // Ensure links are properly parsed from JSON if needed
+          // Process the data to ensure it's in the correct format
           const processedProjects = data.map(project => ({
             ...project,
+            // Parse links if needed
             links: Array.isArray(project.links) 
               ? project.links 
               : (typeof project.links === 'string' 
@@ -61,7 +63,6 @@ const PortfolioPage = () => {
                   : (project.links || []))
           }));
           
-          console.log("PortfolioPage: Processed projects:", processedProjects);
           setProjects(processedProjects);
           
           // Extract unique categories
@@ -75,8 +76,9 @@ const PortfolioPage = () => {
           console.log("PortfolioPage: Categories:", allCategories);
           setCategories(allCategories);
         }
-      } catch (error) {
-        console.error("PortfolioPage: Error fetching projects:", error);
+      } catch (err) {
+        console.error("PortfolioPage: Error fetching projects:", err);
+        setError("Failed to load projects");
         toast.error("Failed to load projects");
       } finally {
         setIsLoading(false);
@@ -116,8 +118,28 @@ const PortfolioPage = () => {
       />
       
       {isLoading ? (
-        <div className="flex justify-center items-center py-16">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {[1, 2, 3, 4, 5, 6].map(i => (
+            <div key={i} className="flex flex-col h-full">
+              <Skeleton className="h-48 w-full mb-4" />
+              <Skeleton className="h-4 w-12 mb-2" />
+              <Skeleton className="h-6 w-3/4 mb-2" />
+              <Skeleton className="h-4 w-full mb-2" />
+              <Skeleton className="h-4 w-full mb-2" />
+              <Skeleton className="h-4 w-2/3" />
+            </div>
+          ))}
+        </div>
+      ) : error ? (
+        <div className="text-center py-16">
+          <h3 className="text-xl font-medium mb-2">Error loading projects</h3>
+          <p className="text-muted-foreground mb-4">{error}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="bg-primary text-primary-foreground px-4 py-2 rounded-md"
+          >
+            Retry
+          </button>
         </div>
       ) : filteredProjects.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -128,7 +150,7 @@ const PortfolioPage = () => {
                 id: project.slug || project.id,
                 title: project.title,
                 description: project.description,
-                coverImage: project.images && project.images.length > 0 
+                image: project.images && project.images.length > 0 
                   ? project.images[0] 
                   : "/placeholder.svg",
                 tags: project.tech_stack || [],

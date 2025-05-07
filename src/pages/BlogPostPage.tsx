@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface BlogPost {
   id: string;
@@ -16,6 +17,7 @@ interface BlogPost {
   tags: string[];
   created_at: string;
   author_id?: string;
+  published: boolean;
 }
 
 const BlogPostPage = () => {
@@ -23,6 +25,7 @@ const BlogPostPage = () => {
   const navigate = useNavigate();
   const [post, setPost] = useState<BlogPost | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -30,7 +33,8 @@ const BlogPostPage = () => {
 
       try {
         setIsLoading(true);
-        console.log(`Fetching blog post with id/slug: ${id}`);
+        setError(null);
+        console.log(`BlogPostPage: Fetching blog post with id/slug: ${id}`);
         
         // First try to fetch by slug
         let { data, error } = await supabase
@@ -41,7 +45,7 @@ const BlogPostPage = () => {
           .maybeSingle();
 
         if (!data && !error) {
-          console.log("No post found by slug, trying by ID");
+          console.log("BlogPostPage: No post found by slug, trying by ID");
           // If no post found by slug, try by id
           ({ data, error } = await supabase
             .from("blog_posts")
@@ -52,24 +56,24 @@ const BlogPostPage = () => {
         }
 
         if (error) {
-          console.error("Supabase error:", error);
+          console.error("BlogPostPage: Supabase error:", error);
           throw error;
         }
 
-        console.log("Blog post data:", data);
+        console.log("BlogPostPage: Blog post data:", data);
 
         if (data) {
           setPost(data);
         } else {
           // No post found
-          console.error("No blog post found with this ID/slug");
-          navigate("/blog");
+          console.error("BlogPostPage: No blog post found with this ID/slug");
+          setError("Blog post not found");
           toast.error("Blog post not found");
         }
-      } catch (error) {
-        console.error("Error fetching blog post:", error);
+      } catch (err) {
+        console.error("BlogPostPage: Error fetching blog post:", err);
+        setError("Failed to load blog post");
         toast.error("Failed to load blog post");
-        navigate("/blog");
       } finally {
         setIsLoading(false);
       }
@@ -81,21 +85,77 @@ const BlogPostPage = () => {
   if (isLoading) {
     return (
       <div className="container max-w-4xl px-4 py-16 mx-auto">
-        <div className="animate-pulse">
-          <div className="h-8 bg-muted rounded w-3/4 mb-4"></div>
-          <div className="h-4 bg-muted rounded w-1/4 mb-8"></div>
-          <div className="h-64 bg-muted rounded w-full mb-8"></div>
+        <div className="mb-8">
+          <Button variant="ghost" asChild>
+            <Link to="/blog">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Blog
+            </Link>
+          </Button>
+        </div>
+        <div className="space-y-6">
+          <Skeleton className="h-12 w-3/4" />
+          <div className="flex gap-2">
+            {[1, 2, 3].map(i => (
+              <Skeleton key={i} className="h-6 w-20" />
+            ))}
+          </div>
+          <Skeleton className="h-6 w-48" />
+          <Skeleton className="h-64 w-full" />
           <div className="space-y-4">
-            <div className="h-4 bg-muted rounded w-full"></div>
-            <div className="h-4 bg-muted rounded w-full"></div>
-            <div className="h-4 bg-muted rounded w-5/6"></div>
+            <Skeleton className="h-6 w-full" />
+            <Skeleton className="h-6 w-full" />
+            <Skeleton className="h-6 w-5/6" />
+            <Skeleton className="h-6 w-4/6" />
           </div>
         </div>
       </div>
     );
   }
 
-  if (!post) return null;
+  if (error) {
+    return (
+      <div className="container max-w-4xl px-4 py-16 mx-auto">
+        <div className="mb-8">
+          <Button variant="ghost" asChild>
+            <Link to="/blog">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Blog
+            </Link>
+          </Button>
+        </div>
+        <div className="text-center py-16">
+          <h2 className="text-2xl font-bold mb-2">Error</h2>
+          <p className="text-muted-foreground mb-6">{error}</p>
+          <Button onClick={() => navigate("/blog")}>
+            Return to Blog
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!post) {
+    return (
+      <div className="container max-w-4xl px-4 py-16 mx-auto">
+        <div className="mb-8">
+          <Button variant="ghost" asChild>
+            <Link to="/blog">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Blog
+            </Link>
+          </Button>
+        </div>
+        <div className="text-center py-16">
+          <h2 className="text-2xl font-bold mb-2">Post Not Found</h2>
+          <p className="text-muted-foreground mb-6">The blog post you're looking for doesn't exist or has been removed.</p>
+          <Button onClick={() => navigate("/blog")}>
+            Return to Blog
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container max-w-4xl px-4 py-16 mx-auto">

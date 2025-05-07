@@ -8,15 +8,15 @@ interface ProjectFiltersProps {
   categories: string[];
   activeCategory: string;
   onCategoryChange: (category: string) => void;
-  searchValue?: string;
-  onSearchChange?: (value: string) => void;
+  searchValue: string;
+  onSearchChange: (value: string) => void;
 }
 
 const ProjectFilters = ({ 
   categories, 
   activeCategory, 
   onCategoryChange,
-  searchValue = "",
+  searchValue,
   onSearchChange
 }: ProjectFiltersProps) => {
   return (
@@ -38,19 +38,17 @@ const ProjectFilters = ({
         ))}
       </div>
       
-      {/* Search input - only render if onSearchChange is provided */}
-      {onSearchChange && (
-        <div className="relative">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Search projects..."
-            value={searchValue}
-            onChange={(e) => onSearchChange(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-      )}
+      {/* Search input */}
+      <div className="relative">
+        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+        <Input
+          type="search"
+          placeholder="Search projects..."
+          value={searchValue}
+          onChange={(e) => onSearchChange(e.target.value)}
+          className="pl-9"
+        />
+      </div>
     </div>
   );
 };
