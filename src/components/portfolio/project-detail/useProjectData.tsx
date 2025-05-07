@@ -1,0 +1,110 @@
+
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+
+interface ProjectLink {
+  title: string;
+  url: string;
+}
+
+interface ProjectDetails {
+  id: string;
+  title: string;
+  description: string;
+  category?: string;
+  tech_stack?: string[];
+  created_at: string;
+  images?: string[];
+  links?: ProjectLink[];
+}
+
+export const useProjectData = (id: string | undefined) => {
+  const [project, setProject] = useState<ProjectDetails | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchProject = async () => {
+      if (!id) return;
+      
+      try {
+        setIsLoading(true);
+        setError(null);
+        console.log(`ProjectDetailPage: Fetching project with id/slug: ${id}`);
+        
+        // First try to fetch by slug
+        let { data, error } = await supabase
+          .from("portfolio_projects")
+          .select("*")
+          .eq("slug", id)
+          .maybeSingle();
+
+        if (!data && !error) {
+          console.log("ProjectDetailPage: No project found by slug, trying by ID");
+          // If no project found by slug, try by id
+          ({ data, error } = await supabase
+            .from("portfolio_projects")
+            .select("*")
+            .eq("id", id)
+            .maybeSingle());
+        }
+        
+        if (error) {
+          console.error("ProjectDetailPage: Supabase error:", error);
+          throw error;
+        }
+        
+        console.log("ProjectDetailPage: Project data:", data);
+        
+        if (data) {
+          // Format links if they exist
+          let formattedLinks: ProjectLink[] = [];
+          
+          if (data.links) {
+            try {
+              if (Array.isArray(data.links)) {
+                formattedLinks = data.links.map(link => {
+                  if (typeof link === 'object' && link !== null && 'title' in link && 'url' in link) {
+                    return {
+                      title: String(link.title || 'Link'),
+                      url: String(link.url || '#')
+                    };
+                  }
+                  return { title: 'Link', url: String(link) };
+                });
+              } else if (typeof data.links === 'object' && data.links !== null) {
+                formattedLinks = Object.entries(data.links as Record<string, any>).map(([title, url]) => ({ 
+                  title, 
+                  url: String(url) 
+                }));
+              }
+            } catch (err) {
+              console.error("ProjectDetailPage: Error formatting links:", err);
+            }
+          }
+          
+          setProject({
+            ...data,
+            links: formattedLinks
+          });
+        } else {
+          // No project found
+          console.error("ProjectDetailPage: No project found with this ID/slug");
+          setError("Project not found");
+          toast.error("Project not found");
+        }
+      } catch (err) {
+        console.error("ProjectDetailPage: Error fetching project:", err);
+        setError("Failed to load project details");
+        toast.error("Failed to load project details");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchProject();
+  }, [id]);
+
+  return { project, isLoading, error };
+};
