@@ -30,7 +30,7 @@ const LatestPosts = () => {
       try {
         setIsLoading(true);
         setError(null);
-        console.log("Fetching latest blog posts...");
+        console.log("LatestPosts: Fetching latest blog posts...");
         
         const { data, error } = await supabase
           .from("blog_posts")
@@ -40,18 +40,22 @@ const LatestPosts = () => {
           .limit(3);
 
         if (error) {
-          console.error("Supabase error:", error);
+          console.error("LatestPosts: Supabase error:", error);
           throw error;
         }
 
-        console.log("Latest blog posts data:", data);
+        console.log("LatestPosts: Latest blog posts data:", data);
 
         if (data) {
-          // Transform the data to match the expected format
-          setPosts(data);
+          // Filter out any posts that don't have required fields
+          const validPosts = data.filter(post => 
+            post.title && post.slug && post.content
+          );
+          console.log("LatestPosts: Valid posts:", validPosts.length);
+          setPosts(validPosts);
         }
       } catch (error) {
-        console.error("Error fetching latest posts:", error);
+        console.error("LatestPosts: Error fetching latest posts:", error);
         setError("Failed to load latest blog posts");
         toast.error("Failed to load latest blog posts");
       } finally {
@@ -108,7 +112,7 @@ const LatestPosts = () => {
                   />
                 </div>
                 <div className="p-5">
-                  <div className="flex gap-2 mb-2">
+                  <div className="flex flex-wrap gap-2 mb-2">
                     {post.tags && post.tags.slice(0, 2).map((tag) => (
                       <span 
                         key={tag} 
@@ -122,7 +126,7 @@ const LatestPosts = () => {
                     {formatDate(post.created_at)}
                   </time>
                   <h3 className="font-semibold text-xl mb-2">{post.title}</h3>
-                  <p className="text-muted-foreground line-clamp-2 mb-4">{post.excerpt}</p>
+                  <p className="text-muted-foreground line-clamp-2 mb-4">{post.excerpt || ""}</p>
                   <Link 
                     to={`/blog/${post.slug}`}
                     className="text-primary font-medium inline-flex items-center hover:underline"

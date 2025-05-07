@@ -11,6 +11,7 @@ interface AuthContextType {
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
+  isAuthenticated: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -19,32 +20,43 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log("AuthProvider: Setting up auth state listener");
+    
     // First set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log("AuthProvider: Auth state changed", event, session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
+        setIsAuthenticated(!!session?.user);
         setIsLoading(false);
       }
     );
 
     // Then check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log("AuthProvider: Got session", session?.user?.email);
       setSession(session);
       setUser(session?.user ?? null);
+      setIsAuthenticated(!!session?.user);
       setIsLoading(false);
     });
 
     return () => {
+      console.log("AuthProvider: Unsubscribing from auth state changes");
       subscription.unsubscribe();
     };
   }, []);
 
   const signIn = async (email: string, password: string) => {
     try {
+      setIsLoading(true);
+      console.log("AuthProvider: Signing in", email);
+      
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -60,18 +72,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } catch (error) {
       console.error("Error signing in:", error);
       throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const signOut = async () => {
     try {
+      setIsLoading(true);
+      console.log("AuthProvider: Signing out");
+      
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
+      
       toast.success("Signed out successfully");
       navigate("/dashboard/login");
     } catch (error) {
       console.error("Error signing out:", error);
       toast.error("Error signing out");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -79,6 +99,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     user,
     session,
     isLoading,
+    isAuthenticated,
     signIn,
     signOut,
   };

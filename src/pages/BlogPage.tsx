@@ -31,7 +31,7 @@ const BlogPage = () => {
     const fetchPosts = async () => {
       try {
         setIsLoading(true);
-        console.log("Fetching blog posts...");
+        console.log("BlogPage: Fetching blog posts...");
         const { data, error } = await supabase
           .from("blog_posts")
           .select("*")
@@ -39,19 +39,25 @@ const BlogPage = () => {
           .order("created_at", { ascending: false });
 
         if (error) {
-          console.error("Supabase error:", error);
+          console.error("BlogPage: Supabase error:", error);
           throw error;
         }
 
-        console.log("Blog posts data:", data);
+        console.log("BlogPage: Blog posts data:", data);
         
         // Process posts and extract unique tags
         if (data) {
-          setBlogPosts(data);
+          // Ensure posts have all required fields
+          const validPosts = data.filter(post => 
+            post.title && post.slug && post.content
+          );
+          
+          console.log("BlogPage: Valid posts count:", validPosts.length);
+          setBlogPosts(validPosts);
           
           // Extract unique tags
           const allTags = ["All"];
-          data.forEach(post => {
+          validPosts.forEach(post => {
             if (post.tags && Array.isArray(post.tags)) {
               post.tags.forEach(tag => {
                 if (!allTags.includes(tag)) {
@@ -61,10 +67,11 @@ const BlogPage = () => {
             }
           });
           
+          console.log("BlogPage: Extracted tags:", allTags);
           setTags(allTags);
         }
       } catch (error) {
-        console.error("Error fetching blog posts:", error);
+        console.error("BlogPage: Error fetching blog posts:", error);
         toast.error("Failed to load blog posts");
       } finally {
         setIsLoading(false);
@@ -76,10 +83,10 @@ const BlogPage = () => {
   
   // Filter posts by tag and search value
   const filteredPosts = blogPosts.filter(post => {
-    const matchesTag = activeTag === "All" || post.tags?.includes(activeTag);
+    const matchesTag = activeTag === "All" || (post.tags && post.tags.includes(activeTag));
     const matchesSearch = searchValue === "" || 
       post.title.toLowerCase().includes(searchValue.toLowerCase()) || 
-      post.excerpt?.toLowerCase().includes(searchValue.toLowerCase());
+      (post.excerpt && post.excerpt.toLowerCase().includes(searchValue.toLowerCase()));
     
     return matchesTag && matchesSearch;
   });

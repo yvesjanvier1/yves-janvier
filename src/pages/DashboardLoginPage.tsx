@@ -1,17 +1,30 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/components/dashboard/AuthProvider";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 const DashboardLoginPage = () => {
-  const { signIn, isLoading, user } = useAuth();
+  const { signIn, isLoading, user, isAuthenticated } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const location = useLocation();
+  const navigate = useNavigate();
+  
+  // Get the intended destination from location state, or default to dashboard
+  const from = (location.state as any)?.from || "/dashboard";
+  
+  useEffect(() => {
+    // If user becomes authenticated while on this page, redirect them
+    if (isAuthenticated && !isLoading) {
+      console.log("LoginPage: User is authenticated, redirecting to", from);
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, isLoading, navigate, from]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,6 +33,7 @@ const DashboardLoginPage = () => {
     
     try {
       await signIn(email, password);
+      // Auth provider will handle the redirect on success
     } catch (error: any) {
       console.error("Login failed:", error);
       setError(error?.message || "Failed to sign in. Please check your credentials.");
@@ -29,8 +43,9 @@ const DashboardLoginPage = () => {
   };
 
   // If user is already logged in, redirect to dashboard
-  if (user) {
-    return <Navigate to="/dashboard" replace />;
+  if (isAuthenticated && !isLoading) {
+    console.log("LoginPage: Already authenticated, redirecting to", from);
+    return <Navigate to={from} replace />;
   }
 
   return (
