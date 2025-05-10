@@ -1,14 +1,20 @@
+
+User-agent: *
+Allow: /
+
+# Disallow admin/dashboard routes
+Disallow: /dashboard/
+Disallow: /dashboard/*
+
+# Allow major search engines
 User-agent: Googlebot
 Allow: /
 
 User-agent: Bingbot
 Allow: /
 
-User-agent: Twitterbot
+User-agent: Slurp
 Allow: /
 
-User-agent: facebookexternalhit
-Allow: /
-
-User-agent: *
-Allow: /
+# Sitemap location (uncomment when you have a sitemap.xml)
+# Sitemap: https://yourwebsite.com/sitemap.xml
