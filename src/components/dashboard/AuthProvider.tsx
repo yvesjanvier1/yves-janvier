@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,7 +8,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   isLoading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string, redirectPath?: string) => Promise<void>;
   signOut: () => Promise<void>;
   isAuthenticated: boolean;
 }
@@ -52,7 +51,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, []);
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string, redirectPath: string = "/dashboard") => {
     try {
       setIsLoading(true);
       console.log("AuthProvider: Signing in", email);
@@ -68,7 +67,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
       
       toast.success("Signed in successfully");
-      navigate("/dashboard");
+      console.log("AuthProvider: Redirecting to", redirectPath);
+      navigate(redirectPath);
     } catch (error) {
       console.error("Error signing in:", error);
       throw error;

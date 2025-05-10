@@ -32,7 +32,8 @@ const DashboardLoginPage = () => {
     setError(null);
     
     try {
-      await signIn(email, password);
+      // Pass the 'from' path as the redirect destination
+      await signIn(email, password, from);
       // Auth provider will handle the redirect on success
     } catch (error: any) {
       console.error("Login failed:", error);
