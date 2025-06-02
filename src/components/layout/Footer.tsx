@@ -1,9 +1,11 @@
 
 import { Link } from "react-router-dom";
 import { Github, Linkedin, Mail, MessageCircle } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
+  const { t } = useLanguage();
   
   return (
     <footer className="bg-background border-t py-12">
@@ -14,34 +16,33 @@ const Footer = () => {
               <span className="font-bold text-xl">Yves Janvier</span>
             </Link>
             <p className="text-muted-foreground">
-              Data & Tech Expert specializing in transforming complex data 
-              into actionable insights and building innovative tech solutions.
+              {t('hero.subtitle')}
             </p>
           </div>
           
           <div>
-            <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
+            <h3 className="text-lg font-semibold mb-4">{t('footer.quickLinks')}</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/" className="text-muted-foreground hover:text-primary transition-colors">Home</Link>
+                <Link to="/" className="text-muted-foreground hover:text-primary transition-colors">{t('nav.home')}</Link>
               </li>
               <li>
-                <Link to="/portfolio" className="text-muted-foreground hover:text-primary transition-colors">Portfolio</Link>
+                <Link to="/portfolio" className="text-muted-foreground hover:text-primary transition-colors">{t('nav.portfolio')}</Link>
               </li>
               <li>
-                <Link to="/blog" className="text-muted-foreground hover:text-primary transition-colors">Blog</Link>
+                <Link to="/blog" className="text-muted-foreground hover:text-primary transition-colors">{t('nav.blog')}</Link>
               </li>
               <li>
-                <Link to="/about" className="text-muted-foreground hover:text-primary transition-colors">About</Link>
+                <Link to="/about" className="text-muted-foreground hover:text-primary transition-colors">{t('nav.about')}</Link>
               </li>
               <li>
-                <Link to="/contact" className="text-muted-foreground hover:text-primary transition-colors">Contact</Link>
+                <Link to="/contact" className="text-muted-foreground hover:text-primary transition-colors">{t('nav.contact')}</Link>
               </li>
             </ul>
           </div>
           
           <div>
-            <h3 className="text-lg font-semibold mb-4">Connect</h3>
+            <h3 className="text-lg font-semibold mb-4">{t('footer.connect')}</h3>
             <div className="flex space-x-4 mb-4">
               <a 
                 href="https://github.com" 
@@ -123,7 +124,7 @@ const Footer = () => {
         </div>
         
         <div className="mt-8 pt-8 border-t text-center text-sm text-muted-foreground">
-          <p>&copy; {currentYear} Yves Janvier. All rights reserved.</p>
+          <p>&copy; {currentYear} Yves Janvier. {t('footer.copyright')}</p>
         </div>
       </div>
     </footer>

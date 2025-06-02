@@ -13,6 +13,7 @@ import DashboardLoginPage from './pages/DashboardLoginPage';
 import ProtectedRoute from './components/dashboard/ProtectedRoute';
 import DashboardLayout from './components/dashboard/DashboardLayout';
 import { AuthProvider } from './components/dashboard/AuthProvider';
+import { LanguageProvider } from './contexts/LanguageContext';
 import DashboardHomePage from './pages/dashboard/DashboardHomePage';
 import BlogManagePage from './pages/dashboard/BlogManagePage';
 import PortfolioManagePage from './pages/dashboard/PortfolioManagePage';
@@ -32,52 +33,55 @@ import { PageViewTracker } from './components/PageViewTracker';
 function App() {
   return (
     <ThemeProvider defaultTheme="system" storageKey="theme">
-      <Router>
-        <AuthProvider>
-          <PageViewTracker />
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<Layout />}>
-              <Route index element={<HomePage />} />
-              <Route path="about" element={<AboutPage />} />
-              <Route path="portfolio" element={<PortfolioPage />} />
-              <Route path="portfolio/:id" element={<ProjectDetailPage />} />
-              <Route path="blog" element={<BlogPage />} />
-              <Route path="blog/:id" element={<BlogPostPage />} />
-              <Route path="contact" element={<ContactPage />} />
-            </Route>
-
-            {/* Auth Routes */}
-            <Route path="/dashboard/login" element={<DashboardLoginPage />} />
-            
-            {/* Dashboard Routes */}
-            <Route path="/dashboard" element={<ProtectedRoute />}>
-              <Route element={<DashboardLayout />}>
-                <Route index element={<DashboardHomePage />} />
-                <Route path="blog" element={<BlogManagePage />} />
-                <Route path="blog/new" element={<BlogFormPage />} />
-                <Route path="blog/edit/:id" element={<BlogFormPage />} />
-                <Route path="portfolio" element={<PortfolioManagePage />} />
-                <Route path="portfolio/new" element={<PortfolioFormPage />} />
-                <Route path="portfolio/edit/:id" element={<PortfolioFormPage />} />
-                <Route path="messages" element={<MessagesPage />} />
-                <Route path="analytics" element={<AnalyticsPage />} />
-                <Route path="testimonials" element={<TestimonialsManagePage />} />
-                <Route path="testimonials/new" element={<TestimonialsFormPage />} />
-                <Route path="testimonials/edit/:id" element={<TestimonialsFormPage />} />
-                <Route path="services" element={<ServicesManagePage />} />
-                <Route path="services/new" element={<ServiceFormPage />} />
-                <Route path="services/edit/:id" element={<ServiceFormPage />} />
-                <Route path="about" element={<AboutManagePage />} />
+      <LanguageProvider>
+        <Router>
+          <AuthProvider>
+            <PageViewTracker />
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/" element={<Layout />}>
+                <Route index element={<HomePage />} />
+                <Route path="about" element={<AboutPage />} />
+                <Route path="portfolio" element={<PortfolioPage />} />
+                <Route path="portfolio/:id" element={<ProjectDetailPage />} />
+                <Route path="blog" element={<BlogPage />} />
+                <Route path="blog/page/:page" element={<BlogPage />} />
+                <Route path="blog/:id" element={<BlogPostPage />} />
+                <Route path="contact" element={<ContactPage />} />
               </Route>
-            </Route>
 
-            {/* Not Found */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          <Toaster />
-        </AuthProvider>
-      </Router>
+              {/* Auth Routes */}
+              <Route path="/dashboard/login" element={<DashboardLoginPage />} />
+              
+              {/* Dashboard Routes */}
+              <Route path="/dashboard" element={<ProtectedRoute />}>
+                <Route element={<DashboardLayout />}>
+                  <Route index element={<DashboardHomePage />} />
+                  <Route path="blog" element={<BlogManagePage />} />
+                  <Route path="blog/new" element={<BlogFormPage />} />
+                  <Route path="blog/edit/:id" element={<BlogFormPage />} />
+                  <Route path="portfolio" element={<PortfolioManagePage />} />
+                  <Route path="portfolio/new" element={<PortfolioFormPage />} />
+                  <Route path="portfolio/edit/:id" element={<PortfolioFormPage />} />
+                  <Route path="messages" element={<MessagesPage />} />
+                  <Route path="analytics" element={<AnalyticsPage />} />
+                  <Route path="testimonials" element={<TestimonialsManagePage />} />
+                  <Route path="testimonials/new" element={<TestimonialsFormPage />} />
+                  <Route path="testimonials/edit/:id" element={<TestimonialsFormPage />} />
+                  <Route path="services" element={<ServicesManagePage />} />
+                  <Route path="services/new" element={<ServiceFormPage />} />
+                  <Route path="services/edit/:id" element={<ServiceFormPage />} />
+                  <Route path="about" element={<AboutManagePage />} />
+                </Route>
+              </Route>
+
+              {/* Not Found */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <Toaster />
+          </AuthProvider>
+        </Router>
+      </LanguageProvider>
     </ThemeProvider>
   );
 }

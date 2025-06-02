@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { SectionHeader } from "@/components/ui/section-header";
@@ -6,9 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Mail, Phone, MapPin, Linkedin, Github, Twitter } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const ContactPage = () => {
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -34,8 +37,8 @@ const ContactPage = () => {
       if (error) throw error;
       
       toast({
-        title: "Message Sent",
-        description: "Thank you for your message. I'll get back to you soon!",
+        title: t('contact.success.title'),
+        description: t('contact.success.description'),
       });
       
       setFormData({
@@ -47,8 +50,8 @@ const ContactPage = () => {
     } catch (error) {
       console.error("Error sending message:", error);
       toast({
-        title: "Error",
-        description: "There was a problem sending your message. Please try again.",
+        title: t('contact.error.title'),
+        description: t('contact.error.description'),
         variant: "destructive"
       });
     } finally {
@@ -59,18 +62,16 @@ const ContactPage = () => {
   return (
     <div className="container px-4 py-16 md:py-24 mx-auto">
       <SectionHeader
-        title="Contact Me"
-        subtitle="Get in touch for collaborations, consultations, or just to say hello"
+        title={t('contact.title')}
+        subtitle={t('contact.subtitle')}
         centered
       />
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-5xl mx-auto">
         <div>
-          <h3 className="text-xl font-semibold mb-6">Let's Connect</h3>
+          <h3 className="text-xl font-semibold mb-6">{t('contact.letsConnect')}</h3>
           <p className="text-muted-foreground mb-8">
-            Whether you're looking for data and technology expertise, have a question about my work, 
-            or just want to connect, I'd love to hear from you. Fill out the form or reach me through 
-            any of the channels below.
+            {t('contact.description')}
           </p>
           
           <div className="space-y-6">
@@ -79,10 +80,10 @@ const ContactPage = () => {
               <div>
                 <h4 className="font-medium">Email</h4>
                 <a 
-                  href="mailto:contact@yvesjanvier.com"
+                  href="mailto:janvieryves44@gmail.com"
                   className="text-muted-foreground hover:text-primary transition-colors"
                 >
-                  contact@yvesjanvier.com
+                  janvieryves44@gmail.com
                 </a>
               </div>
             </div>
@@ -105,10 +106,10 @@ const ContactPage = () => {
           </div>
           
           <div className="mt-8">
-            <h4 className="font-medium mb-3">Connect on Social Media</h4>
+            <h4 className="font-medium mb-3">{t('footer.socialMedia')}</h4>
             <div className="flex space-x-4">
               <a 
-                href="https://linkedin.com" 
+                href="https://www.linkedin.com/in/janvieryves44/" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="p-2 border border-input rounded-md hover:border-primary transition-colors"
@@ -126,7 +127,7 @@ const ContactPage = () => {
                 <Github className="h-5 w-5" />
               </a>
               <a 
-                href="https://twitter.com" 
+                href="https://twitter.com/yvesjanvier01" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="p-2 border border-input rounded-md hover:border-primary transition-colors"
@@ -142,7 +143,7 @@ const ContactPage = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="name" className="block text-sm font-medium mb-1">
-                Name
+                {t('contact.form.name')}
               </label>
               <Input
                 id="name"
@@ -150,13 +151,13 @@ const ContactPage = () => {
                 value={formData.name}
                 onChange={handleChange}
                 required
-                placeholder="Your name"
+                placeholder={t('contact.form.namePlaceholder')}
               />
             </div>
             
             <div>
               <label htmlFor="email" className="block text-sm font-medium mb-1">
-                Email
+                {t('contact.form.email')}
               </label>
               <Input
                 id="email"
@@ -165,13 +166,13 @@ const ContactPage = () => {
                 value={formData.email}
                 onChange={handleChange}
                 required
-                placeholder="your.email@example.com"
+                placeholder={t('contact.form.emailPlaceholder')}
               />
             </div>
             
             <div>
               <label htmlFor="subject" className="block text-sm font-medium mb-1">
-                Subject
+                {t('contact.form.subject')}
               </label>
               <Input
                 id="subject"
@@ -179,13 +180,13 @@ const ContactPage = () => {
                 value={formData.subject}
                 onChange={handleChange}
                 required
-                placeholder="What is this regarding?"
+                placeholder={t('contact.form.subjectPlaceholder')}
               />
             </div>
             
             <div>
               <label htmlFor="message" className="block text-sm font-medium mb-1">
-                Message
+                {t('contact.form.message')}
               </label>
               <Textarea
                 id="message"
@@ -193,13 +194,13 @@ const ContactPage = () => {
                 value={formData.message}
                 onChange={handleChange}
                 required
-                placeholder="Your message..."
+                placeholder={t('contact.form.messagePlaceholder')}
                 className="min-h-32"
               />
             </div>
             
             <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? "Sending..." : "Send Message"}
+              {isSubmitting ? t('contact.form.sending') : t('contact.form.send')}
             </Button>
           </form>
         </div>

@@ -5,18 +5,22 @@ import { useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
-
-const navItems = [
-  { name: "Home", path: "/" },
-  { name: "Portfolio", path: "/portfolio" },
-  { name: "Blog", path: "/blog" },
-  { name: "About", path: "/about" },
-  { name: "Contact", path: "/contact" },
-];
+import { LanguageToggle } from "@/components/ui/language-toggle";
+import { Logo } from "@/components/ui/logo";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const { t } = useLanguage();
+
+  const navItems = [
+    { name: t('nav.home'), path: "/" },
+    { name: t('nav.portfolio'), path: "/portfolio" },
+    { name: t('nav.blog'), path: "/blog" },
+    { name: t('nav.about'), path: "/about" },
+    { name: t('nav.contact'), path: "/contact" },
+  ];
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
@@ -25,9 +29,7 @@ const Navbar = () => {
   return (
     <nav id="navigation" className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-sm border-b" role="navigation" aria-label="Main navigation">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-        <Link to="/" className="flex items-center space-x-2" aria-label="Yves Janvier - Home">
-          <span className="font-bold text-xl">Yves Janvier</span>
-        </Link>
+        <Logo />
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-1">
@@ -45,11 +47,13 @@ const Navbar = () => {
               {item.name}
             </Link>
           ))}
+          <LanguageToggle />
           <ThemeToggle />
         </div>
 
         {/* Mobile Navigation Button */}
         <div className="md:hidden flex items-center">
+          <LanguageToggle />
           <ThemeToggle />
           <Button
             variant="ghost"

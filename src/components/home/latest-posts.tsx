@@ -5,8 +5,8 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { SectionHeader } from "@/components/ui/section-header";
 import { supabase } from "@/integrations/supabase/client";
-import { formatDate } from "@/lib/utils";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface BlogPost {
   id: string;
@@ -24,6 +24,7 @@ const LatestPosts = () => {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { t, formatDate } = useLanguage();
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -47,7 +48,6 @@ const LatestPosts = () => {
         console.log("LatestPosts: Latest blog posts data:", data);
 
         if (data) {
-          // Filter out any posts that don't have required fields
           const validPosts = data.filter(post => 
             post.title && post.slug && post.content
           );
@@ -71,13 +71,13 @@ const LatestPosts = () => {
       <section className="section">
         <div className="container px-4 mx-auto">
           <SectionHeader
-            title="Latest from the Blog"
-            subtitle="Insights, tutorials, and thoughts on data and tech"
+            title={t('blog.latestPosts')}
+            subtitle={t('blog.latestPostsSubtitle')}
             centered
           />
           <div className="text-center py-12">
             <p className="text-destructive mb-4">{error}</p>
-            <Button onClick={() => window.location.reload()} variant="outline">Retry</Button>
+            <Button onClick={() => window.location.reload()} variant="outline">{t('common.retry')}</Button>
           </div>
         </div>
       </section>
@@ -88,8 +88,8 @@ const LatestPosts = () => {
     <section className="section">
       <div className="container px-4 mx-auto">
         <SectionHeader
-          title="Latest from the Blog"
-          subtitle="Insights, tutorials, and thoughts on data and tech"
+          title={t('blog.latestPosts')}
+          subtitle={t('blog.latestPostsSubtitle')}
           centered
         />
 
@@ -131,7 +131,7 @@ const LatestPosts = () => {
                     to={`/blog/${post.slug}`}
                     className="text-primary font-medium inline-flex items-center hover:underline"
                   >
-                    Read More
+                    {t('blog.readMore')}
                     <ArrowRight className="ml-1 h-4 w-4" />
                   </Link>
                 </div>
@@ -140,14 +140,14 @@ const LatestPosts = () => {
           </div>
         ) : (
           <div className="text-center py-16">
-            <p className="text-muted-foreground mb-4">No blog posts found.</p>
+            <p className="text-muted-foreground mb-4">{t('blog.noPostsFound')}</p>
             <p className="text-sm text-muted-foreground">Check back later for new content.</p>
           </div>
         )}
 
         <div className="mt-12 text-center">
           <Button asChild variant="outline" size="lg">
-            <Link to="/blog">View All Posts</Link>
+            <Link to="/blog">{t('blog.viewAll')}</Link>
           </Button>
         </div>
       </div>

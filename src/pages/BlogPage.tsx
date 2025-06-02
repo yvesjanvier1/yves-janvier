@@ -1,13 +1,15 @@
 
 import { useState, useEffect } from "react";
+import { useParams, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { SectionHeader } from "@/components/ui/section-header";
 import BlogCard from "@/components/blog/blog-card";
 import BlogFilters from "@/components/blog/blog-filters";
+import { PaginationEnhanced } from "@/components/ui/pagination-enhanced";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useLanguage } from "@/contexts/LanguageContext";
 
-// Interface for blog posts from Supabase
 interface BlogPost {
   id: string;
   title: string;
@@ -21,13 +23,22 @@ interface BlogPost {
   published: boolean;
 }
 
+const POSTS_PER_PAGE = 6;
+
 const BlogPage = () => {
-  const [activeTag, setActiveTag] = useState("All");
-  const [searchValue, setSearchValue] = useState("");
+  const { page } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { t, formatDate } = useLanguage();
+  
+  const currentPage = parseInt(page || "1", 10);
+  const activeTag = searchParams.get("tag") || "All";
+  const searchValue = searchParams.get("search") || "";
+  
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
   const [tags, setTags] = useState<string[]>(["All"]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [totalPages, setTotalPages] = useState(1);
   
   useEffect(() => {
     const fetchPosts = async () => {
@@ -36,11 +47,31 @@ const BlogPage = () => {
         setError(null);
         console.log("BlogPage: Fetching blog posts...");
         
-        const { data, error } = await supabase
+        let query = supabase
           .from("blog_posts")
-          .select("*")
-          .eq("published", true) // Only fetch published posts
+          .select("*", { count: 'exact' })
+          .eq("published", true)
           .order("created_at", { ascending: false });
+
+        // Apply tag filter
+        if (activeTag !== "All") {
+          query = query.contains("tags", [activeTag]);
+        }
+
+        // Apply search filter
+        if (searchValue) {
+          query = query.or(`title.ilike.%${searchValue}%,excerpt.ilike.%${searchValue}%,content.ilike.%${searchValue}%`);
+        }
+
+        // Get total count first
+        const { count } = await query;
+        const totalCount = count || 0;
+        setTotalPages(Math.ceil(totalCount / POSTS_PER_PAGE));
+
+        // Apply pagination
+        const offset = (currentPage - 1) * POSTS_PER_PAGE;
+        const { data, error } = await query
+          .range(offset, offset + POSTS_PER_PAGE - 1);
 
         if (error) {
           console.error("BlogPage: Supabase error:", error);
@@ -50,7 +81,6 @@ const BlogPage = () => {
         console.log("BlogPage: Blog posts data:", data);
         
         if (data && data.length > 0) {
-          // Process posts and extract unique tags
           const validPosts = data.filter(post => 
             post.title && post.slug && post.content
           );
@@ -58,21 +88,29 @@ const BlogPage = () => {
           console.log("BlogPage: Valid posts count:", validPosts.length);
           setBlogPosts(validPosts);
           
-          // Extract unique tags
-          const allTags = ["All"];
-          validPosts.forEach(post => {
-            if (post.tags && Array.isArray(post.tags)) {
-              post.tags.forEach(tag => {
-                if (!allTags.includes(tag)) {
-                  allTags.push(tag);
-                }
-              });
-            }
-          });
+          // Extract unique tags from all posts (not just current page)
+          const { data: allPosts } = await supabase
+            .from("blog_posts")
+            .select("tags")
+            .eq("published", true);
           
-          console.log("BlogPage: Extracted tags:", allTags);
-          setTags(allTags);
+          if (allPosts) {
+            const allTags = ["All"];
+            allPosts.forEach(post => {
+              if (post.tags && Array.isArray(post.tags)) {
+                post.tags.forEach(tag => {
+                  if (!allTags.includes(tag)) {
+                    allTags.push(tag);
+                  }
+                });
+              }
+            });
+            
+            console.log("BlogPage: Extracted tags:", allTags);
+            setTags(allTags);
+          }
         } else {
+          setBlogPosts([]);
           console.log("BlogPage: No published posts found");
         }
       } catch (err) {
@@ -85,32 +123,46 @@ const BlogPage = () => {
     };
 
     fetchPosts();
-  }, []);
-  
-  // Filter posts by tag and search value
-  const filteredPosts = blogPosts.filter(post => {
-    const matchesTag = activeTag === "All" || (post.tags && post.tags.includes(activeTag));
-    const matchesSearch = searchValue === "" || 
-      post.title.toLowerCase().includes(searchValue.toLowerCase()) || 
-      (post.excerpt && post.excerpt.toLowerCase().includes(searchValue.toLowerCase()));
-    
-    return matchesTag && matchesSearch;
-  });
+  }, [currentPage, activeTag, searchValue]);
+
+  const handleTagChange = (tag: string) => {
+    setSearchParams(prev => {
+      const newParams = new URLSearchParams(prev);
+      if (tag === "All") {
+        newParams.delete("tag");
+      } else {
+        newParams.set("tag", tag);
+      }
+      return newParams;
+    });
+  };
+
+  const handleSearchChange = (search: string) => {
+    setSearchParams(prev => {
+      const newParams = new URLSearchParams(prev);
+      if (search) {
+        newParams.set("search", search);
+      } else {
+        newParams.delete("search");
+      }
+      return newParams;
+    });
+  };
 
   return (
     <div className="container px-4 py-16 md:py-24 mx-auto">
       <SectionHeader
-        title="Blog"
-        subtitle="Insights on data, technology, and innovation"
+        title={t('blog.title')}
+        subtitle={t('blog.subtitle')}
         centered
       />
       
       <BlogFilters 
         tags={tags}
         activeTag={activeTag}
-        onTagChange={setActiveTag}
+        onTagChange={handleTagChange}
         searchValue={searchValue}
-        onSearchChange={setSearchValue}
+        onSearchChange={handleSearchChange}
       />
       
       {isLoading ? (
@@ -128,41 +180,50 @@ const BlogPage = () => {
         </div>
       ) : error ? (
         <div className="text-center py-16">
-          <h3 className="text-xl font-medium mb-2">Error loading posts</h3>
+          <h3 className="text-xl font-medium mb-2">{t('common.error')}</h3>
           <p className="text-muted-foreground mb-4">{error}</p>
           <button 
             onClick={() => window.location.reload()}
             className="bg-primary text-primary-foreground px-4 py-2 rounded-md"
           >
-            Retry
+            {t('common.retry')}
           </button>
         </div>
-      ) : filteredPosts.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredPosts.map(post => (
-            <BlogCard 
-              key={post.id} 
-              post={{
-                id: post.slug || post.id,
-                title: post.title,
-                excerpt: post.excerpt || post.content.substring(0, 150) + "...",
-                content: post.content,
-                coverImage: post.cover_image || "/placeholder.svg",
-                tags: post.tags || [],
-                date: post.created_at,
-                author: {
-                  name: "Admin", // Default author name
-                  avatar: "/placeholder.svg" // Default avatar
-                }
-              }} 
-            />
-          ))}
-        </div>
+      ) : blogPosts.length > 0 ? (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+            {blogPosts.map(post => (
+              <BlogCard 
+                key={post.id} 
+                post={{
+                  id: post.slug || post.id,
+                  title: post.title,
+                  excerpt: post.excerpt || post.content.substring(0, 150) + "...",
+                  content: post.content,
+                  coverImage: post.cover_image || "/placeholder.svg",
+                  tags: post.tags || [],
+                  date: post.created_at,
+                  author: {
+                    name: "Admin",
+                    avatar: "/placeholder.svg"
+                  }
+                }} 
+              />
+            ))}
+          </div>
+          
+          <PaginationEnhanced
+            currentPage={currentPage}
+            totalPages={totalPages}
+            baseUrl="/blog"
+            className="mt-12"
+          />
+        </>
       ) : (
         <div className="text-center py-16">
-          <h3 className="text-xl font-medium mb-2">No posts found</h3>
+          <h3 className="text-xl font-medium mb-2">{t('blog.noPostsFound')}</h3>
           <p className="text-muted-foreground">
-            Try adjusting your search or filter to find what you're looking for.
+            {t('blog.noPostsMessage')}
           </p>
         </div>
       )}
