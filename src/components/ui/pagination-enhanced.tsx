@@ -5,10 +5,11 @@ import {
   PaginationContent,
   PaginationEllipsis,
   PaginationItem,
-  PaginationLink,
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface PaginationEnhancedProps {
@@ -41,13 +42,19 @@ export const PaginationEnhanced = ({
       for (let i = 1; i <= totalPages; i++) {
         items.push(
           <PaginationItem key={i}>
-            <PaginationLink 
-              as={Link}
+            <Link
               to={getPageUrl(i)}
-              isActive={currentPage === i}
+              className={cn(
+                buttonVariants({
+                  variant: currentPage === i ? "outline" : "ghost",
+                  size: "icon",
+                }),
+                "h-9 w-9"
+              )}
+              aria-current={currentPage === i ? "page" : undefined}
             >
               {i}
-            </PaginationLink>
+            </Link>
           </PaginationItem>
         );
       }
@@ -55,13 +62,19 @@ export const PaginationEnhanced = ({
       // Always show first page
       items.push(
         <PaginationItem key={1}>
-          <PaginationLink 
-            as={Link}
+          <Link
             to={getPageUrl(1)}
-            isActive={currentPage === 1}
+            className={cn(
+              buttonVariants({
+                variant: currentPage === 1 ? "outline" : "ghost",
+                size: "icon",
+              }),
+              "h-9 w-9"
+            )}
+            aria-current={currentPage === 1 ? "page" : undefined}
           >
             1
-          </PaginationLink>
+          </Link>
         </PaginationItem>
       );
 
@@ -81,13 +94,19 @@ export const PaginationEnhanced = ({
       for (let i = start; i <= end; i++) {
         items.push(
           <PaginationItem key={i}>
-            <PaginationLink 
-              as={Link}
+            <Link
               to={getPageUrl(i)}
-              isActive={currentPage === i}
+              className={cn(
+                buttonVariants({
+                  variant: currentPage === i ? "outline" : "ghost",
+                  size: "icon",
+                }),
+                "h-9 w-9"
+              )}
+              aria-current={currentPage === i ? "page" : undefined}
             >
               {i}
-            </PaginationLink>
+            </Link>
           </PaginationItem>
         );
       }
@@ -105,13 +124,19 @@ export const PaginationEnhanced = ({
       if (totalPages > 1) {
         items.push(
           <PaginationItem key={totalPages}>
-            <PaginationLink 
-              as={Link}
+            <Link
               to={getPageUrl(totalPages)}
-              isActive={currentPage === totalPages}
+              className={cn(
+                buttonVariants({
+                  variant: currentPage === totalPages ? "outline" : "ghost",
+                  size: "icon",
+                }),
+                "h-9 w-9"
+              )}
+              aria-current={currentPage === totalPages ? "page" : undefined}
             >
               {totalPages}
-            </PaginationLink>
+            </Link>
           </PaginationItem>
         );
       }
@@ -121,28 +146,68 @@ export const PaginationEnhanced = ({
   };
 
   return (
-    <div className={`flex flex-col items-center space-y-4 ${className}`}>
+    <div className={cn("flex flex-col items-center space-y-4", className)}>
       <div className="text-sm text-muted-foreground">
         {t('common.page')} {currentPage} {t('common.of')} {totalPages}
       </div>
       <Pagination>
         <PaginationContent>
           <PaginationItem>
-            <PaginationPrevious 
-              as={currentPage > 1 ? Link : 'span'}
-              to={currentPage > 1 ? getPageUrl(currentPage - 1) : undefined}
-              className={currentPage <= 1 ? 'pointer-events-none opacity-50' : ''}
-            />
+            {currentPage > 1 ? (
+              <Link
+                to={getPageUrl(currentPage - 1)}
+                className={cn(
+                  buttonVariants({ variant: "ghost", size: "default" }),
+                  "gap-1 pl-2.5"
+                )}
+                aria-label="Go to previous page"
+              >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                <span>{t('common.previous')}</span>
+              </Link>
+            ) : (
+              <span className={cn(
+                buttonVariants({ variant: "ghost", size: "default" }),
+                "gap-1 pl-2.5 pointer-events-none opacity-50"
+              )}>
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                <span>{t('common.previous')}</span>
+              </span>
+            )}
           </PaginationItem>
           
           {renderPageNumbers()}
           
           <PaginationItem>
-            <PaginationNext 
-              as={currentPage < totalPages ? Link : 'span'}
-              to={currentPage < totalPages ? getPageUrl(currentPage + 1) : undefined}
-              className={currentPage >= totalPages ? 'pointer-events-none opacity-50' : ''}
-            />
+            {currentPage < totalPages ? (
+              <Link
+                to={getPageUrl(currentPage + 1)}
+                className={cn(
+                  buttonVariants({ variant: "ghost", size: "default" }),
+                  "gap-1 pr-2.5"
+                )}
+                aria-label="Go to next page"
+              >
+                <span>{t('common.next')}</span>
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
+            ) : (
+              <span className={cn(
+                buttonVariants({ variant: "ghost", size: "default" }),
+                "gap-1 pr-2.5 pointer-events-none opacity-50"
+              )}>
+                <span>{t('common.next')}</span>
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </span>
+            )}
           </PaginationItem>
         </PaginationContent>
       </Pagination>
