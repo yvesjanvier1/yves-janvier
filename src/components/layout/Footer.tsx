@@ -1,6 +1,6 @@
 
 import { Link } from "react-router-dom";
-import { Github, Linkedin, Mail } from "lucide-react";
+import { Github, Linkedin, Mail, MessageCircle } from "lucide-react";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -42,7 +42,7 @@ const Footer = () => {
           
           <div>
             <h3 className="text-lg font-semibold mb-4">Connect</h3>
-            <div className="flex space-x-4">
+            <div className="flex space-x-4 mb-4">
               <a 
                 href="https://github.com" 
                 target="_blank" 
@@ -53,7 +53,7 @@ const Footer = () => {
                 <Github className="h-5 w-5" />
               </a>
               <a 
-                href="https://linkedin.com" 
+                href="https://www.linkedin.com/in/janvieryves44/" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-foreground hover:text-primary transition-colors"
@@ -62,12 +62,62 @@ const Footer = () => {
                 <Linkedin className="h-5 w-5" />
               </a>
               <a 
-                href="mailto:contact@yvesjanvier.com" 
+                href="https://twitter.com/yvesjanvier01" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-foreground hover:text-primary transition-colors"
+                aria-label="Twitter/X"
+              >
+                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                </svg>
+              </a>
+              <a 
+                href="mailto:janvieryves44@gmail.com" 
                 className="text-foreground hover:text-primary transition-colors"
                 aria-label="Email"
               >
                 <Mail className="h-5 w-5" />
               </a>
+              <a 
+                href="https://wa.me/+33123456789" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-foreground hover:text-primary transition-colors"
+                aria-label="WhatsApp Business"
+              >
+                <MessageCircle className="h-5 w-5" />
+              </a>
+            </div>
+            <div className="text-sm text-muted-foreground space-y-1">
+              <p>
+                <a 
+                  href="mailto:janvieryves44@gmail.com"
+                  className="hover:text-primary transition-colors"
+                >
+                  janvieryves44@gmail.com
+                </a>
+              </p>
+              <p>
+                <a 
+                  href="https://www.linkedin.com/in/janvieryves44/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-primary transition-colors"
+                >
+                  LinkedIn: janvieryves44
+                </a>
+              </p>
+              <p>
+                <a 
+                  href="https://twitter.com/yvesjanvier01"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-primary transition-colors"
+                >
+                  Twitter: @yvesjanvier01
+                </a>
+              </p>
             </div>
           </div>
         </div>

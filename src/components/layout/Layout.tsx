@@ -2,12 +2,14 @@
 import { Outlet } from "react-router-dom";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
+import SkipNavigation from "../accessibility/SkipNavigation";
 
 const Layout = () => {
   return (
     <div className="min-h-screen flex flex-col">
+      <SkipNavigation />
       <Navbar />
-      <main className="flex-grow">
+      <main id="main-content" className="flex-grow" role="main">
         <Outlet />
       </main>
       <Footer />

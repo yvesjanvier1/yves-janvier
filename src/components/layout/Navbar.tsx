@@ -23,9 +23,9 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-sm border-b">
+    <nav id="navigation" className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-sm border-b" role="navigation" aria-label="Main navigation">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-        <Link to="/" className="flex items-center space-x-2">
+        <Link to="/" className="flex items-center space-x-2" aria-label="Yves Janvier - Home">
           <span className="font-bold text-xl">Yves Janvier</span>
         </Link>
 
@@ -35,11 +35,12 @@ const Navbar = () => {
             <Link
               key={item.name}
               to={item.path}
-              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ${
                 location.pathname === item.path
-                  ? "text-primary font-semibold"
-                  : "text-foreground/80 hover:text-foreground"
+                  ? "text-primary font-semibold bg-primary/10"
+                  : "text-foreground/80 hover:text-foreground hover:bg-muted/50"
               }`}
+              aria-current={location.pathname === item.path ? "page" : undefined}
             >
               {item.name}
             </Link>
@@ -54,7 +55,9 @@ const Navbar = () => {
             variant="ghost"
             size="icon"
             onClick={toggleMenu}
-            aria-label="Toggle menu"
+            aria-label={isOpen ? "Close menu" : "Open menu"}
+            aria-expanded={isOpen}
+            aria-controls="mobile-menu"
             className="ml-2"
           >
             {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -64,18 +67,25 @@ const Navbar = () => {
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="md:hidden absolute w-full bg-background shadow-lg z-50 animate-fade-in">
+        <div 
+          id="mobile-menu"
+          className="md:hidden absolute w-full bg-background shadow-lg z-50 animate-fade-in"
+          role="menu"
+          aria-label="Mobile navigation menu"
+        >
           <div className="px-2 pt-2 pb-3 space-y-1">
             {navItems.map((item) => (
               <Link
                 key={item.name}
                 to={item.path}
-                className={`block px-3 py-2 rounded-md text-base font-medium ${
+                className={`block px-3 py-2 rounded-md text-base font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ${
                   location.pathname === item.path
-                    ? "text-primary font-semibold"
-                    : "text-foreground/80 hover:text-foreground"
+                    ? "text-primary font-semibold bg-primary/10"
+                    : "text-foreground/80 hover:text-foreground hover:bg-muted/50"
                 }`}
                 onClick={() => setIsOpen(false)}
+                role="menuitem"
+                aria-current={location.pathname === item.path ? "page" : undefined}
               >
                 {item.name}
               </Link>
