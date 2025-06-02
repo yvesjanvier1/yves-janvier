@@ -3,6 +3,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@import './styles/blog-content.css';
+
 @layer base {
   :root {
     --background: 210 34% 98%;

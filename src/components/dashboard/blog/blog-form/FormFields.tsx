@@ -5,6 +5,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { FormField } from "@/components/ui/form-field";
 import { TagInput } from "@/components/ui/tag-input";
+import RichTextEditor from "../RichTextEditor";
+import "../RichTextEditor.css";
 
 interface BlogFormData {
   title: string;
@@ -35,6 +37,19 @@ export function FormFields({
   addTag,
   removeTag
 }: FormFieldsProps) {
+  
+  const handleContentChange = (value: string) => {
+    // Create a synthetic event to maintain compatibility with existing handleChange
+    const syntheticEvent = {
+      target: {
+        name: 'content',
+        value: value
+      }
+    } as React.ChangeEvent<HTMLTextAreaElement>;
+    
+    handleChange(syntheticEvent);
+  };
+
   return (
     <>
       <FormField id="title" label="Title" required>
@@ -71,14 +86,10 @@ export function FormFields({
       </FormField>
       
       <FormField id="content" label="Content" required>
-        <Textarea
-          id="content"
-          name="content"
+        <RichTextEditor
           value={formData.content}
-          onChange={handleChange}
-          required
-          placeholder="Post content (Markdown supported)"
-          rows={12}
+          onChange={handleContentChange}
+          placeholder="Start writing your blog post..."
         />
       </FormField>
       

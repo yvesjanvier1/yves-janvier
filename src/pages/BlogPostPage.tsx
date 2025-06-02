@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -231,12 +230,11 @@ const BlogPostPage = () => {
             )}
           </header>
 
-          <div className="mt-8 leading-relaxed">
-            {post.content.split('\n\n').map((paragraph, index) => (
-              <p key={index} className="mb-4">
-                {paragraph.replace(/\n/g, ' ')}
-              </p>
-            ))}
+          <div className="mt-8 leading-relaxed prose dark:prose-invert max-w-none">
+            <div 
+              dangerouslySetInnerHTML={{ __html: post.content }}
+              className="blog-content"
+            />
           </div>
 
           <footer className="mt-12 pt-8 border-t">
