@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { ArrowRight, ExternalLink, Github } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -10,6 +9,11 @@ import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useResponsive } from "@/hooks/useResponsive";
 
+interface ProjectLink {
+  title: string;
+  url: string;
+}
+
 interface Project {
   id: string;
   title: string;
@@ -18,7 +22,7 @@ interface Project {
   category?: string;
   tech_stack?: string[];
   images?: string[];
-  links?: Array<{ title: string; url: string }>;
+  links?: ProjectLink[];
   created_at: string;
 }
 
@@ -44,7 +48,22 @@ export const FeaturedProjects = () => {
         if (error) throw error;
 
         if (data) {
-          setProjects(data);
+          // Transform the data to match our Project interface
+          const transformedProjects: Project[] = data.map(project => ({
+            id: project.id,
+            title: project.title,
+            description: project.description,
+            slug: project.slug,
+            category: project.category,
+            tech_stack: project.tech_stack,
+            images: project.images,
+            created_at: project.created_at,
+            links: Array.isArray(project.links) 
+              ? (project.links as ProjectLink[])
+              : []
+          }));
+          
+          setProjects(transformedProjects);
         }
       } catch (error) {
         console.error("Error fetching featured projects:", error);

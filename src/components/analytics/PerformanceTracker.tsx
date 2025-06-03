@@ -12,16 +12,22 @@ export const PerformanceTracker = () => {
     if (metrics && metrics.loadTime > 0) {
       const trackPerformance = async () => {
         try {
-          await supabase.rpc('track_performance_metrics', {
+          // Use the existing track_page_view function with performance data in user_agent
+          const performanceData = JSON.stringify({
+            loadTime: Math.round(metrics.loadTime),
+            domContentLoaded: Math.round(metrics.domContentLoaded),
+            firstContentfulPaint: metrics.firstContentfulPaint ? Math.round(metrics.firstContentfulPaint) : null,
+            largestContentfulPaint: metrics.largestContentfulPaint ? Math.round(metrics.largestContentfulPaint) : null,
+            viewportWidth: window.innerWidth,
+            viewportHeight: window.innerHeight,
+            connectionType: (navigator as any)?.connection?.effectiveType || null
+          });
+
+          await supabase.rpc('track_page_view', {
             page_path: location.pathname,
-            load_time: Math.round(metrics.loadTime),
-            dom_content_loaded: Math.round(metrics.domContentLoaded),
-            first_contentful_paint: metrics.firstContentfulPaint ? Math.round(metrics.firstContentfulPaint) : null,
-            largest_contentful_paint: metrics.largestContentfulPaint ? Math.round(metrics.largestContentfulPaint) : null,
-            user_agent: navigator.userAgent,
-            viewport_width: window.innerWidth,
-            viewport_height: window.innerHeight,
-            connection_type: (navigator as any)?.connection?.effectiveType || null
+            visitor: 'performance-tracker',
+            referrer: document.referrer || null,
+            agent: performanceData
           });
         } catch (error) {
           console.warn('Performance tracking failed:', error);
