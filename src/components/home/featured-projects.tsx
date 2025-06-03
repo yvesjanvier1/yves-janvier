@@ -7,7 +7,6 @@ import { LazyImage } from "@/components/ui/lazy-image";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useResponsive } from "@/hooks/useResponsive";
 
 interface ProjectLink {
   title: string;
@@ -31,7 +30,6 @@ export const FeaturedProjects = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { t } = useLanguage();
-  const { isMobile, isTablet } = useResponsive();
 
   // Helper function to safely convert links from Json to ProjectLink[]
   const convertLinks = (links: any): ProjectLink[] => {
@@ -58,7 +56,7 @@ export const FeaturedProjects = () => {
           .from("portfolio_projects")
           .select("*")
           .order("created_at", { ascending: false })
-          .limit(isMobile ? 2 : isTablet ? 4 : 6);
+          .limit(3);
 
         if (error) throw error;
 
@@ -88,7 +86,7 @@ export const FeaturedProjects = () => {
     };
 
     fetchProjects();
-  }, [isMobile, isTablet]);
+  }, []);
 
   if (error) {
     return (
@@ -121,7 +119,7 @@ export const FeaturedProjects = () => {
 
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Array.from({ length: 6 }).map((_, index) => (
+            {Array.from({ length: 3 }).map((_, index) => (
               <div key={index} className="bg-card rounded-lg overflow-hidden border shadow-sm">
                 <div className="aspect-video bg-muted animate-pulse" />
                 <div className="p-5 space-y-3">
