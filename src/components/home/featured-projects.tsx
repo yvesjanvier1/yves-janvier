@@ -33,6 +33,21 @@ export const FeaturedProjects = () => {
   const { t } = useLanguage();
   const { isMobile, isTablet } = useResponsive();
 
+  // Helper function to safely convert links from Json to ProjectLink[]
+  const convertLinks = (links: any): ProjectLink[] => {
+    if (!links || !Array.isArray(links)) return [];
+    
+    return links.filter((link: any) => 
+      link && 
+      typeof link === 'object' && 
+      typeof link.title === 'string' && 
+      typeof link.url === 'string'
+    ).map((link: any) => ({
+      title: link.title,
+      url: link.url
+    }));
+  };
+
   useEffect(() => {
     const fetchProjects = async () => {
       try {
@@ -58,9 +73,7 @@ export const FeaturedProjects = () => {
             tech_stack: project.tech_stack,
             images: project.images,
             created_at: project.created_at,
-            links: Array.isArray(project.links) 
-              ? (project.links as ProjectLink[])
-              : []
+            links: convertLinks(project.links)
           }));
           
           setProjects(transformedProjects);
