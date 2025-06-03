@@ -29,6 +29,7 @@ import AboutManagePage from './pages/dashboard/AboutManagePage';
 import { ThemeProvider } from './components/theme/theme-provider';
 import { Toaster } from './components/ui/toaster';
 import { PageViewTracker } from './components/PageViewTracker';
+import { PerformanceTracker } from './components/analytics/PerformanceTracker';
 
 function App() {
   return (
@@ -37,6 +38,7 @@ function App() {
         <Router>
           <AuthProvider>
             <PageViewTracker />
+            <PerformanceTracker />
             <Routes>
               {/* Public Routes */}
               <Route path="/" element={<Layout />}>

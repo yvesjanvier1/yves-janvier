@@ -1,171 +1,202 @@
 
 import { useState, useEffect } from "react";
+import { ArrowRight, ExternalLink, Github } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { AnimatedSection } from "@/components/ui/animated-section";
 import { SectionHeader } from "@/components/ui/section-header";
-import { ArrowRight, ExternalLink } from "lucide-react";
+import { LazyImage } from "@/components/ui/lazy-image";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useResponsive } from "@/hooks/useResponsive";
 
-interface FeaturedProject {
+interface Project {
   id: string;
   title: string;
-  slug: string;
   description: string;
-  images: string[];
+  slug: string;
   category?: string;
   tech_stack?: string[];
+  images?: string[];
+  links?: Array<{ title: string; url: string }>;
   created_at: string;
 }
 
-export function FeaturedProjects() {
-  const { t } = useLanguage();
-  const [projects, setProjects] = useState<FeaturedProject[]>([]);
+export const FeaturedProjects = () => {
+  const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { t } = useLanguage();
+  const { isMobile, isTablet } = useResponsive();
 
   useEffect(() => {
-    const fetchFeaturedProjects = async () => {
+    const fetchProjects = async () => {
       try {
+        setIsLoading(true);
+        setError(null);
+
         const { data, error } = await supabase
           .from("portfolio_projects")
           .select("*")
-          .eq("featured", true)
           .order("created_at", { ascending: false })
-          .limit(3);
+          .limit(isMobile ? 2 : isTablet ? 4 : 6);
 
         if (error) throw error;
-        setProjects(data || []);
+
+        if (data) {
+          setProjects(data);
+        }
       } catch (error) {
-        // Silent error handling for better user experience
+        console.error("Error fetching featured projects:", error);
+        setError("Failed to load featured projects");
+        toast.error("Failed to load featured projects");
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchFeaturedProjects();
-  }, []);
+    fetchProjects();
+  }, [isMobile, isTablet]);
 
-  if (isLoading) {
+  if (error) {
     return (
-      <section className="py-16 md:py-24">
+      <section className="section bg-muted/30">
         <div className="container px-4 mx-auto">
-          <AnimatedSection>
-            <SectionHeader
-              title={t('home.featuredProjects.title')}
-              subtitle={t('home.featuredProjects.subtitle')}
-              centered
-            />
-          </AnimatedSection>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="animate-pulse">
-                <div className="bg-muted rounded-lg h-48 mb-4"></div>
-                <div className="space-y-2">
-                  <div className="h-4 bg-muted rounded w-1/4"></div>
-                  <div className="h-6 bg-muted rounded w-3/4"></div>
-                  <div className="h-4 bg-muted rounded"></div>
-                  <div className="h-4 bg-muted rounded w-2/3"></div>
-                </div>
-              </div>
-            ))}
+          <SectionHeader
+            title={t('portfolio.featuredProjects')}
+            subtitle={t('portfolio.featuredProjectsSubtitle')}
+            centered
+          />
+          <div className="text-center py-12">
+            <p className="text-destructive mb-4">{error}</p>
+            <Button onClick={() => window.location.reload()} variant="outline">
+              {t('common.retry')}
+            </Button>
           </div>
         </div>
       </section>
     );
   }
 
-  if (projects.length === 0) {
-    return null;
-  }
-
   return (
-    <section className="py-16 md:py-24">
+    <section className="section bg-muted/30">
       <div className="container px-4 mx-auto">
-        <AnimatedSection>
-          <SectionHeader
-            title={t('home.featuredProjects.title')}
-            subtitle={t('home.featuredProjects.subtitle')}
-            centered
-          />
-        </AnimatedSection>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-          {projects.map((project, index) => (
-            <AnimatedSection key={project.id} delay={index * 0.1}>
-              <Card className="h-full flex flex-col group hover:shadow-lg transition-shadow duration-300">
-                <CardHeader className="p-0">
-                  <div className="aspect-video relative overflow-hidden rounded-t-lg">
-                    <img
-                      src={project.images?.[0] || "/placeholder.svg"}
-                      alt={project.title}
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                    />
-                    {project.category && (
-                      <div className="absolute top-3 left-3">
-                        <Badge variant="secondary" className="bg-background/80 backdrop-blur-sm">
-                          {project.category}
-                        </Badge>
-                      </div>
-                    )}
+        <SectionHeader
+          title={t('portfolio.featuredProjects')}
+          subtitle={t('portfolio.featuredProjectsSubtitle')}
+          centered
+        />
+
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <div key={index} className="bg-card rounded-lg overflow-hidden border shadow-sm">
+                <div className="aspect-video bg-muted animate-pulse" />
+                <div className="p-5 space-y-3">
+                  <div className="h-4 bg-muted animate-pulse rounded" />
+                  <div className="h-3 bg-muted animate-pulse rounded w-2/3" />
+                  <div className="flex gap-2">
+                    <div className="h-6 w-16 bg-muted animate-pulse rounded-full" />
+                    <div className="h-6 w-20 bg-muted animate-pulse rounded-full" />
                   </div>
-                </CardHeader>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : projects.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {projects.map((project) => (
+              <div 
+                key={project.id} 
+                className="group bg-card rounded-lg overflow-hidden border shadow-sm hover:shadow-lg transition-all duration-300"
+              >
+                <div className="relative">
+                  <LazyImage
+                    src={project.images?.[0] || "/placeholder.svg"}
+                    alt={project.title}
+                    aspectRatio="video"
+                    className="group-hover:scale-105 transition-transform duration-300"
+                  />
+                  {project.category && (
+                    <span className="absolute top-3 left-3 bg-primary/90 text-primary-foreground text-xs px-2 py-1 rounded-full">
+                      {project.category}
+                    </span>
+                  )}
+                </div>
                 
-                <CardContent className="flex-1 p-6">
-                  <h3 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors">
+                <div className="p-5">
+                  <h3 className="font-semibold text-xl mb-2 group-hover:text-primary transition-colors">
                     {project.title}
                   </h3>
-                  <p className="text-muted-foreground text-sm mb-4 line-clamp-3">
+                  <p className="text-muted-foreground line-clamp-2 mb-4">
                     {project.description}
                   </p>
                   
                   {project.tech_stack && project.tech_stack.length > 0 && (
-                    <div className="flex flex-wrap gap-2">
-                      {project.tech_stack.slice(0, 3).map((tech, techIndex) => (
-                        <Badge key={techIndex} variant="outline" className="text-xs">
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {project.tech_stack.slice(0, 3).map((tech) => (
+                        <span 
+                          key={tech} 
+                          className="text-xs px-2 py-1 bg-secondary text-secondary-foreground rounded-full"
+                        >
                           {tech}
-                        </Badge>
+                        </span>
                       ))}
                       {project.tech_stack.length > 3 && (
-                        <Badge variant="outline" className="text-xs">
-                          +{project.tech_stack.length - 3}
-                        </Badge>
+                        <span className="text-xs px-2 py-1 bg-muted text-muted-foreground rounded-full">
+                          +{project.tech_stack.length - 3} more
+                        </span>
                       )}
                     </div>
                   )}
-                </CardContent>
-                
-                <CardFooter className="p-6 pt-0">
-                  <Button 
-                    variant="ghost" 
-                    className="w-full justify-between group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
-                    asChild
-                  >
-                    <Link to={`/portfolio/${project.slug || project.id}`}>
-                      {t('common.viewProject')}
-                      <ExternalLink className="h-4 w-4" />
+                  
+                  <div className="flex items-center justify-between">
+                    <Link 
+                      to={`/portfolio/${project.slug}`}
+                      className="text-primary font-medium inline-flex items-center hover:underline"
+                    >
+                      {t('portfolio.viewProject')}
+                      <ArrowRight className="ml-1 h-4 w-4" />
                     </Link>
-                  </Button>
-                </CardFooter>
-              </Card>
-            </AnimatedSection>
-          ))}
-        </div>
-        
-        <AnimatedSection delay={0.4}>
-          <div className="text-center">
-            <Button asChild size="lg">
-              <Link to="/portfolio">
-                {t('home.featuredProjects.viewAll')}
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
+                    
+                    {project.links && project.links.length > 0 && (
+                      <div className="flex gap-2">
+                        {project.links.slice(0, 2).map((link, index) => (
+                          <a
+                            key={index}
+                            href={link.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-muted-foreground hover:text-primary transition-colors"
+                            aria-label={link.title}
+                          >
+                            {link.title.toLowerCase().includes('github') ? (
+                              <Github className="h-4 w-4" />
+                            ) : (
+                              <ExternalLink className="h-4 w-4" />
+                            )}
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
-        </AnimatedSection>
+        ) : (
+          <div className="text-center py-16">
+            <p className="text-muted-foreground mb-4">{t('portfolio.noProjectsFound')}</p>
+            <p className="text-sm text-muted-foreground">Check back later for new projects.</p>
+          </div>
+        )}
+
+        <div className="mt-12 text-center">
+          <Button asChild variant="outline" size="lg">
+            <Link to="/portfolio">{t('portfolio.viewAll')}</Link>
+          </Button>
+        </div>
       </div>
     </section>
   );
-}
+};

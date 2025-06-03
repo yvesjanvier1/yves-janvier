@@ -4,9 +4,11 @@ import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { SectionHeader } from "@/components/ui/section-header";
+import { LazyImage } from "@/components/ui/lazy-image";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useResponsive } from "@/hooks/useResponsive";
 
 interface BlogPost {
   id: string;
@@ -25,33 +27,27 @@ const LatestPosts = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { t, formatDate } = useLanguage();
+  const { isMobile } = useResponsive();
 
   useEffect(() => {
     const fetchPosts = async () => {
       try {
         setIsLoading(true);
         setError(null);
-        console.log("LatestPosts: Fetching latest blog posts...");
         
         const { data, error } = await supabase
           .from("blog_posts")
           .select("*")
           .eq("published", true)
           .order("created_at", { ascending: false })
-          .limit(3);
+          .limit(isMobile ? 2 : 3);
 
-        if (error) {
-          console.error("LatestPosts: Supabase error:", error);
-          throw error;
-        }
-
-        console.log("LatestPosts: Latest blog posts data:", data);
+        if (error) throw error;
 
         if (data) {
           const validPosts = data.filter(post => 
             post.title && post.slug && post.content
           );
-          console.log("LatestPosts: Valid posts:", validPosts.length);
           setPosts(validPosts);
         }
       } catch (error) {
@@ -64,7 +60,7 @@ const LatestPosts = () => {
     };
 
     fetchPosts();
-  }, []);
+  }, [isMobile]);
 
   if (error) {
     return (
@@ -94,8 +90,22 @@ const LatestPosts = () => {
         />
 
         {isLoading ? (
-          <div className="flex justify-center items-center py-16">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <div key={index} className="bg-card rounded-lg overflow-hidden border shadow-sm">
+                <div className="aspect-video bg-muted animate-pulse" />
+                <div className="p-5 space-y-3">
+                  <div className="flex gap-2">
+                    <div className="h-5 w-16 bg-muted animate-pulse rounded-full" />
+                    <div className="h-5 w-20 bg-muted animate-pulse rounded-full" />
+                  </div>
+                  <div className="h-3 bg-muted animate-pulse rounded w-1/3" />
+                  <div className="h-6 bg-muted animate-pulse rounded" />
+                  <div className="h-4 bg-muted animate-pulse rounded" />
+                  <div className="h-4 bg-muted animate-pulse rounded w-2/3" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : posts.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -104,13 +114,12 @@ const LatestPosts = () => {
                 key={post.id} 
                 className="group bg-card rounded-lg overflow-hidden border shadow-sm hover:shadow-md transition-all"
               >
-                <div className="aspect-video relative overflow-hidden">
-                  <img
-                    src={post.cover_image || "/placeholder.svg"}
-                    alt={post.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
+                <LazyImage
+                  src={post.cover_image || "/placeholder.svg"}
+                  alt={post.title}
+                  aspectRatio="video"
+                  className="group-hover:scale-105 transition-transform duration-300"
+                />
                 <div className="p-5">
                   <div className="flex flex-wrap gap-2 mb-2">
                     {post.tags && post.tags.slice(0, 2).map((tag) => (
@@ -125,7 +134,9 @@ const LatestPosts = () => {
                   <time className="text-sm text-muted-foreground block mb-2">
                     {formatDate(post.created_at)}
                   </time>
-                  <h3 className="font-semibold text-xl mb-2">{post.title}</h3>
+                  <h3 className="font-semibold text-xl mb-2 group-hover:text-primary transition-colors">
+                    {post.title}
+                  </h3>
                   <p className="text-muted-foreground line-clamp-2 mb-4">{post.excerpt || ""}</p>
                   <Link 
                     to={`/blog/${post.slug}`}
