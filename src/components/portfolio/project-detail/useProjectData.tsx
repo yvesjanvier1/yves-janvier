@@ -31,7 +31,6 @@ export const useProjectData = (id: string | undefined) => {
       try {
         setIsLoading(true);
         setError(null);
-        console.log(`ProjectDetailPage: Fetching project with id/slug: ${id}`);
         
         // First try to fetch by slug
         let { data, error } = await supabase
@@ -41,7 +40,6 @@ export const useProjectData = (id: string | undefined) => {
           .maybeSingle();
 
         if (!data && !error) {
-          console.log("ProjectDetailPage: No project found by slug, trying by ID");
           // If no project found by slug, try by id
           ({ data, error } = await supabase
             .from("portfolio_projects")
@@ -51,11 +49,8 @@ export const useProjectData = (id: string | undefined) => {
         }
         
         if (error) {
-          console.error("ProjectDetailPage: Supabase error:", error);
           throw error;
         }
-        
-        console.log("ProjectDetailPage: Project data:", data);
         
         if (data) {
           // Format links if they exist
@@ -80,7 +75,7 @@ export const useProjectData = (id: string | undefined) => {
                 }));
               }
             } catch (err) {
-              console.error("ProjectDetailPage: Error formatting links:", err);
+              // Silently handle link formatting errors
             }
           }
           
@@ -89,13 +84,10 @@ export const useProjectData = (id: string | undefined) => {
             links: formattedLinks
           });
         } else {
-          // No project found
-          console.error("ProjectDetailPage: No project found with this ID/slug");
           setError("Project not found");
           toast.error("Project not found");
         }
       } catch (err) {
-        console.error("ProjectDetailPage: Error fetching project:", err);
         setError("Failed to load project details");
         toast.error("Failed to load project details");
       } finally {

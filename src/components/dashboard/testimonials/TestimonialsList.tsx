@@ -24,7 +24,6 @@ export function TestimonialsList() {
       if (error) throw error;
       setTestimonials(data || []);
     } catch (error) {
-      console.error("Error fetching testimonials:", error);
       toast.error("Failed to fetch testimonials");
     } finally {
       setIsLoading(false);
@@ -51,7 +50,6 @@ export function TestimonialsList() {
       );
       toast.success("Testimonial deleted successfully");
     } catch (error) {
-      console.error("Error deleting testimonial:", error);
       toast.error("Failed to delete testimonial");
     } finally {
       setTestimonialToDelete(null);
@@ -100,4 +98,3 @@ export function TestimonialsList() {
     </div>
   );
 };
-

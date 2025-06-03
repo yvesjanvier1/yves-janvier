@@ -42,7 +42,6 @@ const PortfolioPage = () => {
       try {
         setIsLoading(true);
         setError(null);
-        console.log("PortfolioPage: Fetching projects...");
         
         let query = supabase
           .from("portfolio_projects")
@@ -62,11 +61,8 @@ const PortfolioPage = () => {
         const { data, error } = await query;
         
         if (error) {
-          console.error("PortfolioPage: Supabase error:", error);
           throw error;
         }
-        
-        console.log("PortfolioPage: Projects data:", data);
         
         if (data) {
           const processedProjects = data.map(project => ({
@@ -93,12 +89,10 @@ const PortfolioPage = () => {
               }
             });
             
-            console.log("PortfolioPage: Categories:", allCategories);
             setCategories(allCategories);
           }
         }
       } catch (err) {
-        console.error("PortfolioPage: Error fetching projects:", err);
         setError("Failed to load projects");
         toast.error("Failed to load projects");
       } finally {

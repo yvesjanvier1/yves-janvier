@@ -24,7 +24,6 @@ export function ServicesList() {
       if (error) throw error;
       setServices(data || []);
     } catch (error) {
-      console.error("Error fetching services:", error);
       toast.error("Failed to fetch services");
     } finally {
       setIsLoading(false);
@@ -51,7 +50,6 @@ export function ServicesList() {
       );
       toast.success("Service deleted successfully");
     } catch (error) {
-      console.error("Error deleting service:", error);
       toast.error("Failed to delete service");
     } finally {
       setServiceToDelete(null);

@@ -24,7 +24,6 @@ export function ProjectList() {
       if (error) throw error;
       setProjects(data || []);
     } catch (error) {
-      console.error("Error fetching portfolio projects:", error);
       toast.error("Failed to fetch portfolio projects");
     } finally {
       setIsLoading(false);
@@ -49,7 +48,6 @@ export function ProjectList() {
       setProjects(prevProjects => prevProjects.filter(project => project.id !== projectToDelete));
       toast.success("Project deleted successfully");
     } catch (error) {
-      console.error("Error deleting project:", error);
       toast.error("Failed to delete project");
     } finally {
       setProjectToDelete(null);
@@ -73,7 +71,6 @@ export function ProjectList() {
       
       toast.success(`Project ${!currentValue ? "featured" : "unfeatured"} successfully`);
     } catch (error) {
-      console.error("Error updating project:", error);
       toast.error("Failed to update project");
     }
   };

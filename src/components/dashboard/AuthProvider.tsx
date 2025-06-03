@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,12 +24,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log("AuthProvider: Setting up auth state listener");
-    
-    // First set up auth state listener
+    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        console.log("AuthProvider: Auth state changed", event, session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
         setIsAuthenticated(!!session?.user);
@@ -36,9 +34,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     );
 
-    // Then check for existing session
+    // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log("AuthProvider: Got session", session?.user?.email);
       setSession(session);
       setUser(session?.user ?? null);
       setIsAuthenticated(!!session?.user);
@@ -46,7 +43,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     });
 
     return () => {
-      console.log("AuthProvider: Unsubscribing from auth state changes");
       subscription.unsubscribe();
     };
   }, []);
@@ -54,7 +50,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signIn = async (email: string, password: string, redirectPath: string = "/dashboard") => {
     try {
       setIsLoading(true);
-      console.log("AuthProvider: Signing in", email);
       
       const { error } = await supabase.auth.signInWithPassword({
         email,
@@ -67,10 +62,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
       
       toast.success("Signed in successfully");
-      console.log("AuthProvider: Redirecting to", redirectPath);
       navigate(redirectPath);
     } catch (error) {
-      console.error("Error signing in:", error);
       throw error;
     } finally {
       setIsLoading(false);
@@ -80,7 +73,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signOut = async () => {
     try {
       setIsLoading(true);
-      console.log("AuthProvider: Signing out");
       
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
@@ -88,7 +80,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       toast.success("Signed out successfully");
       navigate("/dashboard/login");
     } catch (error) {
-      console.error("Error signing out:", error);
       toast.error("Error signing out");
     } finally {
       setIsLoading(false);

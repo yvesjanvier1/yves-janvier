@@ -45,7 +45,6 @@ const BlogPage = () => {
       try {
         setIsLoading(true);
         setError(null);
-        console.log("BlogPage: Fetching blog posts...");
         
         let query = supabase
           .from("blog_posts")
@@ -74,18 +73,14 @@ const BlogPage = () => {
           .range(offset, offset + POSTS_PER_PAGE - 1);
 
         if (error) {
-          console.error("BlogPage: Supabase error:", error);
           throw error;
         }
-
-        console.log("BlogPage: Blog posts data:", data);
         
         if (data && data.length > 0) {
           const validPosts = data.filter(post => 
             post.title && post.slug && post.content
           );
           
-          console.log("BlogPage: Valid posts count:", validPosts.length);
           setBlogPosts(validPosts);
           
           // Extract unique tags from all posts (not just current page)
@@ -106,15 +101,12 @@ const BlogPage = () => {
               }
             });
             
-            console.log("BlogPage: Extracted tags:", allTags);
             setTags(allTags);
           }
         } else {
           setBlogPosts([]);
-          console.log("BlogPage: No published posts found");
         }
       } catch (err) {
-        console.error("BlogPage: Error fetching blog posts:", err);
         setError("Failed to load blog posts");
         toast.error("Failed to load blog posts");
       } finally {
