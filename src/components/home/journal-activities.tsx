@@ -1,10 +1,13 @@
 
 import { useState, useEffect } from "react";
-import { Calendar, Tag, ExternalLink } from "lucide-react";
+import { Calendar, Tag, ExternalLink, Play, Filter } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
+import { VideoEmbed } from "./video-embed";
 
 interface JournalEntry {
   id: string;
@@ -16,6 +19,7 @@ interface JournalEntry {
   tags: string[];
   image_url: string | null;
   external_link: string | null;
+  video_url: string | null;
   status: 'draft' | 'published' | 'archived';
   created_at: string;
   updated_at: string;
@@ -32,20 +36,46 @@ const entryTypeColors = {
 export const JournalActivities = () => {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedTag, setSelectedTag] = useState<string>("all");
+  const [selectedType, setSelectedType] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<string>("date");
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
 
   useEffect(() => {
-    fetchFeaturedEntries();
-  }, []);
+    fetchEntries();
+  }, [selectedTag, selectedType, sortBy, searchTerm]);
 
-  const fetchFeaturedEntries = async () => {
+  const fetchEntries = async () => {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from("journal_entries")
         .select("*")
-        .eq("status", "published")
-        .eq("featured", true)
-        .order("date", { ascending: false })
-        .limit(6);
+        .eq("status", "published");
+
+      // Apply filters
+      if (selectedTag !== "all") {
+        query = query.contains("tags", [selectedTag]);
+      }
+
+      if (selectedType !== "all") {
+        query = query.eq("entry_type", selectedType);
+      }
+
+      if (searchTerm) {
+        query = query.or(`title.ilike.%${searchTerm}%,content.ilike.%${searchTerm}%`);
+      }
+
+      // Apply sorting
+      if (sortBy === "date") {
+        query = query.order("date", { ascending: false });
+      } else if (sortBy === "title") {
+        query = query.order("title", { ascending: true });
+      } else if (sortBy === "created") {
+        query = query.order("created_at", { ascending: false });
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
 
@@ -56,6 +86,10 @@ export const JournalActivities = () => {
           status: entry.status as 'draft' | 'published' | 'archived'
         }));
         setEntries(typedData);
+
+        // Extract unique tags
+        const tags = Array.from(new Set(typedData.flatMap(entry => entry.tags || [])));
+        setAvailableTags(tags);
       }
     } catch (error) {
       console.error("Error fetching journal entries:", error);
@@ -110,10 +144,61 @@ export const JournalActivities = () => {
             Stay updated with my latest projects, learnings, and achievements
           </p>
         </div>
+
+        {/* Filters and Search */}
+        <div className="mb-8 space-y-4 md:space-y-0 md:flex md:items-center md:gap-4">
+          <div className="flex-1">
+            <Input
+              placeholder="Search activities..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="max-w-sm"
+            />
+          </div>
+          
+          <div className="flex gap-2 flex-wrap">
+            <Select value={selectedType} onValueChange={setSelectedType}>
+              <SelectTrigger className="w-32">
+                <SelectValue placeholder="Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Types</SelectItem>
+                <SelectItem value="activity">Activity</SelectItem>
+                <SelectItem value="project">Project</SelectItem>
+                <SelectItem value="learning">Learning</SelectItem>
+                <SelectItem value="achievement">Achievement</SelectItem>
+                <SelectItem value="milestone">Milestone</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={selectedTag} onValueChange={setSelectedTag}>
+              <SelectTrigger className="w-32">
+                <SelectValue placeholder="Tag" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Tags</SelectItem>
+                {availableTags.map((tag) => (
+                  <SelectItem key={tag} value={tag}>{tag}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-32">
+                <SelectValue placeholder="Sort" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="date">By Date</SelectItem>
+                <SelectItem value="title">By Title</SelectItem>
+                <SelectItem value="created">By Created</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
         
         {entries.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-muted-foreground">No featured activities yet.</p>
+            <p className="text-muted-foreground">No activities found matching your criteria.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
@@ -133,6 +218,12 @@ export const JournalActivities = () => {
                   <h3 className="text-xl font-semibold mb-3 line-clamp-2">
                     {entry.title}
                   </h3>
+                  
+                  {entry.video_url && (
+                    <div className="mb-4">
+                      <VideoEmbed url={entry.video_url} />
+                    </div>
+                  )}
                   
                   {entry.content && (
                     <p className="text-muted-foreground mb-4 flex-grow line-clamp-3">

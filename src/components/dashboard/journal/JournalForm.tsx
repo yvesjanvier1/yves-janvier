@@ -23,6 +23,7 @@ const journalSchema = z.object({
   featured: z.boolean().default(false),
   tags: z.array(z.string()).default([]),
   image_url: z.string().url().optional().or(z.literal("")),
+  video_url: z.string().url().optional().or(z.literal("")),
   external_link: z.string().url().optional().or(z.literal("")),
   status: z.enum(["draft", "published", "archived"]).default("published"),
 });
@@ -45,6 +46,7 @@ export const JournalForm = () => {
       featured: false,
       tags: [],
       image_url: "",
+      video_url: "",
       external_link: "",
       status: "published",
     },
@@ -75,6 +77,7 @@ export const JournalForm = () => {
           featured: data.featured,
           tags: data.tags || [],
           image_url: data.image_url || "",
+          video_url: data.video_url || "",
           external_link: data.external_link || "",
           status: data.status as "draft" | "published" | "archived",
         });
@@ -98,6 +101,7 @@ export const JournalForm = () => {
         featured: data.featured,
         tags: data.tags,
         image_url: data.image_url || null,
+        video_url: data.video_url || null,
         external_link: data.external_link || null,
         status: data.status,
       };
@@ -289,18 +293,32 @@ export const JournalForm = () => {
 
                 <FormField
                   control={form.control}
-                  name="external_link"
+                  name="video_url"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>External Link (optional)</FormLabel>
+                      <FormLabel>Video URL (optional)</FormLabel>
                       <FormControl>
-                        <Input placeholder="https://example.com" {...field} />
+                        <Input placeholder="https://youtube.com/watch?v=..." {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
+
+              <FormField
+                control={form.control}
+                name="external_link"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>External Link (optional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="https://example.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}

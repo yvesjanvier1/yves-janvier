@@ -1,3 +1,4 @@
+
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import AboutPage from './pages/AboutPage';
@@ -5,6 +6,7 @@ import PortfolioPage from './pages/PortfolioPage';
 import ProjectDetailPage from './pages/ProjectDetailPage';
 import BlogPage from './pages/BlogPage';
 import BlogPostPage from './pages/BlogPostPage';
+import JournalPage from './pages/JournalPage';
 import ContactPage from './pages/ContactPage';
 import NotFound from './pages/NotFound';
 import Layout from './components/layout/Layout';
@@ -50,6 +52,7 @@ function App() {
                 <Route path="blog" element={<BlogPage />} />
                 <Route path="blog/page/:page" element={<BlogPage />} />
                 <Route path="blog/:id" element={<BlogPostPage />} />
+                <Route path="journal" element={<JournalPage />} />
                 <Route path="contact" element={<ContactPage />} />
               </Route>
 
