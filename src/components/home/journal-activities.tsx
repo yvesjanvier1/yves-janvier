@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Calendar, Tag, ExternalLink, Play, Filter } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -83,7 +82,8 @@ export const JournalActivities = () => {
         const typedData = data.map(entry => ({
           ...entry,
           entry_type: entry.entry_type as 'activity' | 'project' | 'learning' | 'achievement' | 'milestone',
-          status: entry.status as 'draft' | 'published' | 'archived'
+          status: entry.status as 'draft' | 'published' | 'archived',
+          video_url: entry.video_url || null
         }));
         setEntries(typedData);
 
