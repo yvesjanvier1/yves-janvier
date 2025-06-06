@@ -138,6 +138,51 @@ export type Database = {
         }
         Relationships: []
       }
+      journal_entries: {
+        Row: {
+          content: string | null
+          created_at: string
+          date: string
+          entry_type: string
+          external_link: string | null
+          featured: boolean | null
+          id: string
+          image_url: string | null
+          status: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          date?: string
+          entry_type?: string
+          external_link?: string | null
+          featured?: boolean | null
+          id?: string
+          image_url?: string | null
+          status?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          date?: string
+          entry_type?: string
+          external_link?: string | null
+          featured?: boolean | null
+          id?: string
+          image_url?: string | null
+          status?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       page_views: {
         Row: {
           created_at: string

@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import AboutPage from './pages/AboutPage';
@@ -26,6 +25,8 @@ import TestimonialsFormPage from './pages/dashboard/TestimonialsFormPage';
 import ServicesManagePage from './pages/dashboard/ServicesManagePage';
 import ServiceFormPage from './pages/dashboard/ServiceFormPage';
 import AboutManagePage from './pages/dashboard/AboutManagePage';
+import JournalManagePage from './pages/dashboard/JournalManagePage';
+import JournalFormPage from './pages/dashboard/JournalFormPage';
 import { ThemeProvider } from './components/theme/theme-provider';
 import { Toaster } from './components/ui/toaster';
 import { PageViewTracker } from './components/PageViewTracker';
@@ -65,6 +66,9 @@ function App() {
                   <Route path="portfolio" element={<PortfolioManagePage />} />
                   <Route path="portfolio/new" element={<PortfolioFormPage />} />
                   <Route path="portfolio/edit/:id" element={<PortfolioFormPage />} />
+                  <Route path="journal" element={<JournalManagePage />} />
+                  <Route path="journal/new" element={<JournalFormPage />} />
+                  <Route path="journal/edit/:id" element={<JournalFormPage />} />
                   <Route path="messages" element={<MessagesPage />} />
                   <Route path="analytics" element={<AnalyticsPage />} />
                   <Route path="testimonials" element={<TestimonialsManagePage />} />
