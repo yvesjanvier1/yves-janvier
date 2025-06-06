@@ -1,11 +1,11 @@
 
-import { HeroSection } from "@/components/home/hero-section";
+import HeroSection from "@/components/home/hero-section";
 import { FeaturedProjects } from "@/components/home/featured-projects";
 import { JournalActivities } from "@/components/home/journal-activities";
-import { ServicesSection } from "@/components/home/services-section";
-import { Testimonials } from "@/components/home/testimonials";
-import { LatestPosts } from "@/components/home/latest-posts";
-import { SEOHead } from "@/components/seo/SEOHead";
+import ServicesSection from "@/components/home/services-section";
+import Testimonials from "@/components/home/testimonials";
+import LatestPosts from "@/components/home/latest-posts";
+import SEOHead from "@/components/seo/SEOHead";
 
 const HomePage = () => {
   return (

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Plus, Edit, Trash2, Calendar, Tag, ExternalLink } from "lucide-react";
@@ -60,7 +59,12 @@ export const JournalList = () => {
       if (error) throw error;
 
       if (data) {
-        setEntries(data);
+        const typedData = data.map(entry => ({
+          ...entry,
+          entry_type: entry.entry_type as 'activity' | 'project' | 'learning' | 'achievement' | 'milestone',
+          status: entry.status as 'draft' | 'published' | 'archived'
+        }));
+        setEntries(typedData);
       }
     } catch (error) {
       console.error("Error fetching journal entries:", error);

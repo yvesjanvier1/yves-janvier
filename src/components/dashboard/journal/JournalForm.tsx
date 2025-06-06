@@ -70,13 +70,13 @@ export const JournalForm = () => {
         form.reset({
           title: data.title,
           content: data.content || "",
-          entry_type: data.entry_type,
+          entry_type: data.entry_type as "activity" | "project" | "learning" | "achievement" | "milestone",
           date: data.date,
           featured: data.featured,
           tags: data.tags || [],
           image_url: data.image_url || "",
           external_link: data.external_link || "",
-          status: data.status,
+          status: data.status as "draft" | "published" | "archived",
         });
       }
     } catch (error) {
@@ -91,10 +91,15 @@ export const JournalForm = () => {
       setIsLoading(true);
 
       const entryData = {
-        ...data,
+        title: data.title,
+        content: data.content || null,
+        entry_type: data.entry_type,
+        date: data.date,
+        featured: data.featured,
+        tags: data.tags,
         image_url: data.image_url || null,
         external_link: data.external_link || null,
-        content: data.content || null,
+        status: data.status,
       };
 
       if (isEditing) {
@@ -108,7 +113,7 @@ export const JournalForm = () => {
       } else {
         const { error } = await supabase
           .from("journal_entries")
-          .insert([entryData]);
+          .insert(entryData);
 
         if (error) throw error;
         toast.success("Journal entry created successfully");
@@ -121,6 +126,22 @@ export const JournalForm = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleTagChange = (tags: string[]) => {
+    form.setValue("tags", tags);
+  };
+
+  const handleAddTag = (tag: string) => {
+    const currentTags = form.getValues("tags");
+    if (!currentTags.includes(tag)) {
+      handleTagChange([...currentTags, tag]);
+    }
+  };
+
+  const handleRemoveTag = (tagToRemove: string) => {
+    const currentTags = form.getValues("tags");
+    handleTagChange(currentTags.filter(tag => tag !== tagToRemove));
   };
 
   return (
@@ -240,8 +261,9 @@ export const JournalForm = () => {
                     <FormLabel>Tags</FormLabel>
                     <FormControl>
                       <TagInput
-                        value={field.value}
-                        onChange={field.onChange}
+                        tags={field.value}
+                        onAddTag={handleAddTag}
+                        onRemoveTag={handleRemoveTag}
                         placeholder="Add tags..."
                       />
                     </FormControl>
