@@ -1,10 +1,12 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
+import { Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { SectionHeader } from "@/components/ui/section-header";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import BlogCard from "@/components/blog/blog-card";
-import BlogFilters from "@/components/blog/blog-filters";
 import { PaginationEnhanced } from "@/components/ui/pagination-enhanced";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -31,111 +33,108 @@ const BlogPage = () => {
   const { t, formatDate } = useLanguage();
   
   const currentPage = parseInt(page || "1", 10);
-  const activeTag = searchParams.get("tag") || "All";
-  const searchValue = searchParams.get("search") || "";
+  const selectedTag = searchParams.get("tag") || "all";
+  const sortBy = searchParams.get("sort") || "date";
+  const searchTerm = searchParams.get("search") || "";
   
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
-  const [tags, setTags] = useState<string[]>(["All"]);
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [totalPages, setTotalPages] = useState(1);
   
   useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        
-        let query = supabase
-          .from("blog_posts")
-          .select("*", { count: 'exact' })
-          .eq("published", true)
-          .order("created_at", { ascending: false });
-
-        // Apply tag filter
-        if (activeTag !== "All") {
-          query = query.contains("tags", [activeTag]);
-        }
-
-        // Apply search filter
-        if (searchValue) {
-          query = query.or(`title.ilike.%${searchValue}%,excerpt.ilike.%${searchValue}%,content.ilike.%${searchValue}%`);
-        }
-
-        // Get total count first
-        const { count } = await query;
-        const totalCount = count || 0;
-        setTotalPages(Math.ceil(totalCount / POSTS_PER_PAGE));
-
-        // Apply pagination
-        const offset = (currentPage - 1) * POSTS_PER_PAGE;
-        const { data, error } = await query
-          .range(offset, offset + POSTS_PER_PAGE - 1);
-
-        if (error) {
-          throw error;
-        }
-        
-        if (data && data.length > 0) {
-          const validPosts = data.filter(post => 
-            post.title && post.slug && post.content
-          );
-          
-          setBlogPosts(validPosts);
-          
-          // Extract unique tags from all posts (not just current page)
-          const { data: allPosts } = await supabase
-            .from("blog_posts")
-            .select("tags")
-            .eq("published", true);
-          
-          if (allPosts) {
-            const allTags = ["All"];
-            allPosts.forEach(post => {
-              if (post.tags && Array.isArray(post.tags)) {
-                post.tags.forEach(tag => {
-                  if (!allTags.includes(tag)) {
-                    allTags.push(tag);
-                  }
-                });
-              }
-            });
-            
-            setTags(allTags);
-          }
-        } else {
-          setBlogPosts([]);
-        }
-      } catch (err) {
-        setError("Failed to load blog posts");
-        toast.error("Failed to load blog posts");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchPosts();
-  }, [currentPage, activeTag, searchValue]);
+  }, [currentPage, selectedTag, sortBy, searchTerm]);
 
-  const handleTagChange = (tag: string) => {
-    setSearchParams(prev => {
-      const newParams = new URLSearchParams(prev);
-      if (tag === "All") {
-        newParams.delete("tag");
-      } else {
-        newParams.set("tag", tag);
+  const fetchPosts = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      let query = supabase
+        .from("blog_posts")
+        .select("*", { count: 'exact' })
+        .eq("published", true);
+
+      // Apply tag filter
+      if (selectedTag !== "all") {
+        query = query.contains("tags", [selectedTag]);
       }
-      return newParams;
-    });
+
+      // Apply search filter
+      if (searchTerm) {
+        query = query.or(`title.ilike.%${searchTerm}%,excerpt.ilike.%${searchTerm}%,content.ilike.%${searchTerm}%`);
+      }
+
+      // Apply sorting
+      if (sortBy === "date") {
+        query = query.order("created_at", { ascending: false });
+      } else if (sortBy === "title") {
+        query = query.order("title", { ascending: true });
+      } else if (sortBy === "updated") {
+        query = query.order("updated_at", { ascending: false });
+      }
+
+      // Get total count first
+      const { count } = await query;
+      const totalCount = count || 0;
+      setTotalPages(Math.ceil(totalCount / POSTS_PER_PAGE));
+
+      // Apply pagination
+      const offset = (currentPage - 1) * POSTS_PER_PAGE;
+      const { data, error } = await query
+        .range(offset, offset + POSTS_PER_PAGE - 1);
+
+      if (error) {
+        throw error;
+      }
+      
+      if (data && data.length > 0) {
+        const validPosts = data.filter(post => 
+          post.title && post.slug && post.content
+        );
+        
+        setBlogPosts(validPosts);
+        
+        // Extract unique tags from all posts (not just current page)
+        const { data: allPosts } = await supabase
+          .from("blog_posts")
+          .select("tags")
+          .eq("published", true);
+        
+        if (allPosts) {
+          const allTags: string[] = [];
+          allPosts.forEach(post => {
+            if (post.tags && Array.isArray(post.tags)) {
+              post.tags.forEach(tag => {
+                if (!allTags.includes(tag)) {
+                  allTags.push(tag);
+                }
+              });
+            }
+          });
+          
+          setAvailableTags(allTags);
+        }
+      } else {
+        setBlogPosts([]);
+      }
+    } catch (err) {
+      setError("Failed to load blog posts");
+      toast.error("Failed to load blog posts");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleSearchChange = (search: string) => {
+  const updateSearchParams = (key: string, value: string) => {
     setSearchParams(prev => {
       const newParams = new URLSearchParams(prev);
-      if (search) {
-        newParams.set("search", search);
+      if (value === "all" || value === "") {
+        newParams.delete(key);
       } else {
-        newParams.delete("search");
+        newParams.set(key, value);
       }
       return newParams;
     });
@@ -149,13 +148,43 @@ const BlogPage = () => {
         centered
       />
       
-      <BlogFilters 
-        tags={tags}
-        activeTag={activeTag}
-        onTagChange={handleTagChange}
-        searchValue={searchValue}
-        onSearchChange={handleSearchChange}
-      />
+      {/* Filters and Search */}
+      <div className="mb-8 space-y-4 md:space-y-0 md:flex md:items-center md:gap-4">
+        <div className="flex-1 relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search posts..."
+            value={searchTerm}
+            onChange={(e) => updateSearchParams("search", e.target.value)}
+            className="pl-10 max-w-sm"
+          />
+        </div>
+        
+        <div className="flex gap-2 flex-wrap">
+          <Select value={selectedTag} onValueChange={(value) => updateSearchParams("tag", value)}>
+            <SelectTrigger className="w-32">
+              <SelectValue placeholder="Tag" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Tags</SelectItem>
+              {availableTags.map((tag) => (
+                <SelectItem key={tag} value={tag}>{tag}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={sortBy} onValueChange={(value) => updateSearchParams("sort", value)}>
+            <SelectTrigger className="w-32">
+              <SelectValue placeholder="Sort" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="date">By Date</SelectItem>
+              <SelectItem value="title">By Title</SelectItem>
+              <SelectItem value="updated">By Updated</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
       
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
