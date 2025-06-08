@@ -1,8 +1,9 @@
+
 import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import { Link, NavLink } from "react-router-dom";
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger } from "@/components/ui/sidebar";
-import { LayoutDashboard, FileText, Briefcase, MessageSquare, BarChart2, User, LogOut, MessageCircle, UserRound, BookOpen } from "lucide-react";
+import { LayoutDashboard, FileText, Briefcase, MessageSquare, BarChart2, User, LogOut, MessageCircle, UserRound, BookOpen, TrendingUp } from "lucide-react";
 import { useAuth } from "./AuthProvider";
 import { Button } from "@/components/ui/button";
 
@@ -105,8 +106,8 @@ const DashboardLayout = () => {
                 <SidebarMenuButton asChild>
                   <NavLink to="/dashboard/analytics" 
                     className={({ isActive }) => isActive ? "text-primary font-medium" : "text-foreground"}>
-                    <BarChart2 className="w-5 h-5 mr-2" />
-                    <span>Analytics</span>
+                    <TrendingUp className="w-5 h-5 mr-2" />
+                    <span>Insights & Analytics</span>
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
