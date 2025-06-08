@@ -89,8 +89,13 @@ const translations = {
     // Portfolio
     'portfolio.title': 'Portfolio',
     'portfolio.subtitle': 'Présentation de mes derniers travaux et projets',
+    'portfolio.featuredProjects': 'Projets en vedette',
+    'portfolio.featuredProjectsSubtitle': 'Découvrez mes derniers projets et réalisations',
+    'portfolio.viewProject': 'Voir le projet',
     'portfolio.readMore': 'Lire plus',
     'portfolio.viewAll': 'Voir tous les projets',
+    'portfolio.noProjectsFound': 'Aucun projet trouvé',
+    'portfolio.noProjectsMessage': 'Essayez d\'ajuster votre recherche ou filtre pour trouver ce que vous cherchez.',
     
     // Blog
     'blog.title': 'Blog',
@@ -176,8 +181,13 @@ const translations = {
     // Portfolio
     'portfolio.title': 'Portfolio',
     'portfolio.subtitle': 'Showcasing my latest work and projects',
+    'portfolio.featuredProjects': 'Featured Projects',
+    'portfolio.featuredProjectsSubtitle': 'Discover my latest projects and achievements',
+    'portfolio.viewProject': 'View Project',
     'portfolio.readMore': 'Read More',
     'portfolio.viewAll': 'View All Projects',
+    'portfolio.noProjectsFound': 'No projects found',
+    'portfolio.noProjectsMessage': 'Try adjusting your search or filter to find what you\'re looking for.',
     
     // Blog
     'blog.title': 'Blog',
@@ -263,8 +273,13 @@ const translations = {
     // Portfolio
     'portfolio.title': 'Travay yo',
     'portfolio.subtitle': 'Montre dènye travay ak pwojè mwen yo',
+    'portfolio.featuredProjects': 'Pwojè yo ki nan tèt la',
+    'portfolio.featuredProjectsSubtitle': 'Dekouvri dènye pwojè ak reyalizasyon mwen yo',
+    'portfolio.viewProject': 'Gade pwojè a',
     'portfolio.readMore': 'Li plis',
     'portfolio.viewAll': 'Gade tout pwojè yo',
+    'portfolio.noProjectsFound': 'Pa gen pwojè yo jwenn',
+    'portfolio.noProjectsMessage': 'Eseye ajiste rechèch ou a oswa filtè a pou jwenn sa w ap chèche a.',
     
     // Blog
     'blog.title': 'Blog',
