@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Session, User } from "@supabase/supabase-js";
 import { toast } from "sonner";
+import { sanitizeError } from "@/lib/security";
 
 interface AuthContextType {
   user: User | null;
@@ -27,6 +28,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
         setIsAuthenticated(!!session?.user);
@@ -36,6 +38,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Initial session check:', session?.user?.email);
       setSession(session);
       setUser(session?.user ?? null);
       setIsAuthenticated(!!session?.user);
@@ -57,7 +60,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
 
       if (error) {
-        toast.error(error.message);
+        const errorMessage = sanitizeError(error);
+        toast.error(errorMessage);
         throw error;
       }
       
@@ -75,12 +79,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setIsLoading(true);
       
       const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      if (error) {
+        const errorMessage = sanitizeError(error);
+        toast.error(errorMessage);
+        throw error;
+      }
       
       toast.success("Signed out successfully");
       navigate("/dashboard/login");
     } catch (error) {
-      toast.error("Error signing out");
+      const errorMessage = sanitizeError(error);
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }

@@ -8,8 +8,18 @@ import { useAuth } from "./AuthProvider";
 import { Button } from "@/components/ui/button";
 
 const DashboardLayout = () => {
-  const { user, signOut } = useAuth();
+  const { user, signOut, isAuthenticated } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  // Show loading or redirect if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <p className="ml-3">Checking authentication...</p>
+      </div>
+    );
+  }
 
   return (
     <SidebarProvider defaultOpen={true} open={sidebarOpen} onOpenChange={setSidebarOpen}>

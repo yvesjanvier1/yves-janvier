@@ -2,6 +2,8 @@
 import { useEffect, useState } from "react";
 import { SectionHeader } from "@/components/ui/section-header";
 import { supabase } from "@/integrations/supabase/client";
+import { sanitizeError } from "@/lib/security";
+import { toast } from "sonner";
 
 interface Testimonial {
   id: string;
@@ -14,18 +16,28 @@ interface Testimonial {
 const TestimonialsSection = () => {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchTestimonials = async () => {
       try {
+        setIsLoading(true);
+        setError(null);
+
         const { data, error } = await supabase
           .from("testimonials")
           .select("*")
           .order("created_at", { ascending: false });
 
-        if (error) throw error;
+        if (error) {
+          console.error("Error fetching testimonials:", error);
+          throw error;
+        }
+
         setTestimonials(data || []);
       } catch (error) {
+        const errorMessage = sanitizeError(error);
+        setError(errorMessage);
         console.error("Error fetching testimonials:", error);
       } finally {
         setIsLoading(false);
@@ -50,6 +62,11 @@ const TestimonialsSection = () => {
         </div>
       </section>
     );
+  }
+
+  if (error) {
+    console.warn("Failed to load testimonials:", error);
+    return null; // Silently fail for public sections
   }
 
   if (testimonials.length === 0) {

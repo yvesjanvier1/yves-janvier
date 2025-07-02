@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { sanitizeError } from "@/lib/security";
 
 interface ProjectLink {
   title: string;
@@ -52,7 +52,10 @@ export const useFeaturedProjects = () => {
           .order("created_at", { ascending: false })
           .limit(3);
 
-        if (error) throw error;
+        if (error) {
+          console.error("Error fetching featured projects:", error);
+          throw error;
+        }
 
         if (data) {
           // Transform the data to match our Project interface
@@ -72,8 +75,8 @@ export const useFeaturedProjects = () => {
         }
       } catch (error) {
         console.error("Error fetching featured projects:", error);
-        setError("Failed to load featured projects");
-        toast.error("Failed to load featured projects");
+        const errorMessage = sanitizeError(error);
+        setError(errorMessage);
       } finally {
         setIsLoading(false);
       }
@@ -82,5 +85,10 @@ export const useFeaturedProjects = () => {
     fetchProjects();
   }, []);
 
-  return { projects, isLoading, error, refetch: () => window.location.reload() };
+  const refetch = () => {
+    // Simple refetch implementation
+    window.location.reload();
+  };
+
+  return { projects, isLoading, error, refetch };
 };

@@ -2,6 +2,7 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { checkRateLimit } from '@/lib/security';
 
 const generateVisitorId = () => {
   let visitorId = localStorage.getItem('visitor_id');
@@ -20,19 +21,31 @@ export const PageViewTracker = () => {
       try {
         const visitorId = generateVisitorId();
         const pagePath = location.pathname;
+        
+        // Rate limit page view tracking (max 10 per minute per visitor)
+        if (!checkRateLimit(`pageview-${visitorId}`, 10, 60000)) {
+          console.warn('Page view tracking rate limited');
+          return;
+        }
+        
         const referrer = document.referrer;
         const userAgent = navigator.userAgent;
         
-        await supabase.rpc('track_page_view', {
+        const { error } = await supabase.rpc('track_page_view', {
           page_path: pagePath,
           visitor: visitorId,
           referrer: referrer,
           agent: userAgent
         });
+
+        if (error) {
+          console.warn('Page view tracking failed:', error);
+          return;
+        }
         
         console.log('Page view tracked:', pagePath);
       } catch (error) {
-        console.error('Error tracking page view:', error);
+        console.warn('Error tracking page view:', error);
       }
     };
 
