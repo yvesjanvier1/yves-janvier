@@ -105,8 +105,8 @@ export function PageDetailsTable({ data, isLoading }: PageDetailsTableProps) {
     });
   };
 
-  const calculateEngagementRate = (views: number, visitors: number) => {
-    if (visitors === 0) return 0;
+  const calculateEngagementRate = (views: number, visitors: number): string => {
+    if (visitors === 0) return "0.0";
     return ((visitors / views) * 100).toFixed(1);
   };
 
