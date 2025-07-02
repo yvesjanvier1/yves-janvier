@@ -4,6 +4,9 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FormFields } from "./blog-form/FormFields";
+import { blogPostSchema, sanitizeError } from "@/lib/security";
+import { z } from "zod";
+import { toast } from "sonner";
 
 interface BlogPostData {
   title: string;
@@ -25,6 +28,7 @@ interface BlogFormProps {
 export function BlogForm({ id, initialData, isLoading, onSubmit }: BlogFormProps) {
   const navigate = useNavigate();
   const [isSaving, setIsSaving] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const isEditing = !!id;
   
   const [formData, setFormData] = useState<BlogPostData>({
@@ -48,6 +52,11 @@ export function BlogForm({ id, initialData, isLoading, onSubmit }: BlogFormProps
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Clear validation error when user starts typing
+    if (validationErrors[name]) {
+      setValidationErrors(prev => ({ ...prev, [name]: '' }));
+    }
   };
 
   const handleSwitchChange = (checked: boolean) => {
@@ -55,7 +64,7 @@ export function BlogForm({ id, initialData, isLoading, onSubmit }: BlogFormProps
   };
 
   const addTag = (tag: string) => {
-    if (!formData.tags.includes(tag)) {
+    if (!formData.tags.includes(tag) && formData.tags.length < 10) {
       setFormData(prev => ({
         ...prev,
         tags: [...prev.tags, tag]
@@ -70,30 +79,53 @@ export function BlogForm({ id, initialData, isLoading, onSubmit }: BlogFormProps
     }));
   };
 
-  // Auto-generate slug from title
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const title = e.target.value;
     setFormData(prev => ({ 
       ...prev, 
       title,
-      // Only auto-generate slug if we're not editing or the slug is empty
       slug: (!isEditing || prev.slug === '') ? title.toLowerCase().replace(/[^\w\s]/gi, '').replace(/\s+/g, '-') : prev.slug
     }));
+    
+    if (validationErrors.title) {
+      setValidationErrors(prev => ({ ...prev, title: '' }));
+    }
+  };
+
+  const validateForm = (): boolean => {
+    try {
+      blogPostSchema.parse(formData);
+      setValidationErrors({});
+      return true;
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const errors: Record<string, string> = {};
+        error.errors.forEach((err) => {
+          if (err.path.length > 0) {
+            errors[err.path[0] as string] = err.message;
+          }
+        });
+        setValidationErrors(errors);
+      }
+      return false;
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      toast.error("Please correct the validation errors");
+      return;
+    }
+    
     setIsSaving(true);
     
     try {
-      if (!formData.title || !formData.content) {
-        throw new Error("Title and content are required");
-      }
-
       await onSubmit(formData);
-      
     } catch (error: any) {
       console.error("Error saving blog post:", error);
+      toast.error(sanitizeError(error));
       setIsSaving(false);
     }
   };
@@ -113,6 +145,7 @@ export function BlogForm({ id, initialData, isLoading, onSubmit }: BlogFormProps
           handleTitleChange={handleTitleChange}
           addTag={addTag}
           removeTag={removeTag}
+          validationErrors={validationErrors}
         />
         
         <div className="flex justify-end gap-2">

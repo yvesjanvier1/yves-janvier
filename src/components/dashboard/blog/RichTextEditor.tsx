@@ -4,6 +4,7 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { SecureHtml } from '@/components/ui/secure-html';
 
 interface RichTextEditorProps {
   value: string;
@@ -58,8 +59,8 @@ const RichTextEditor = ({ value, onChange, placeholder }: RichTextEditorProps) =
         <TabsContent value="preview" className="mt-4">
           <Card className="p-6">
             <div className="prose dark:prose-invert max-w-none">
-              <div 
-                dangerouslySetInnerHTML={{ __html: value || '<p>Start writing to see the preview...</p>' }}
+              <SecureHtml 
+                html={value || '<p>Start writing to see the preview...</p>'}
                 className="min-h-[300px]"
               />
             </div>

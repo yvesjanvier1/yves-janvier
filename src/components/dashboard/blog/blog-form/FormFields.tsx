@@ -26,6 +26,7 @@ interface FormFieldsProps {
   handleTitleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   addTag: (tag: string) => void;
   removeTag: (tag: string) => void;
+  validationErrors?: Record<string, string>;
 }
 
 export function FormFields({
@@ -35,11 +36,11 @@ export function FormFields({
   handleSwitchChange,
   handleTitleChange,
   addTag,
-  removeTag
+  removeTag,
+  validationErrors = {}
 }: FormFieldsProps) {
   
   const handleContentChange = (value: string) => {
-    // Create a synthetic event to maintain compatibility with existing handleChange
     const syntheticEvent = {
       target: {
         name: 'content',
@@ -60,7 +61,11 @@ export function FormFields({
           onChange={handleTitleChange}
           required
           placeholder="Post title"
+          className={validationErrors.title ? 'border-destructive' : ''}
         />
+        {validationErrors.title && (
+          <p className="text-sm text-destructive mt-1">{validationErrors.title}</p>
+        )}
       </FormField>
       
       <FormField id="slug" label="Slug" required>
@@ -71,7 +76,11 @@ export function FormFields({
           onChange={handleChange}
           required
           placeholder="post-url-slug"
+          className={validationErrors.slug ? 'border-destructive' : ''}
         />
+        {validationErrors.slug && (
+          <p className="text-sm text-destructive mt-1">{validationErrors.slug}</p>
+        )}
       </FormField>
       
       <FormField id="excerpt" label="Excerpt">
@@ -82,15 +91,24 @@ export function FormFields({
           onChange={handleChange}
           placeholder="Brief summary of the post"
           rows={2}
+          className={validationErrors.excerpt ? 'border-destructive' : ''}
         />
+        {validationErrors.excerpt && (
+          <p className="text-sm text-destructive mt-1">{validationErrors.excerpt}</p>
+        )}
       </FormField>
       
       <FormField id="content" label="Content" required>
-        <RichTextEditor
-          value={formData.content}
-          onChange={handleContentChange}
-          placeholder="Start writing your blog post..."
-        />
+        <div className={validationErrors.content ? 'border border-destructive rounded-lg' : ''}>
+          <RichTextEditor
+            value={formData.content}
+            onChange={handleContentChange}
+            placeholder="Start writing your blog post..."
+          />
+        </div>
+        {validationErrors.content && (
+          <p className="text-sm text-destructive mt-1">{validationErrors.content}</p>
+        )}
       </FormField>
       
       <FormField id="cover_image" label="Cover Image URL">
@@ -100,7 +118,12 @@ export function FormFields({
           value={formData.cover_image}
           onChange={handleChange}
           placeholder="https://example.com/image.jpg"
+          type="url"
+          className={validationErrors.cover_image ? 'border-destructive' : ''}
         />
+        {validationErrors.cover_image && (
+          <p className="text-sm text-destructive mt-1">{validationErrors.cover_image}</p>
+        )}
       </FormField>
       
       <FormField id="tags" label="Tags">
@@ -110,6 +133,9 @@ export function FormFields({
           onRemoveTag={removeTag}
           placeholder="Add tag"
         />
+        {validationErrors.tags && (
+          <p className="text-sm text-destructive mt-1">{validationErrors.tags}</p>
+        )}
       </FormField>
       
       <FormField id="published" label="">

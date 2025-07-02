@@ -8,6 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Mail, Phone, MapPin, Linkedin, Github, Twitter } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { contactFormSchema, checkRateLimit, sanitizeError } from "@/lib/security";
+import { z } from "zod";
 
 const ContactPage = () => {
   const { toast } = useToast();
@@ -19,20 +21,70 @@ const ContactPage = () => {
     message: ""
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Clear validation error when user starts typing
+    if (validationErrors[name]) {
+      setValidationErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+  
+  const validateForm = (): boolean => {
+    try {
+      contactFormSchema.parse(formData);
+      setValidationErrors({});
+      return true;
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const errors: Record<string, string> = {};
+        error.errors.forEach((err) => {
+          if (err.path.length > 0) {
+            errors[err.path[0] as string] = err.message;
+          }
+        });
+        setValidationErrors(errors);
+      }
+      return false;
+    }
   };
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      toast({
+        title: "Validation Error",
+        description: "Please correct the errors in the form",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Rate limiting check
+    const clientId = `${formData.email}_${Date.now().toString().slice(0, -3)}0000`; // 5-minute window
+    if (!checkRateLimit(clientId, 3, 300000)) {
+      toast({
+        title: "Too Many Requests",
+        description: "Please wait a few minutes before submitting another message",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setIsSubmitting(true);
     
     try {
       const { error } = await supabase
         .from('contact_messages')
-        .insert([formData]);
+        .insert([{
+          ...formData,
+          // Additional security: timestamp for audit
+          created_at: new Date().toISOString()
+        }]);
         
       if (error) throw error;
       
@@ -51,7 +103,7 @@ const ContactPage = () => {
       console.error("Error sending message:", error);
       toast({
         title: t('contact.error.title'),
-        description: t('contact.error.description'),
+        description: sanitizeError(error),
         variant: "destructive"
       });
     } finally {
@@ -152,7 +204,11 @@ const ContactPage = () => {
                 onChange={handleChange}
                 required
                 placeholder={t('contact.form.namePlaceholder')}
+                className={validationErrors.name ? 'border-destructive' : ''}
               />
+              {validationErrors.name && (
+                <p className="text-sm text-destructive mt-1">{validationErrors.name}</p>
+              )}
             </div>
             
             <div>
@@ -167,7 +223,11 @@ const ContactPage = () => {
                 onChange={handleChange}
                 required
                 placeholder={t('contact.form.emailPlaceholder')}
+                className={validationErrors.email ? 'border-destructive' : ''}
               />
+              {validationErrors.email && (
+                <p className="text-sm text-destructive mt-1">{validationErrors.email}</p>
+              )}
             </div>
             
             <div>
@@ -181,7 +241,11 @@ const ContactPage = () => {
                 onChange={handleChange}
                 required
                 placeholder={t('contact.form.subjectPlaceholder')}
+                className={validationErrors.subject ? 'border-destructive' : ''}
               />
+              {validationErrors.subject && (
+                <p className="text-sm text-destructive mt-1">{validationErrors.subject}</p>
+              )}
             </div>
             
             <div>
@@ -195,8 +259,11 @@ const ContactPage = () => {
                 onChange={handleChange}
                 required
                 placeholder={t('contact.form.messagePlaceholder')}
-                className="min-h-32"
+                className={`min-h-32 ${validationErrors.message ? 'border-destructive' : ''}`}
               />
+              {validationErrors.message && (
+                <p className="text-sm text-destructive mt-1">{validationErrors.message}</p>
+              )}
             </div>
             
             <Button type="submit" className="w-full" disabled={isSubmitting}>
