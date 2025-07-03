@@ -81,12 +81,12 @@ export const useResponsive = (): BreakpointState => {
 };
 
 // Utility hook for responsive values
-export const useResponsiveValue = <T>(values: {
+export const useResponsiveValue = function<T>(values: {
   mobile: T;
   tablet?: T;
   desktop?: T;
   large?: T;
-}): T => {
+}): T {
   const { screenSize } = useResponsive();
   
   switch (screenSize) {
