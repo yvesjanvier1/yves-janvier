@@ -13,10 +13,24 @@ export default {
 	theme: {
 		container: {
 			center: true,
-			padding: '2rem',
+			padding: {
+				DEFAULT: '1rem',
+				sm: '1.5rem',
+				lg: '2rem',
+				xl: '2.5rem',
+				'2xl': '3rem',
+			},
 			screens: {
 				'2xl': '1400px'
 			}
+		},
+		screens: {
+			'xs': '320px',
+			'sm': '640px',
+			'md': '768px',
+			'lg': '1024px',
+			'xl': '1280px',
+			'2xl': '1536px',
 		},
 		extend: {
 			colors: {
@@ -69,6 +83,19 @@ export default {
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)'
 			},
+			spacing: {
+				'18': '4.5rem',
+				'88': '22rem',
+				'128': '32rem',
+			},
+			fontSize: {
+				'2xs': ['0.625rem', { lineHeight: '0.75rem' }],
+				'3xl': ['1.875rem', { lineHeight: '2.25rem' }],
+				'4xl': ['2.25rem', { lineHeight: '2.5rem' }],
+				'5xl': ['3rem', { lineHeight: '1.16' }],
+				'6xl': ['3.75rem', { lineHeight: '1.12' }],
+				'7xl': ['4.5rem', { lineHeight: '1.1' }],
+			},
 			keyframes: {
 				'accordion-down': {
 					from: {
@@ -98,6 +125,18 @@ export default {
 					'0%': { opacity: '0', transform: 'translateX(-20px)' },
 					'100%': { opacity: '1', transform: 'translateX(0)' }
 				},
+				'slide-in-right': {
+					'0%': { transform: 'translateX(100%)' },
+					'100%': { transform: 'translateX(0)' }
+				},
+				'slide-out-right': {
+					'0%': { transform: 'translateX(0)' },
+					'100%': { transform: 'translateX(100%)' }
+				},
+				'scale-in': {
+					'0%': { transform: 'scale(0.95)', opacity: '0' },
+					'100%': { transform: 'scale(1)', opacity: '1' }
+				},
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
@@ -105,7 +144,17 @@ export default {
 				'fade-in': 'fade-in 0.5s ease-out forwards',
 				'fade-out': 'fade-out 0.5s ease-out forwards',
 				'slide-in': 'slide-in 0.5s ease-out forwards',
-			}
+				'slide-in-right': 'slide-in-right 0.3s ease-out',
+				'slide-out-right': 'slide-out-right 0.3s ease-out',
+				'scale-in': 'scale-in 0.2s ease-out',
+			},
+			// Touch-friendly sizing
+			minHeight: {
+				'touch': '44px',
+			},
+			minWidth: {
+				'touch': '44px',
+			},
 		}
 	},
 	plugins: [require("tailwindcss-animate")],

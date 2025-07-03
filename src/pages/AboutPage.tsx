@@ -1,9 +1,11 @@
-
 import { useEffect, useState } from "react";
 import { SectionHeader } from "@/components/ui/section-header";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useResponsive } from "@/hooks/useResponsive";
+import { ResponsiveContainer } from "@/components/ui/responsive-container";
+import { ResponsiveGrid } from "@/components/ui/responsive-grid";
 
 interface AboutData {
   id: string;
@@ -31,6 +33,7 @@ const AboutPage = () => {
   const [skills, setSkills] = useState<Skill[]>([]);
   const [timeline, setTimeline] = useState<Experience[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { isMobile, isTablet } = useResponsive();
 
   useEffect(() => {
     const fetchAboutData = async () => {
@@ -74,29 +77,30 @@ const AboutPage = () => {
 
   if (isLoading) {
     return (
-      <div className="container px-4 py-16 md:py-24 mx-auto">
+      <ResponsiveContainer className="py-16 md:py-24">
         <div className="flex justify-center py-12">
           <div className="animate-pulse text-center">Loading profile data...</div>
         </div>
-      </div>
+      </ResponsiveContainer>
     );
   }
 
   if (!aboutData) {
     return (
-      <div className="container px-4 py-16 md:py-24 mx-auto">
+      <ResponsiveContainer className="py-16 md:py-24">
         <div className="text-center">
           <h2 className="text-xl">About page data not available.</h2>
         </div>
-      </div>
+      </ResponsiveContainer>
     );
   }
 
   const bioLines = aboutData.bio.split('\n\n');
 
   return (
-    <div className="container px-4 py-16 md:py-24 mx-auto">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 mb-16">
+    <ResponsiveContainer className="py-16 md:py-24">
+      {/* Main content grid */}
+      <div className={`grid ${isMobile ? 'grid-cols-1 gap-8' : 'grid-cols-1 lg:grid-cols-3 gap-12'} mb-16`}>
         <div className="lg:col-span-2">
           <SectionHeader 
             title="About Me"
@@ -105,13 +109,13 @@ const AboutPage = () => {
           
           <div className="space-y-6 text-lg">
             {bioLines.map((paragraph, index) => (
-              <p key={index}>{paragraph}</p>
+              <p key={index} className="leading-relaxed">{paragraph}</p>
             ))}
           </div>
           
           {aboutData.resume_url && (
             <div className="mt-8">
-              <Button className="flex items-center" asChild>
+              <Button className="flex items-center w-full sm:w-auto" asChild>
                 <a href={aboutData.resume_url} target="_blank" rel="noopener noreferrer">
                   <Download className="mr-2 h-4 w-4" />
                   Download Resume
@@ -121,13 +125,14 @@ const AboutPage = () => {
           )}
         </div>
         
-        <div>
+        <div className="space-y-6">
           {aboutData.profile_image && (
-            <div className="aspect-square rounded-lg overflow-hidden mb-6">
+            <div className="aspect-square rounded-lg overflow-hidden">
               <img 
                 src={aboutData.profile_image} 
                 alt="Profile"
                 className="w-full h-full object-cover"
+                loading="lazy"
               />
             </div>
           )}
@@ -137,7 +142,7 @@ const AboutPage = () => {
               href="https://linkedin.com" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="text-center py-2 border border-input rounded-md hover:bg-secondary transition-colors"
+              className="text-center py-3 border border-input rounded-md hover:bg-secondary transition-colors min-h-[44px] flex items-center justify-center"
             >
               LinkedIn
             </a>
@@ -145,13 +150,13 @@ const AboutPage = () => {
               href="https://github.com" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="text-center py-2 border border-input rounded-md hover:bg-secondary transition-colors"
+              className="text-center py-3 border border-input rounded-md hover:bg-secondary transition-colors min-h-[44px] flex items-center justify-center"
             >
               GitHub
             </a>
             <a 
               href="mailto:contact@yvesjanvier.com" 
-              className="text-center py-2 border border-input rounded-md hover:bg-secondary transition-colors"
+              className="text-center py-3 border border-input rounded-md hover:bg-secondary transition-colors min-h-[44px] flex items-center justify-center"
             >
               Email Me
             </a>
@@ -159,29 +164,34 @@ const AboutPage = () => {
         </div>
       </div>
       
+      {/* Skills section */}
       <div className="mb-20">
         <h2 className="text-2xl font-bold mb-8">Technical Skills & Expertise</h2>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <ResponsiveGrid 
+          cols={{ mobile: 1, tablet: 2, desktop: 3 }}
+          gap="md"
+        >
           {skills.map((skillGroup) => (
             <div 
               key={skillGroup.id} 
-              className="bg-card border rounded-lg p-6"
+              className="bg-card border rounded-lg p-6 h-full"
             >
               <h3 className="font-semibold text-lg mb-3">{skillGroup.category}</h3>
               <ul className="space-y-2">
                 {skillGroup.items.map((skill, index) => (
                   <li key={index} className="flex items-center">
-                    <span className="w-2 h-2 rounded-full bg-primary mr-2"></span>
-                    {skill}
+                    <span className="w-2 h-2 rounded-full bg-primary mr-2 flex-shrink-0"></span>
+                    <span className="text-sm sm:text-base">{skill}</span>
                   </li>
                 ))}
               </ul>
             </div>
           ))}
-        </div>
+        </ResponsiveGrid>
       </div>
       
+      {/* Timeline section */}
       <div>
         <h2 className="text-2xl font-bold mb-8">Professional Journey</h2>
         
@@ -192,12 +202,12 @@ const AboutPage = () => {
               <div className="mb-1 text-sm font-medium text-muted-foreground">{item.year_range}</div>
               <h3 className="text-lg font-semibold">{item.role}</h3>
               <div className="text-primary font-medium mb-2">{item.company}</div>
-              <p className="text-muted-foreground">{item.description}</p>
+              <p className="text-muted-foreground leading-relaxed">{item.description}</p>
             </div>
           ))}
         </div>
       </div>
-    </div>
+    </ResponsiveContainer>
   );
 };
 
