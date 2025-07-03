@@ -6,6 +6,7 @@ import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarMenu, S
 import { LayoutDashboard, FileText, Briefcase, MessageSquare, BarChart2, User, LogOut, MessageCircle, UserRound, BookOpen, TrendingUp } from "lucide-react";
 import { useAuth } from "./AuthProvider";
 import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/ui/logo";
 
 const DashboardLayout = () => {
   const { user, signOut, isAuthenticated } = useAuth();
@@ -26,7 +27,7 @@ const DashboardLayout = () => {
       <div className="flex flex-1 h-screen overflow-hidden bg-muted/20">
         <Sidebar>
           <SidebarHeader className="flex flex-row items-center justify-between p-4">
-            <Link to="/" className="text-lg font-bold">Yves Janvier</Link>
+            <Logo size="sm" showText={sidebarOpen} />
             <SidebarTrigger />
           </SidebarHeader>
           
