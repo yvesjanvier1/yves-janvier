@@ -27,9 +27,9 @@ export const Logo = ({ className = "", showText = true, size = 'md' }: LogoProps
     >
       <div className="relative flex-shrink-0">
         <img
-          src="/lovable-uploads/360c0c48-2962-4c0f-877c-afda57f84ed8.png"
-          alt="Yves Janvier Logo"
-          className={`${sizeClasses[size]} object-contain rounded-lg`}
+          src="/lovable-uploads/078881d9-124b-4172-a520-e9d11a852ec0.png"
+          alt="Yves Janvier"
+          className={`${sizeClasses[size]} object-cover rounded-full border-2 border-primary/20`}
           loading="eager"
         />
       </div>
