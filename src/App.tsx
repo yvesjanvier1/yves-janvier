@@ -29,6 +29,9 @@ import ServiceFormPage from './pages/dashboard/ServiceFormPage';
 import AboutManagePage from './pages/dashboard/AboutManagePage';
 import JournalManagePage from './pages/dashboard/JournalManagePage';
 import JournalFormPage from './pages/dashboard/JournalFormPage';
+import ResourcesPage from './pages/ResourcesPage';
+import ResourcesManagePage from './pages/dashboard/ResourcesManagePage';
+import ResourceFormPage from './pages/dashboard/ResourceFormPage';
 import { ThemeProvider } from './components/theme/theme-provider';
 import { Toaster } from './components/ui/toaster';
 import { PageViewTracker } from './components/PageViewTracker';
@@ -53,6 +56,7 @@ function App() {
                 <Route path="blog/page/:page" element={<BlogPage />} />
                 <Route path="blog/:id" element={<BlogPostPage />} />
                 <Route path="journal" element={<JournalPage />} />
+                <Route path="resources" element={<ResourcesPage />} />
                 <Route path="contact" element={<ContactPage />} />
               </Route>
 
@@ -80,6 +84,9 @@ function App() {
                   <Route path="services" element={<ServicesManagePage />} />
                   <Route path="services/new" element={<ServiceFormPage />} />
                   <Route path="services/edit/:id" element={<ServiceFormPage />} />
+                  <Route path="resources" element={<ResourcesManagePage />} />
+                  <Route path="resources/new" element={<ResourceFormPage />} />
+                  <Route path="resources/edit/:id" element={<ResourceFormPage />} />
                   <Route path="about" element={<AboutManagePage />} />
                 </Route>
               </Route>

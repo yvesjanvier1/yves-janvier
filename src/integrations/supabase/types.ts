@@ -260,6 +260,51 @@ export type Database = {
         }
         Relationships: []
       }
+      resources: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          download_count: number | null
+          featured: boolean | null
+          file_size: number | null
+          file_type: string
+          file_url: string
+          id: string
+          tags: string[] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          download_count?: number | null
+          featured?: boolean | null
+          file_size?: number | null
+          file_type: string
+          file_url: string
+          id?: string
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          download_count?: number | null
+          featured?: boolean | null
+          file_size?: number | null
+          file_type?: string
+          file_url?: string
+          id?: string
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       services: {
         Row: {
           created_at: string
