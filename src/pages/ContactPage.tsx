@@ -144,7 +144,7 @@ const ContactPage = () => {
               <Phone className="h-5 w-5 mr-3 text-primary mt-1" />
               <div>
                 <h4 className="font-medium">Phone</h4>
-                <span className="text-muted-foreground">+1 (555) 123-4567</span>
+                <span className="text-muted-foreground">+1 (509) 3135-6094</span>
               </div>
             </div>
             
@@ -152,7 +152,7 @@ const ContactPage = () => {
               <MapPin className="h-5 w-5 mr-3 text-primary mt-1" />
               <div>
                 <h4 className="font-medium">Location</h4>
-                <span className="text-muted-foreground">San Francisco, California</span>
+                <span className="text-muted-foreground">Haiti, Delmas</span>
               </div>
             </div>
           </div>
@@ -170,7 +170,7 @@ const ContactPage = () => {
                 <Linkedin className="h-5 w-5" />
               </a>
               <a 
-                href="https://github.com" 
+                href="https://github.com/yvesjanvier1" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="p-2 border border-input rounded-md hover:border-primary transition-colors"

@@ -44,7 +44,7 @@ const Footer = () => {
             <h3 className="text-lg font-semibold mb-4">{t('footer.connect')}</h3>
             <div className="flex space-x-4 mb-4">
               <a 
-                href="https://github.com" 
+                href="https://github.com/yvesjanvier1" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-foreground hover:text-primary transition-colors"
@@ -80,7 +80,7 @@ const Footer = () => {
                 <Mail className="h-5 w-5" />
               </a>
               <a 
-                href="https://wa.me/+33123456789" 
+                href="https://wa.me/+50931356094" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-foreground hover:text-primary transition-colors"
