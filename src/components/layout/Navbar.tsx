@@ -62,7 +62,7 @@ const Navbar = () => {
   return (
     <nav 
       id="navigation" 
-      className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-md border-b border-border/40" 
+      className="sticky top-0 z-50 w-full glass border-b border-primary/10" 
       role="navigation" 
       aria-label="Main navigation"
     >
