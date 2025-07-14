@@ -1,5 +1,6 @@
 
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import HomePage from './pages/HomePage';
 import AboutPage from './pages/AboutPage';
 import PortfolioPage from './pages/PortfolioPage';
@@ -37,15 +38,19 @@ import { Toaster } from './components/ui/toaster';
 import { PageViewTracker } from './components/PageViewTracker';
 import { PerformanceTracker } from './components/analytics/PerformanceTracker';
 
+// Create a client
+const queryClient = new QueryClient();
+
 function App() {
   return (
-    <ThemeProvider defaultTheme="system" storageKey="theme">
-      <LanguageProvider>
-        <Router>
-          <AuthProvider>
-            <PageViewTracker />
-            <PerformanceTracker />
-            <Routes>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider defaultTheme="system" storageKey="theme">
+        <LanguageProvider>
+          <Router>
+            <AuthProvider>
+              <PageViewTracker />
+              <PerformanceTracker />
+              <Routes>
               {/* Public Routes */}
               <Route path="/" element={<Layout />}>
                 <Route index element={<HomePage />} />
@@ -94,11 +99,12 @@ function App() {
               {/* Not Found */}
               <Route path="*" element={<NotFound />} />
             </Routes>
-            <Toaster />
-          </AuthProvider>
-        </Router>
-      </LanguageProvider>
-    </ThemeProvider>
+              <Toaster />
+            </AuthProvider>
+          </Router>
+        </LanguageProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }
 
