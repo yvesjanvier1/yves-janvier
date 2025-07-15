@@ -46,10 +46,11 @@ const ServicesSection = () => {
 
   return (
     <section className="section relative overflow-hidden">
-      {/* Background elements */}
-      <div className="absolute inset-0 bg-gradient-to-b from-background to-muted/20" />
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
+      {/* Enhanced background elements */}
+      <div className="absolute inset-0 bg-gradient-surface" />
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-pulse-slow" />
+      <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-secondary/5 rounded-full blur-3xl animate-float" />
+      <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-accent/5 rounded-full blur-2xl animate-pulse-slow" style={{ animationDelay: '2s' }} />
       
       <div className="container px-4 mx-auto relative z-10">
         <AnimatedSection>
@@ -72,7 +73,7 @@ const ServicesSection = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.8 }}
             >
-              <span className="text-gradient">
+              <span className="text-gradient-primary">
                 What I Do Best
               </span>
             </motion.h2>
@@ -95,14 +96,14 @@ const ServicesSection = () => {
               delay={index * 0.1}
               className="h-full"
             >
-              <Card className="h-full glass-card hover-lift group border-primary/10 relative overflow-hidden">
-                {/* Shimmer effect */}
+              <Card className="h-full glass-card hover-lift group border-primary/10 relative overflow-hidden hover:bg-gradient-surface">
+                {/* Enhanced shimmer effect */}
                 <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent animate-shimmer" />
+                  <div className="absolute inset-0 bg-gradient-secondary opacity-20 animate-shimmer" />
                 </div>
                 
                 <CardHeader className="relative z-10">
-                  <div className="mb-4 p-4 bg-gradient-primary rounded-2xl w-fit group-hover:shadow-glow transition-all duration-300">
+                  <div className="mb-4 p-4 bg-gradient-primary rounded-2xl w-fit group-hover:shadow-glow group-hover:bg-gradient-secondary transition-all duration-300">
                     <service.icon className="h-6 w-6 text-white" />
                   </div>
                   <CardTitle className="text-xl group-hover:text-primary transition-colors">
@@ -136,7 +137,7 @@ const ServicesSection = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1, duration: 0.8 }}
             >
-              <h3 className="text-2xl font-bold mb-4 text-gradient">
+              <h3 className="text-2xl font-bold mb-4 text-gradient-hero">
                 Ready to Transform Your Ideas?
               </h3>
               <p className="text-muted-foreground mb-6">
@@ -145,7 +146,7 @@ const ServicesSection = () => {
               <Button 
                 asChild 
                 size="lg" 
-                className="bg-gradient-primary hover:shadow-primary hover-lift px-8"
+                className="bg-gradient-primary hover:bg-gradient-secondary hover:shadow-primary hover-lift px-8"
               >
                 <Link to="/contact">
                   Start Your Project

@@ -62,7 +62,7 @@ const Navbar = () => {
   return (
     <nav 
       id="navigation" 
-      className="sticky top-0 z-50 w-full glass border-b border-primary/10" 
+      className="sticky top-0 z-50 w-full glass border-b border-primary/10 bg-gradient-surface" 
       role="navigation" 
       aria-label="Main navigation"
     >
@@ -78,8 +78,8 @@ const Navbar = () => {
                 to={item.path}
                 className={`px-3 py-2 rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ${
                   location.pathname === item.path
-                    ? "text-primary font-semibold bg-primary/10"
-                    : "text-foreground/80 hover:text-foreground hover:bg-muted/50"
+                    ? "text-white font-semibold bg-gradient-primary shadow-glow"
+                    : "text-foreground/80 hover:text-foreground hover:bg-gradient-surface"
                 }`}
                 aria-current={location.pathname === item.path ? "page" : undefined}
               >
@@ -114,10 +114,10 @@ const Navbar = () => {
       {/* Mobile/Tablet Menu Overlay */}
       {isOpen && (
         <>
-          <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 lg:hidden" />
+          <div className="fixed inset-0 bg-gradient-surface backdrop-blur-sm z-40 lg:hidden" />
           <div 
             id="mobile-menu"
-            className="fixed inset-x-0 top-16 bg-background border-b border-border shadow-lg z-50 lg:hidden animate-slide-in"
+            className="fixed inset-x-0 top-16 bg-gradient-surface border-b border-border shadow-lg z-50 lg:hidden animate-slide-in"
             role="menu"
             aria-label="Mobile navigation menu"
           >
@@ -128,8 +128,8 @@ const Navbar = () => {
                   to={item.path}
                   className={`block px-4 py-3 rounded-lg text-base font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ${
                     location.pathname === item.path
-                      ? "text-primary font-semibold bg-primary/10"
-                      : "text-foreground/80 hover:text-foreground hover:bg-muted/50"
+                      ? "text-white font-semibold bg-gradient-primary shadow-glow"
+                      : "text-foreground/80 hover:text-foreground hover:bg-gradient-surface"
                   }`}
                   onClick={() => setIsOpen(false)}
                   role="menuitem"
