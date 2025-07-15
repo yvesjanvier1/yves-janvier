@@ -32,18 +32,12 @@ export const FeaturedProjects = () => {
   }
 
   return (
-    <section className="section bg-gradient-surface">
-      <div className="container px-4 mx-auto relative">
-        {/* Enhanced background effects */}
-        <div className="absolute inset-0 bg-gradient-glow opacity-10" />
-        <div className="absolute top-10 right-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl animate-float" />
-        <div className="absolute bottom-10 left-10 w-96 h-96 bg-secondary/5 rounded-full blur-3xl animate-pulse-slow" />
-        
+    <section className="section bg-muted/30">
+      <div className="container px-4 mx-auto">
         <SectionHeader
           title={t('portfolio.featuredProjects')}
           subtitle={t('portfolio.featuredProjectsSubtitle')}
           centered
-          className="relative z-10"
         />
 
         {isLoading ? (
@@ -65,8 +59,8 @@ export const FeaturedProjects = () => {
           </div>
         )}
 
-        <div className="mt-12 text-center relative z-10">
-          <Button asChild variant="outline" size="lg" className="glass hover:bg-gradient-primary hover:text-white hover:border-primary/40">
+        <div className="mt-12 text-center">
+          <Button asChild variant="outline" size="lg">
             <Link to="/portfolio">{t('portfolio.viewAll')}</Link>
           </Button>
         </div>
