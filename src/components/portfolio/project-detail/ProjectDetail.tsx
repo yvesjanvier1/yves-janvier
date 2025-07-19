@@ -5,6 +5,7 @@ import ProjectGallery from "./ProjectGallery";
 import ProjectLinks from "./ProjectLinks";
 import TechStack from "./TechStack";
 import ProjectContent from "./ProjectContent";
+import ProjectSocialShare from "../project-social-share";
 
 interface ProjectLink {
   title: string;
@@ -24,14 +25,23 @@ interface ProjectDetailProps {
   };
 }
 
-const ProjectDetail = ({ project }: ProjectDetailProps) => (
-  <Card className="p-6">
-    <ProjectHeader title={project.title} category={project.category} />
-    <ProjectGallery images={project.images} />
-    <ProjectLinks links={project.links} />
-    <TechStack technologies={project.tech_stack} />
-    <ProjectContent description={project.description} />
-  </Card>
-);
+const ProjectDetail = ({ project }: ProjectDetailProps) => {
+  const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
+
+  return (
+    <Card className="p-6">
+      <ProjectHeader title={project.title} category={project.category} />
+      <ProjectGallery images={project.images} />
+      <ProjectLinks links={project.links} />
+      <TechStack technologies={project.tech_stack} />
+      <ProjectContent description={project.description} />
+      <ProjectSocialShare 
+        title={project.title}
+        url={currentUrl}
+        description={project.description}
+      />
+    </Card>
+  );
+};
 
 export default ProjectDetail;
