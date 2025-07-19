@@ -1,129 +1,114 @@
 
 import { Link } from "react-router-dom";
-import { Github, Linkedin, Mail, MessageCircle } from "lucide-react";
-import { useLanguage } from "@/contexts/LanguageContext";
-import { Logo } from "@/components/ui/logo";
+import { Github, Linkedin, Mail } from "lucide-react";
+import { NewsletterSubscription } from "@/components/newsletter/NewsletterSubscription";
 
 const Footer = () => {
-  const currentYear = new Date().getFullYear();
-  const { t } = useLanguage();
-  
   return (
-    <footer className="bg-background border-t py-12">
-      <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div>
-            <Logo size="sm" className="mb-4" />
-            <p className="text-muted-foreground">
-              {t('hero.subtitle')}
+    <footer className="bg-background border-t">
+      <div className="container mx-auto px-4 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {/* Brand Section */}
+          <div className="lg:col-span-1">
+            <h3 className="text-lg font-semibold mb-4">Yves Janvier</h3>
+            <p className="text-muted-foreground text-sm mb-4">
+              Full Stack Developer & Data Engineer creating innovative digital solutions.
             </p>
-          </div>
-          
-          <div>
-            <h3 className="text-lg font-semibold mb-4">{t('footer.quickLinks')}</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link to="/" className="text-muted-foreground hover:text-primary transition-colors">{t('nav.home')}</Link>
-              </li>
-              <li>
-                <Link to="/portfolio" className="text-muted-foreground hover:text-primary transition-colors">{t('nav.portfolio')}</Link>
-              </li>
-              <li>
-                <Link to="/blog" className="text-muted-foreground hover:text-primary transition-colors">{t('nav.blog')}</Link>
-              </li>
-              <li>
-                <Link to="/about" className="text-muted-foreground hover:text-primary transition-colors">{t('nav.about')}</Link>
-              </li>
-              <li>
-                <Link to="/contact" className="text-muted-foreground hover:text-primary transition-colors">{t('nav.contact')}</Link>
-              </li>
-            </ul>
-          </div>
-          
-          <div>
-            <h3 className="text-lg font-semibold mb-4">{t('footer.connect')}</h3>
-            <div className="flex space-x-4 mb-4">
-              <a 
-                href="https://github.com/yvesjanvier1" 
-                target="_blank" 
+            <div className="flex space-x-4">
+              <a
+                href="https://github.com"
+                target="_blank"
                 rel="noopener noreferrer"
-                className="text-foreground hover:text-primary transition-colors"
-                aria-label="GitHub"
+                className="text-muted-foreground hover:text-foreground transition-colors"
               >
                 <Github className="h-5 w-5" />
               </a>
-              <a 
-                href="https://www.linkedin.com/in/janvieryves44/" 
-                target="_blank" 
+              <a
+                href="https://linkedin.com"
+                target="_blank"
                 rel="noopener noreferrer"
-                className="text-foreground hover:text-primary transition-colors"
-                aria-label="LinkedIn"
+                className="text-muted-foreground hover:text-foreground transition-colors"
               >
                 <Linkedin className="h-5 w-5" />
               </a>
-              <a 
-                href="https://twitter.com/yvesjanvier01" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-foreground hover:text-primary transition-colors"
-                aria-label="Twitter/X"
-              >
-                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                </svg>
-              </a>
-              <a 
-                href="mailto:janvieryves44@gmail.com" 
-                className="text-foreground hover:text-primary transition-colors"
-                aria-label="Email"
+              <a
+                href="mailto:contact@yvesjanvier.com"
+                className="text-muted-foreground hover:text-foreground transition-colors"
               >
                 <Mail className="h-5 w-5" />
               </a>
-              <a 
-                href="https://wa.me/+50931356094" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-foreground hover:text-primary transition-colors"
-                aria-label="WhatsApp Business"
-              >
-                <MessageCircle className="h-5 w-5" />
-              </a>
-            </div>
-            <div className="text-sm text-muted-foreground space-y-1">
-              <p>
-                <a 
-                  href="mailto:janvieryves44@gmail.com"
-                  className="hover:text-primary transition-colors"
-                >
-                  janvieryves44@gmail.com
-                </a>
-              </p>
-              <p>
-                <a 
-                  href="https://www.linkedin.com/in/janvieryves44/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-primary transition-colors"
-                >
-                  LinkedIn: janvieryves44
-                </a>
-              </p>
-              <p>
-                <a 
-                  href="https://twitter.com/yvesjanvier01"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-primary transition-colors"
-                >
-                  Twitter: @yvesjanvier01
-                </a>
-              </p>
             </div>
           </div>
+
+          {/* Quick Links */}
+          <div>
+            <h4 className="font-semibold mb-4">Quick Links</h4>
+            <ul className="space-y-2 text-sm">
+              <li>
+                <Link to="/about" className="text-muted-foreground hover:text-foreground transition-colors">
+                  About
+                </Link>
+              </li>
+              <li>
+                <Link to="/portfolio" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Portfolio
+                </Link>
+              </li>
+              <li>
+                <Link to="/blog" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Blog
+                </Link>
+              </li>
+              <li>
+                <Link to="/contact" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Contact
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Resources */}
+          <div>
+            <h4 className="font-semibold mb-4">Resources</h4>
+            <ul className="space-y-2 text-sm">
+              <li>
+                <Link to="/resources" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Downloads
+                </Link>
+              </li>
+              <li>
+                <Link to="/journal" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Journal
+                </Link>
+              </li>
+              <li>
+                <a 
+                  href="#"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Privacy Policy
+                </a>
+              </li>
+              <li>
+                <a 
+                  href="#"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Terms of Service
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          {/* Newsletter */}
+          <div>
+            <h4 className="font-semibold mb-4">Stay Updated</h4>
+            <NewsletterSubscription variant="footer" />
+          </div>
         </div>
-        
-        <div className="mt-8 pt-8 border-t text-center text-sm text-muted-foreground">
-          <p>&copy; {currentYear} Yves Janvier. {t('footer.copyright')}</p>
+
+        <div className="border-t mt-8 pt-8 text-center text-sm text-muted-foreground">
+          <p>&copy; {new Date().getFullYear()} Yves Janvier. All rights reserved.</p>
         </div>
       </div>
     </footer>

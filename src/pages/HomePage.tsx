@@ -5,6 +5,7 @@ import { JournalActivities } from "@/components/home/journal-activities";
 import ServicesSection from "@/components/home/services-section";
 import Testimonials from "@/components/home/testimonials";
 import LatestPosts from "@/components/home/latest-posts";
+import { NewsletterSection } from "@/components/home/newsletter-section";
 import SEOHead from "@/components/seo/SEOHead";
 
 const HomePage = () => {
@@ -23,6 +24,7 @@ const HomePage = () => {
       <ServicesSection />
       <Testimonials />
       <LatestPosts />
+      <NewsletterSection />
     </>
   );
 };
