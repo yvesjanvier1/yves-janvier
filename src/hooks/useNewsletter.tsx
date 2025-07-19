@@ -11,7 +11,8 @@ export const useNewsletter = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
 
-      const { error } = await supabase
+      // Use type assertion to work around missing types
+      const { error } = await (supabase as any)
         .from('newsletter_subscriptions')
         .insert({
           email,
@@ -41,7 +42,8 @@ export const useNewsletter = () => {
   const unsubscribe = async (email: string) => {
     setIsLoading(true);
     try {
-      const { error } = await supabase
+      // Use type assertion to work around missing types
+      const { error } = await (supabase as any)
         .from('newsletter_subscriptions')
         .update({ 
           is_active: false, 

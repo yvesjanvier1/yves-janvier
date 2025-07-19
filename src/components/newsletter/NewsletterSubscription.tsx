@@ -33,8 +33,8 @@ export const NewsletterSubscription = ({
       // Get current user if authenticated
       const { data: { user } } = await supabase.auth.getUser();
 
-      // Insert subscription
-      const { error } = await supabase
+      // Use type assertion to work around missing types
+      const { error } = await (supabase as any)
         .from('newsletter_subscriptions')
         .insert({
           email,
