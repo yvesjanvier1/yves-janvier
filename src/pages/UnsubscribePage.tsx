@@ -103,11 +103,11 @@ const UnsubscribePage = () => {
                 {isLoading ? 'Unsubscribing...' : 'Unsubscribe'}
               </Button>
             </div>
-          </Card>
-        </div>
+          </CardContent>
+        </Card>
       </div>
-    );
-  }
+    </div>
+  );
 };
 
 export default UnsubscribePage;
