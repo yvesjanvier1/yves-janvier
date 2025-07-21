@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import SocialShare from "@/components/blog/social-share";
 import SEOHead from "@/components/seo/SEOHead";
+import { SecureHtml } from "@/components/ui/secure-html";
 
 interface BlogPost {
   id: string;
@@ -230,9 +231,9 @@ const BlogPostPage = () => {
             )}
           </header>
 
-          <div className="mt-8 leading-relaxed prose dark:prose-invert max-w-none">
-            <div 
-              dangerouslySetInnerHTML={{ __html: post.content }}
+          <div className="mt-8 leading-relaxed">
+            <SecureHtml 
+              html={post.content}
               className="blog-content"
             />
           </div>
