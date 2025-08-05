@@ -1,72 +1,58 @@
 
 import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
-import { Mail, CheckCircle2 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { useNewsletter } from '@/hooks/useNewsletter';
+import { Mail, CheckCircle2, Loader2 } from 'lucide-react';
 
 interface NewsletterSubscriptionProps {
   variant?: 'default' | 'footer' | 'sidebar';
   className?: string;
 }
 
+interface FormData {
+  email: string;
+  preferences: {
+    projects: boolean;
+    blog_posts: boolean;
+  };
+}
+
 export const NewsletterSubscription = ({ 
   variant = 'default', 
   className = '' 
 }: NewsletterSubscriptionProps) => {
-  const [email, setEmail] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!email) {
-      toast.error('Please enter your email address');
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      // Get current user if authenticated
-      const { data: { user } } = await supabase.auth.getUser();
-
-      // Use type assertion to work around missing types
-      const { error } = await (supabase as any)
-        .from('newsletter_subscriptions')
-        .insert({
-          email,
-          user_id: user?.id || null,
-          preferences: { projects: true, blog_posts: true }
-        });
-
-      if (error) {
-        if (error.code === '23505') {
-          toast.error('This email is already subscribed to our newsletter');
-        } else {
-          throw error;
-        }
-      } else {
-        setIsSubscribed(true);
-        setEmail('');
-        toast.success('Successfully subscribed to our newsletter!');
+  const { subscribe, isLoading } = useNewsletter();
+  
+  const { register, handleSubmit, formState: { errors }, watch, setValue } = useForm<FormData>({
+    defaultValues: {
+      email: '',
+      preferences: {
+        projects: true,
+        blog_posts: true
       }
-    } catch (error) {
-      console.error('Newsletter subscription error:', error);
-      toast.error('Failed to subscribe. Please try again.');
-    } finally {
-      setIsLoading(false);
+    }
+  });
+
+  const preferences = watch('preferences');
+
+  const onSubmit = async (data: FormData) => {
+    const success = await subscribe(data.email, data.preferences);
+    if (success) {
+      setIsSubscribed(true);
     }
   };
 
   if (isSubscribed) {
     return (
-      <div className={`flex items-center justify-center p-6 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800 ${className}`}>
-        <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400 mr-2" />
-        <span className="text-green-800 dark:text-green-200 font-medium">
-          Thanks for subscribing!
+      <div className={`flex items-center justify-center p-6 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl border border-primary/20 animate-fade-in ${className}`}>
+        <CheckCircle2 className="h-5 w-5 text-primary mr-2" />
+        <span className="text-foreground font-medium">
+          ✅ Check your email to confirm subscription!
         </span>
       </div>
     );
@@ -79,8 +65,12 @@ export const NewsletterSubscription = ({
     <div className={`${className}`}>
       {variant === 'default' && (
         <div className="text-center mb-6">
-          <Mail className="h-8 w-8 text-primary mx-auto mb-3" />
-          <h3 className="text-2xl font-bold mb-2">Stay Updated</h3>
+          <div className="flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-primary to-secondary mx-auto mb-4 animate-pulse">
+            <Mail className="h-8 w-8 text-white" />
+          </div>
+          <h3 className="text-2xl font-bold mb-2 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            Stay Updated
+          </h3>
           <p className="text-muted-foreground">
             Get notified when I publish new projects or blog posts
           </p>
@@ -96,26 +86,79 @@ export const NewsletterSubscription = ({
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className={`space-y-3 ${isFooterVariant ? 'flex flex-col sm:flex-row sm:space-y-0 sm:space-x-2' : ''}`}>
-        <Input
-          type="email"
-          placeholder="Enter your email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className={`${isFooterVariant ? 'flex-1' : 'w-full'}`}
-          disabled={isLoading}
-        />
-        <Button 
-          type="submit" 
-          disabled={isLoading}
-          className={`${isFooterVariant ? 'whitespace-nowrap' : 'w-full'}`}
-        >
-          {isLoading ? 'Subscribing...' : 'Subscribe'}
-        </Button>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <div className={`${isFooterVariant ? 'flex flex-col sm:flex-row sm:space-x-2 sm:space-y-0 space-y-2' : ''}`}>
+          <div className={`${isFooterVariant ? 'flex-1' : 'w-full'}`}>
+            <Input
+              type="email"
+              placeholder="Enter your email"
+              {...register('email', { 
+                required: 'Email is required',
+                pattern: {
+                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                  message: 'Invalid email address'
+                }
+              })}
+              className="transition-all duration-300 focus:scale-105 focus:shadow-lg focus:shadow-primary/20"
+              disabled={isLoading}
+              aria-label="Email address for newsletter subscription"
+            />
+            {errors.email && (
+              <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
+            )}
+          </div>
+          
+          <Button 
+            type="submit" 
+            disabled={isLoading || (!preferences.projects && !preferences.blog_posts)}
+            className={`${isFooterVariant ? 'whitespace-nowrap' : 'w-full'} bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-primary/20`}
+            style={{ minHeight: '48px' }}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Subscribing...
+              </>
+            ) : (
+              'Subscribe'
+            )}
+          </Button>
+        </div>
+
+        {/* Preferences */}
+        <div className="space-y-2">
+          <Label className="text-sm font-medium">What would you like to receive?</Label>
+          <div className="flex flex-col space-y-2">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="projects"
+                checked={preferences.projects}
+                onCheckedChange={(checked) => 
+                  setValue('preferences.projects', !!checked)
+                }
+              />
+              <Label htmlFor="projects" className="text-sm cursor-pointer">
+                Notify me about new projects
+              </Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="blog_posts"
+                checked={preferences.blog_posts}
+                onCheckedChange={(checked) => 
+                  setValue('preferences.blog_posts', !!checked)
+                }
+              />
+              <Label htmlFor="blog_posts" className="text-sm cursor-pointer">
+                Notify me about new blog posts
+              </Label>
+            </div>
+          </div>
+        </div>
       </form>
 
-      <p className="text-xs text-muted-foreground mt-2">
-        You can unsubscribe at any time. No spam, ever.
+      <p className="text-xs text-muted-foreground mt-3 text-center">
+        🔒 You can unsubscribe at any time. No spam, ever.
       </p>
     </div>
   );

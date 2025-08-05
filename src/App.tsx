@@ -9,6 +9,7 @@ import BlogPage from './pages/BlogPage';
 import BlogPostPage from './pages/BlogPostPage';
 import JournalPage from './pages/JournalPage';
 import ContactPage from './pages/ContactPage';
+import UnsubscribePage from './pages/UnsubscribePage';
 import NotFound from './pages/NotFound';
 import Layout from './components/layout/Layout';
 import DashboardLoginPage from './pages/DashboardLoginPage';
@@ -63,6 +64,8 @@ function App() {
                 <Route path="journal" element={<JournalPage />} />
                 <Route path="resources" element={<ResourcesPage />} />
                 <Route path="contact" element={<ContactPage />} />
+                <Route path="unsubscribe" element={<UnsubscribePage />} />
+                <Route path="confirm-subscription" element={<UnsubscribePage />} />
               </Route>
 
               {/* Auth Routes */}
