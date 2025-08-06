@@ -2,11 +2,15 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import type { Database } from '@/integrations/supabase/types';
+
+type NewsletterSubscription = Database['public']['Tables']['newsletter_subscriptions']['Row'];
+type NewsletterSubscriptionInsert = Database['public']['Tables']['newsletter_subscriptions']['Insert'];
+type NewsletterSubscriptionUpdate = Database['public']['Tables']['newsletter_subscriptions']['Update'];
 
 interface NewsletterPreferences {
   projects: boolean;
   blog_posts: boolean;
-  [key: string]: any;
 }
 
 export const useNewsletter = () => {
@@ -20,16 +24,18 @@ export const useNewsletter = () => {
       // Generate confirmation token
       const confirmationToken = crypto.randomUUID();
 
+      const subscriptionData: NewsletterSubscriptionInsert = {
+        email,
+        user_id: user?.id || null,
+        preferences: preferences as unknown as Database['public']['Tables']['newsletter_subscriptions']['Row']['preferences'],
+        confirmation_token: confirmationToken,
+        confirmation_sent_at: new Date().toISOString(),
+        is_confirmed: false
+      };
+
       const { error } = await supabase
         .from('newsletter_subscriptions')
-        .insert({
-          email,
-          user_id: user?.id || null,
-          preferences: preferences as any,
-          confirmation_token: confirmationToken,
-          confirmation_sent_at: new Date().toISOString(),
-          is_confirmed: false
-        });
+        .insert(subscriptionData);
 
       if (error) {
         if (error.code === '23505') {
@@ -67,7 +73,7 @@ export const useNewsletter = () => {
   const unsubscribe = async (email: string, token?: string) => {
     setIsLoading(true);
     try {
-      const updateData: any = { 
+      const updateData: NewsletterSubscriptionUpdate = { 
         is_active: false, 
         unsubscribed_at: new Date().toISOString() 
       };
@@ -100,9 +106,13 @@ export const useNewsletter = () => {
   const updatePreferences = async (email: string, preferences: NewsletterPreferences, token?: string) => {
     setIsLoading(true);
     try {
+      const updateData: NewsletterSubscriptionUpdate = {
+        preferences: preferences as unknown as Database['public']['Tables']['newsletter_subscriptions']['Row']['preferences']
+      };
+
       let query = supabase
         .from('newsletter_subscriptions')
-        .update({ preferences: preferences as any })
+        .update(updateData)
         .eq('email', email);
 
       if (token) {
