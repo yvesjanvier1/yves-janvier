@@ -73,19 +73,41 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const url = new URL(req.url);
-    const token = url.searchParams.get('token');
-    const email = url.searchParams.get('email');
+    let token: string | null;
+    let email: string | null;
+    let validateOnly = false;
+
+    // Handle both GET (confirmation links) and POST (validation requests)
+    if (req.method === 'GET') {
+      const url = new URL(req.url);
+      token = url.searchParams.get('token');
+      email = url.searchParams.get('email');
+    } else {
+      const body = await req.json();
+      token = body.token;
+      email = body.email;
+      validateOnly = body.validate_only || false;
+    }
 
     if (!token || !email) {
       console.log('❌ Missing token or email parameters');
-      return new Response(null, {
-        status: 302,
-        headers: {
-          ...corsHeaders,
-          'Location': '/unsubscribe?error=invalid_parameters',
-        },
-      });
+      
+      if (req.method === 'GET') {
+        return new Response(null, {
+          status: 302,
+          headers: {
+            ...corsHeaders,
+            'Location': '/unsubscribe?error=invalid_parameters',
+          },
+        });
+      } else {
+        return new Response(JSON.stringify({ 
+          error: 'Missing token or email parameters' 
+        }), {
+          status: 400,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
     }
 
     console.log('🔐 Verifying confirmation token for:', email);
@@ -95,12 +117,35 @@ const handler = async (req: Request): Promise<Response> => {
     
     if (!isValidToken) {
       console.log('❌ Invalid or expired token');
-      return new Response(null, {
-        status: 302,
-        headers: {
-          ...corsHeaders,
-          'Location': '/unsubscribe?error=invalid_token',
-        },
+      
+      if (req.method === 'GET') {
+        return new Response(null, {
+          status: 302,
+          headers: {
+            ...corsHeaders,
+            'Location': '/unsubscribe?error=invalid_token',
+          },
+        });
+      } else {
+        return new Response(JSON.stringify({ 
+          error: 'Invalid or expired token' 
+        }), {
+          status: 401,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
+    }
+
+    // If this is just validation, return success without updating
+    if (validateOnly) {
+      console.log('✅ Token validation successful for:', email);
+      return new Response(JSON.stringify({ 
+        success: true, 
+        message: 'Token is valid',
+        validated_only: true
+      }), {
+        status: 200,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
 
