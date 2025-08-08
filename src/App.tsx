@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { ThemeProvider } from "next-themes";
+import { ThemeProvider } from "@/components/theme/theme-provider";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import Layout from "@/components/layout/Layout";
 import HomePage from "@/pages/HomePage";
@@ -36,10 +36,8 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider
-        attribute="class"
         defaultTheme="system"
-        enableSystem
-        disableTransitionOnChange
+        storageKey="ui-theme"
       >
         <LanguageProvider>
           <TooltipProvider>
@@ -48,7 +46,7 @@ function App() {
               <PerformanceTracker />
               <PageViewTracker />
               
-              <div className="relative flex min-h-screen flex-col">
+              <div className="relative flex min-h-screen flex-col bg-background">
                 <Routes>
                   {/* Public routes */}
                   <Route path="/" element={<Layout />}>

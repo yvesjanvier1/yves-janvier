@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import { Link, NavLink } from "react-router-dom";
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger } from "@/components/ui/sidebar";
-import { LayoutDashboard, FileText, Briefcase, MessageSquare, BarChart2, User, LogOut, MessageCircle, UserRound, BookOpen, TrendingUp, FolderOpen } from "lucide-react";
+import { LayoutDashboard, FileText, Briefcase, MessageSquare, BarChart2, User, LogOut, MessageCircle, UserRound, BookOpen, TrendingUp, FolderOpen, Clock } from "lucide-react";
 import { useAuth } from "./AuthProvider";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/ui/logo";
@@ -69,6 +69,16 @@ const DashboardLayout = () => {
                     className={({ isActive }) => isActive ? "text-primary font-medium" : "text-foreground"}>
                     <BookOpen className="w-5 h-5 mr-2" />
                     <span>Journal</span>
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <NavLink to="/dashboard/now" 
+                    className={({ isActive }) => isActive ? "text-primary font-medium" : "text-foreground"}>
+                    <Clock className="w-5 h-5 mr-2" />
+                    <span>Now Page</span>
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>

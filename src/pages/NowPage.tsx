@@ -71,7 +71,7 @@ const NowPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       <SEOHead
         title="Now – Yves Janvier"
         description="What I'm working on, learning, and loving this month. A personal status update from Yves Janvier."
