@@ -9,8 +9,8 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import Layout from "@/components/layout/Layout";
 import HomePage from "@/pages/HomePage";
 import SkipNavigation from "@/components/accessibility/SkipNavigation";
-import PerformanceTracker from "@/components/analytics/PerformanceTracker";
-import PageViewTracker from "@/components/PageViewTracker";
+import { PerformanceTracker } from "@/components/analytics/PerformanceTracker";
+import { PageViewTracker } from "@/components/PageViewTracker";
 import "./App.css";
 
 // Lazy load components for better performance
