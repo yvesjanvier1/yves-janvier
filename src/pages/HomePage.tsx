@@ -7,8 +7,12 @@ import Testimonials from "@/components/home/testimonials";
 import LatestPosts from "@/components/home/latest-posts";
 import { NewsletterSection } from "@/components/home/newsletter-section";
 import SEOHead from "@/components/seo/SEOHead";
+import { ExitIntentModal } from "@/components/modals/ExitIntentModal";
+import { useExitIntentModal } from "@/hooks/useExitIntentModal";
 
 const HomePage = () => {
+  const { isModalOpen, closeModal, handleSubscribe } = useExitIntentModal();
+
   return (
     <>
       <SEOHead 
@@ -25,6 +29,13 @@ const HomePage = () => {
       <Testimonials />
       <LatestPosts />
       <NewsletterSection />
+      
+      {/* Exit Intent Modal */}
+      <ExitIntentModal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        onSubscribe={handleSubscribe}
+      />
     </>
   );
 };
