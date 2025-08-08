@@ -1,28 +1,34 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useExitIntent } from './useExitIntent';
+import { useCookieConsent } from './useCookieConsent';
 
 const STORAGE_KEY = 'exitPopupShown';
 
 export const useExitIntentModal = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [hasShown, setHasShown] = useState(false);
+  const { canUseTracking } = useCookieConsent();
 
   // Check localStorage on mount
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored === 'true') {
-      setHasShown(true);
+    if (canUseTracking) {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored === 'true') {
+        setHasShown(true);
+      }
     }
-  }, []);
+  }, [canUseTracking]);
 
   const showModal = useCallback(() => {
-    if (!hasShown && !isModalOpen) {
+    if (!hasShown && !isModalOpen && canUseTracking) {
       setIsModalOpen(true);
       setHasShown(true);
-      localStorage.setItem(STORAGE_KEY, 'true');
+      if (canUseTracking) {
+        localStorage.setItem(STORAGE_KEY, 'true');
+      }
     }
-  }, [hasShown, isModalOpen]);
+  }, [hasShown, isModalOpen, canUseTracking]);
 
   const closeModal = useCallback(() => {
     setIsModalOpen(false);
@@ -33,9 +39,9 @@ export const useExitIntentModal = () => {
     closeModal();
   }, [closeModal]);
 
-  // Set up exit intent detection
+  // Set up exit intent detection only if tracking is allowed
   useExitIntent({
-    enabled: !hasShown,
+    enabled: !hasShown && canUseTracking,
     onExitIntent: showModal
   });
 

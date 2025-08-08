@@ -8,10 +8,13 @@ import LatestPosts from "@/components/home/latest-posts";
 import { NewsletterSection } from "@/components/home/newsletter-section";
 import SEOHead from "@/components/seo/SEOHead";
 import { ExitIntentModal } from "@/components/modals/ExitIntentModal";
+import { CookieConsentBanner } from "@/components/ui/cookie-consent-banner";
 import { useExitIntentModal } from "@/hooks/useExitIntentModal";
+import { useCookieConsent } from "@/hooks/useCookieConsent";
 
 const HomePage = () => {
   const { isModalOpen, closeModal, handleSubscribe } = useExitIntentModal();
+  const { shouldShowBanner, handleConsent } = useCookieConsent();
 
   return (
     <>
@@ -36,6 +39,11 @@ const HomePage = () => {
         onClose={closeModal}
         onSubscribe={handleSubscribe}
       />
+
+      {/* Cookie Consent Banner */}
+      {shouldShowBanner && (
+        <CookieConsentBanner onConsent={handleConsent} />
+      )}
     </>
   );
 };
