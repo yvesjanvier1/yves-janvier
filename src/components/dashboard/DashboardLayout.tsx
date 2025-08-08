@@ -1,6 +1,5 @@
 
 import { useState } from "react";
-import { Outlet } from "react-router-dom";
 import { Link, NavLink } from "react-router-dom";
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger } from "@/components/ui/sidebar";
 import { LayoutDashboard, FileText, Briefcase, MessageSquare, BarChart2, User, LogOut, MessageCircle, UserRound, BookOpen, TrendingUp, FolderOpen, Clock } from "lucide-react";
@@ -8,7 +7,11 @@ import { useAuth } from "./AuthProvider";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/ui/logo";
 
-const DashboardLayout = () => {
+interface DashboardLayoutProps {
+  children: React.ReactNode;
+}
+
+const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const { user, signOut, isAuthenticated } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
@@ -162,7 +165,7 @@ const DashboardLayout = () => {
         </Sidebar>
 
         <main className="flex-1 overflow-auto p-6">
-          <Outlet />
+          {children}
         </main>
       </div>
     </SidebarProvider>
