@@ -11,6 +11,7 @@ import HomePage from "@/pages/HomePage";
 import SkipNavigation from "@/components/accessibility/SkipNavigation";
 import { PerformanceTracker } from "@/components/analytics/PerformanceTracker";
 import { PageViewTracker } from "@/components/PageViewTracker";
+import { AuthProvider } from "@/components/dashboard/AuthProvider";
 import "./App.css";
 
 // Lazy load components for better performance
@@ -103,16 +104,22 @@ function App() {
                     } />
                   </Route>
 
-                  {/* Dashboard routes */}
-                  <Route path="/dashboard/login" element={
-                    <Suspense fallback={<div>Loading...</div>}>
-                      <DashboardLoginPage />
-                    </Suspense>
-                  } />
+                  {/* Dashboard routes - wrap both login and main dashboard with AuthProvider */}
                   <Route path="/dashboard/*" element={
-                    <Suspense fallback={<div>Loading...</div>}>
-                      <DashboardPage />
-                    </Suspense>
+                    <AuthProvider>
+                      <Routes>
+                        <Route path="login" element={
+                          <Suspense fallback={<div>Loading...</div>}>
+                            <DashboardLoginPage />
+                          </Suspense>
+                        } />
+                        <Route path="*" element={
+                          <Suspense fallback={<div>Loading...</div>}>
+                            <DashboardPage />
+                          </Suspense>
+                        } />
+                      </Routes>
+                    </AuthProvider>
                   } />
 
                   {/* 404 route */}
