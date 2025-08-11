@@ -1,20 +1,32 @@
 
 import HeroSection from "@/components/home/hero-section";
-import { FeaturedProjects } from "@/components/home/featured-projects";
-import { JournalActivities } from "@/components/home/journal-activities";
-import ServicesSection from "@/components/home/services-section";
-import Testimonials from "@/components/home/testimonials";
-import LatestPosts from "@/components/home/latest-posts";
-import { NewsletterSection } from "@/components/home/newsletter-section";
+import { LazyComponent } from "@/components/ui/lazy-component";
 import SEOHead from "@/components/seo/SEOHead";
 import { ExitIntentModal } from "@/components/modals/ExitIntentModal";
 import { CookieConsentBanner } from "@/components/ui/cookie-consent-banner";
 import { useExitIntentModal } from "@/hooks/useExitIntentModal";
 import { useCookieConsent } from "@/hooks/useCookieConsent";
+import { Suspense, lazy } from "react";
+
+// Lazy load non-critical sections
+const FeaturedProjects = lazy(() => import("@/components/home/featured-projects").then(module => ({ default: module.FeaturedProjects })));
+const JournalActivities = lazy(() => import("@/components/home/journal-activities").then(module => ({ default: module.JournalActivities })));
+const ServicesSection = lazy(() => import("@/components/home/services-section"));
+const Testimonials = lazy(() => import("@/components/home/testimonials"));
+const LatestPosts = lazy(() => import("@/components/home/latest-posts"));
+const NewsletterSection = lazy(() => import("@/components/home/newsletter-section").then(module => ({ default: module.NewsletterSection })));
 
 const HomePage = () => {
   const { isModalOpen, closeModal, handleSubscribe } = useExitIntentModal();
   const { shouldShowBanner, handleConsent } = useCookieConsent();
+
+  const LoadingSkeleton = () => (
+    <div className="space-y-4 p-4">
+      <div className="h-4 bg-muted animate-pulse rounded w-3/4" />
+      <div className="h-4 bg-muted animate-pulse rounded w-1/2" />
+      <div className="h-32 bg-muted animate-pulse rounded w-full" />
+    </div>
+  );
 
   return (
     <>
@@ -25,13 +37,46 @@ const HomePage = () => {
         author="Yves Janvier"
         type="website"
       />
+      
+      {/* Critical above-the-fold content */}
       <HeroSection />
-      <FeaturedProjects />
-      <JournalActivities />
-      <ServicesSection />
-      <Testimonials />
-      <LatestPosts />
-      <NewsletterSection />
+      
+      {/* Lazy load below-the-fold sections */}
+      <LazyComponent fallback={<LoadingSkeleton />}>
+        <Suspense fallback={<LoadingSkeleton />}>
+          <FeaturedProjects />
+        </Suspense>
+      </LazyComponent>
+
+      <LazyComponent fallback={<LoadingSkeleton />}>
+        <Suspense fallback={<LoadingSkeleton />}>
+          <JournalActivities />
+        </Suspense>
+      </LazyComponent>
+
+      <LazyComponent fallback={<LoadingSkeleton />}>
+        <Suspense fallback={<LoadingSkeleton />}>
+          <ServicesSection />
+        </Suspense>
+      </LazyComponent>
+
+      <LazyComponent fallback={<LoadingSkeleton />}>
+        <Suspense fallback={<LoadingSkeleton />}>
+          <Testimonials />
+        </Suspense>
+      </LazyComponent>
+
+      <LazyComponent fallback={<LoadingSkeleton />}>
+        <Suspense fallback={<LoadingSkeleton />}>
+          <LatestPosts />
+        </Suspense>
+      </LazyComponent>
+
+      <LazyComponent fallback={<LoadingSkeleton />}>
+        <Suspense fallback={<LoadingSkeleton />}>
+          <NewsletterSection />
+        </Suspense>
+      </LazyComponent>
       
       {/* Exit Intent Modal */}
       <ExitIntentModal
