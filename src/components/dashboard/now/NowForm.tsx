@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -8,9 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { Code, BookOpen, Calendar, Headphones, Plus, X } from "lucide-react";
+import { useNowPage } from "@/hooks/useNowPage";
 
 const nowSchema = z.object({
   workingOn: z.array(z.string().min(1, "Item cannot be empty")),
@@ -24,9 +24,10 @@ type NowFormData = z.infer<typeof nowSchema>;
 
 const NowForm = () => {
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
+  const { data, isLoading: dataLoading, saveNowPageData } = useNowPage();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<NowFormData>({
+  const { register, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm<NowFormData>({
     resolver: zodResolver(nowSchema),
     defaultValues: {
       workingOn: ["🚀 Building an AI-powered portfolio analytics dashboard"],
@@ -36,6 +37,19 @@ const NowForm = () => {
       lastUpdated: new Date().toISOString().split('T')[0],
     }
   });
+
+  // Update form when data is loaded
+  useEffect(() => {
+    if (data) {
+      reset({
+        workingOn: data.workingOn,
+        currentlyLearning: data.currentlyLearning,
+        usingRightNow: data.usingRightNow,
+        listeningTo: data.listeningTo,
+        lastUpdated: data.lastUpdated,
+      });
+    }
+  }, [data, reset]);
 
   const watchedFields = watch();
 
@@ -49,15 +63,16 @@ const NowForm = () => {
     setValue(section, currentItems.filter((_, i) => i !== index));
   };
 
-  const onSubmit = async (data: NowFormData) => {
-    setIsLoading(true);
+  const onSubmit = async (formData: NowFormData) => {
+    setIsSubmitting(true);
     try {
-      // Here you would typically save to your backend/database
-      console.log("Now page data:", data);
-      toast({
-        title: "Success!",
-        description: "Now page has been updated successfully.",
-      });
+      const success = await saveNowPageData(formData);
+      if (success) {
+        toast({
+          title: "Success!",
+          description: "Now page has been updated successfully.",
+        });
+      }
     } catch (error) {
       toast({
         title: "Error",
@@ -65,7 +80,7 @@ const NowForm = () => {
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -100,6 +115,19 @@ const NowForm = () => {
     }
   ];
 
+  if (dataLoading) {
+    return (
+      <div className="space-y-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Now Page Management</h1>
+            <p className="text-muted-foreground mt-2">Loading...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
       <div className="flex items-center justify-between">
@@ -109,8 +137,8 @@ const NowForm = () => {
             Update what you're currently working on, learning, and enjoying
           </p>
         </div>
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? "Saving..." : "Save Changes"}
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? "Saving..." : "Save Changes"}
         </Button>
       </div>
 

@@ -236,6 +236,39 @@ export type Database = {
         }
         Relationships: []
       }
+      now_page: {
+        Row: {
+          created_at: string
+          currently_learning: Json
+          id: string
+          last_updated: string
+          listening_to: Json
+          updated_at: string
+          using_right_now: Json
+          working_on: Json
+        }
+        Insert: {
+          created_at?: string
+          currently_learning?: Json
+          id?: string
+          last_updated?: string
+          listening_to?: Json
+          updated_at?: string
+          using_right_now?: Json
+          working_on?: Json
+        }
+        Update: {
+          created_at?: string
+          currently_learning?: Json
+          id?: string
+          last_updated?: string
+          listening_to?: Json
+          updated_at?: string
+          using_right_now?: Json
+          working_on?: Json
+        }
+        Relationships: []
+      }
       page_views: {
         Row: {
           created_at: string
