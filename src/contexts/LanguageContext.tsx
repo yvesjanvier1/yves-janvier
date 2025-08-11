@@ -6,7 +6,6 @@ interface LanguageContextProps {
   language: Language;
   setLanguage: (language: Language) => void;
   t: (key: string) => string;
-  formatDate: (dateString: string) => string;
 }
 
 const LanguageContext = createContext<LanguageContextProps | undefined>(undefined);
@@ -188,35 +187,8 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     [language]
   );
 
-  const formatDate = useCallback((dateString: string): string => {
-    const date = new Date(dateString);
-    
-    // Format based on current language
-    if (language === 'fr') {
-      return date.toLocaleDateString('fr-FR', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      });
-    } else if (language === 'ht') {
-      // Use French formatting for Haitian Creole as it's commonly used
-      return date.toLocaleDateString('fr-FR', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      });
-    } else {
-      // Default to English
-      return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      });
-    }
-  }, [language]);
-
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t, formatDate }}>
+    <LanguageContext.Provider value={{ language, setLanguage, t }}>
       {children}
     </LanguageContext.Provider>
   );
