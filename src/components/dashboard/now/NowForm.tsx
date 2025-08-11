@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -66,7 +65,16 @@ const NowForm = () => {
   const onSubmit = async (formData: NowFormData) => {
     setIsSubmitting(true);
     try {
-      const success = await saveNowPageData(formData);
+      // Ensure all required fields are present and properly typed
+      const dataToSave = {
+        workingOn: formData.workingOn || [],
+        currentlyLearning: formData.currentlyLearning || [],
+        usingRightNow: formData.usingRightNow || [],
+        listeningTo: formData.listeningTo || [],
+        lastUpdated: formData.lastUpdated || new Date().toISOString().split('T')[0],
+      };
+
+      const success = await saveNowPageData(dataToSave);
       if (success) {
         toast({
           title: "Success!",

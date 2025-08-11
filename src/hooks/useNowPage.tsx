@@ -36,10 +36,10 @@ export const useNowPage = () => {
       if (nowData) {
         setData({
           id: nowData.id,
-          workingOn: nowData.working_on || [],
-          currentlyLearning: nowData.currently_learning || [],
-          usingRightNow: nowData.using_right_now || [],
-          listeningTo: nowData.listening_to || [],
+          workingOn: Array.isArray(nowData.working_on) ? nowData.working_on as string[] : [],
+          currentlyLearning: Array.isArray(nowData.currently_learning) ? nowData.currently_learning as string[] : [],
+          usingRightNow: Array.isArray(nowData.using_right_now) ? nowData.using_right_now as string[] : [],
+          listeningTo: Array.isArray(nowData.listening_to) ? nowData.listening_to as string[] : [],
           lastUpdated: nowData.last_updated,
         });
       } else {
