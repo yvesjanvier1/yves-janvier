@@ -8,45 +8,40 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Calendar, Headphones, Code, BookOpen } from "lucide-react";
 import { useNowPage } from "@/hooks/useNowPage";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const NowPage = () => {
   const { data, isLoading, error } = useNowPage();
+  const { t, formatDate } = useLanguage();
 
   useEffect(() => {
-    document.title = "Now – Yves Janvier";
-  }, []);
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'long' 
-    });
-  };
+    document.title = `${t('now.title')} – Yves Janvier`;
+  }, [t]);
 
   const sections = [
     {
-      title: "I'm Working On",
+      title: t('now.workingOn'),
       icon: Code,
       gradient: "from-[#6C4DFF] to-[#4A90E2]",
       delay: 0,
       items: data?.workingOn || []
     },
     {
-      title: "Currently Learning",
+      title: t('now.currentlyLearning'),
       icon: BookOpen,
       gradient: "from-[#4A90E2] to-[#FF6B6B]",
       delay: 0.2,
       items: data?.currentlyLearning || []
     },
     {
-      title: "Using Right Now",
+      title: t('now.usingRightNow'),
       icon: Calendar,
       gradient: "from-[#FF6B6B] to-[#6C4DFF]",
       delay: 0.4,
       items: data?.usingRightNow || []
     },
     {
-      title: "Listening To",
+      title: t('now.listeningTo'),
       icon: Headphones,
       gradient: "from-[#6C4DFF] to-[#FF6B6B]",
       delay: 0.6,
@@ -58,7 +53,7 @@ const NowPage = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-destructive mb-2">Error Loading Page</h1>
+          <h1 className="text-2xl font-bold text-destructive mb-2">{t('common.error')}</h1>
           <p className="text-muted-foreground">{error}</p>
         </div>
       </div>
@@ -68,8 +63,8 @@ const NowPage = () => {
   return (
     <div className="min-h-screen">
       <SEOHead
-        title="Now – Yves Janvier"
-        description="What I'm working on, learning, and loving this month. A personal status update from Yves Janvier."
+        title={`${t('now.title')} – Yves Janvier`}
+        description={t('now.subtitle')}
         url={`${window.location.origin}/now`}
         type="website"
       />
@@ -77,8 +72,8 @@ const NowPage = () => {
       <ResponsiveContainer className="py-8 lg:py-16">
         <AnimatedSection>
           <SectionHeader
-            title="What I'm Up To Right Now"
-            subtitle={`A glimpse into my current projects, interests, and daily life. ${data?.lastUpdated ? `Last updated: ${formatDate(data.lastUpdated)}` : ''}`}
+            title={t('now.title')}
+            subtitle={`${t('now.subtitle')} ${data?.lastUpdated ? `${t('now.lastUpdated')}: ${formatDate(data.lastUpdated)}` : ''}`}
             centered
           />
         </AnimatedSection>
@@ -138,9 +133,9 @@ const NowPage = () => {
           <Card className="glass-card border-0 shadow-lg max-w-2xl mx-auto">
             <CardContent className="p-8 text-center">
               <blockquote className="text-lg italic text-foreground/80 mb-4">
-                "The best time to plant a tree was 20 years ago. The second best time is now."
+                "{t('now.inspirationQuote')}"
               </blockquote>
-              <cite className="text-sm text-muted-foreground">– Chinese Proverb</cite>
+              <cite className="text-sm text-muted-foreground">– {t('now.quoteAuthor')}</cite>
             </CardContent>
           </Card>
         </AnimatedSection>
@@ -148,11 +143,11 @@ const NowPage = () => {
         {/* Last Updated */}
         <div className="text-center mt-12">
           <p className="text-sm text-muted-foreground">
-            This page is updated monthly to reflect my current focus and interests.
+            {t('now.monthlyUpdate')}
           </p>
           {data?.lastUpdated && (
             <p className="text-xs text-muted-foreground mt-2">
-              Last updated: {formatDate(data.lastUpdated)}
+              {t('now.lastUpdated')}: {formatDate(data.lastUpdated)}
             </p>
           )}
         </div>

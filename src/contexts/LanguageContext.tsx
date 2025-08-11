@@ -157,7 +157,19 @@ const translations = {
     
     // Testimonials
     'testimonials.title': 'Témoignages',
-    'testimonials.subtitle': 'Ce que disent mes clients et partenaires'
+    'testimonials.subtitle': 'Ce que disent mes clients et partenaires',
+
+    // Now Page
+    'now.title': 'Ce que je fais maintenant',
+    'now.subtitle': 'Un aperçu de mes projets actuels, intérêts et vie quotidienne.',
+    'now.lastUpdated': 'Dernière mise à jour',
+    'now.workingOn': 'Je travaille sur',
+    'now.currentlyLearning': 'J\'apprends actuellement',
+    'now.usingRightNow': 'J\'utilise en ce moment',
+    'now.listeningTo': 'J\'écoute',
+    'now.monthlyUpdate': 'Cette page est mise à jour chaque mois pour refléter mes centres d\'intérêt actuels.',
+    'now.inspirationQuote': 'Le meilleur moment pour planter un arbre était il y a 20 ans. Le deuxième meilleur moment est maintenant.',
+    'now.quoteAuthor': 'Proverbe chinois'
   },
   en: {
     // Navigation
@@ -249,7 +261,19 @@ const translations = {
     
     // Testimonials
     'testimonials.title': 'Testimonials',
-    'testimonials.subtitle': 'What my clients and partners say'
+    'testimonials.subtitle': 'What my clients and partners say',
+
+    // Now Page
+    'now.title': 'What I\'m Up To Right Now',
+    'now.subtitle': 'A glimpse into my current projects, interests, and daily life.',
+    'now.lastUpdated': 'Last updated',
+    'now.workingOn': 'I\'m Working On',
+    'now.currentlyLearning': 'Currently Learning',
+    'now.usingRightNow': 'Using Right Now',
+    'now.listeningTo': 'Listening To',
+    'now.monthlyUpdate': 'This page is updated monthly to reflect my current focus and interests.',
+    'now.inspirationQuote': 'The best time to plant a tree was 20 years ago. The second best time is now.',
+    'now.quoteAuthor': 'Chinese Proverb'
   },
   ht: {
     // Navigation
@@ -341,6 +365,18 @@ const translations = {
     
     // Testimonials
     'testimonials.title': 'Temwayaj yo',
-    'testimonials.subtitle': 'Sa kliyan ak patnè mwen yo di'
+    'testimonials.subtitle': 'Sa kliyan ak patnè mwen yo di',
+
+    // Now Page
+    'now.title': 'Sa mwen ap fè kounye a',
+    'now.subtitle': 'Yon kout je sou pwojè kounye a mwen yo, enterè ak lavi chak jou.',
+    'now.lastUpdated': 'Dènye mizajou',
+    'now.workingOn': 'Mwen ap travay sou',
+    'now.currentlyLearning': 'Mwen ap aprann kounye a',
+    'now.usingRightNow': 'Mwen ap itilize kounye a',
+    'now.listeningTo': 'Mwen ap koute',
+    'now.monthlyUpdate': 'Paj sa a ap mete ajou chak mwa pou li montre sa mwen ap konsantre sou ak enterè mwen yo.',
+    'now.inspirationQuote': 'Pi bon moman pou plante yon pye bwa te gen 20 ane pase. Dezyèm pi bon moman an se kounye a.',
+    'now.quoteAuthor': 'Pwovèb Chinwa'
   }
 };
