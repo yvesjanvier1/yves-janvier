@@ -1,231 +1,382 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
 
-export type Language = 'en' | 'fr' | 'ht';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
-interface LanguageContextProps {
+export type Language = 'fr' | 'en' | 'ht';
+
+interface LanguageContextType {
   language: Language;
-  setLanguage: (language: Language) => void;
+  setLanguage: (lang: Language) => void;
   t: (key: string) => string;
-  formatDate: (dateString: string) => string;
+  formatDate: (date: string | Date) => string;
 }
 
-const LanguageContext = createContext<LanguageContextProps | undefined>(undefined);
+const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-const translations = {
-  fr: {
-    nav: {
-      home: 'Accueil',
-      portfolio: 'Portfolio',
-      blog: 'Blog',
-      about: 'À propos',
-      contact: 'Contact',
-      work: 'Travail',
-      content: 'Contenu',
-      resources: 'Ressources',
-    },
-    hero: {
-      greeting: 'Salut, je suis',
-      title: 'Développeur Full-Stack & Expert UX/UI',
-      subtitle: 'Je crée des expériences numériques exceptionnelles qui combinent design élégant et code propre.',
-      cta: 'Voir mon travail',
-      secondary: 'Me contacter',
-    },
-    home: {
-      featuredProjects: 'Projets en vedette',
-      viewAllProjects: 'Voir tous les projets',
-      latestPosts: 'Derniers articles',
-      viewAllPosts: 'Voir tous les articles',
-      journalActivities: 'Activités du journal',
-      viewAllEntries: 'Voir toutes les entrées',
-      services: 'Services',
-      whatIOffer: 'Ce que j\'offre',
-      testimonials: 'Témoignages',
-      whatClientsSay: 'Ce que disent mes clients',
-      newsletter: 'Newsletter',
-      stayUpdated: 'Restez informé',
-      newsletterDescription: 'Recevez les dernières mises à jour sur mes projets et articles.',
-    },
-    now: {
-      title: 'Ce que je fais maintenant',
-      subtitle: 'Mes activités et projets actuels',
-      workingOn: 'Je travaille sur',
-      currentlyLearning: 'J\'apprends actuellement',
-      usingRightNow: 'J\'utilise en ce moment',
-      listeningTo: 'J\'écoute',
-      lastUpdated: 'Dernière mise à jour',
-    },
-    footer: {
-      description: 'Développeur Full-Stack passionné par la création d\'expériences numériques exceptionnelles.',
-      quickLinks: 'Liens rapides',
-      connect: 'Se connecter',
-      newsletter: 'Newsletter',
-      allRightsReserved: 'Tous droits réservés.',
-    },
-  },
-  en: {
-    nav: {
-      home: 'Home',
-      portfolio: 'Portfolio',
-      blog: 'Blog',
-      about: 'About',
-      contact: 'Contact',
-      work: 'Work',
-      content: 'Content',
-      resources: 'Resources',
-    },
-    hero: {
-      greeting: 'Hi, I\'m',
-      title: 'Full-Stack Developer & UX/UI Expert',
-      subtitle: 'I create exceptional digital experiences that combine elegant design with clean code.',
-      cta: 'View my work',
-      secondary: 'Get in touch',
-    },
-    home: {
-      featuredProjects: 'Featured Projects',
-      viewAllProjects: 'View all projects',
-      latestPosts: 'Latest Posts',
-      viewAllPosts: 'View all posts',
-      journalActivities: 'Journal Activities',
-      viewAllEntries: 'View all entries',
-      services: 'Services',
-      whatIOffer: 'What I offer',
-      testimonials: 'Testimonials',
-      whatClientsSay: 'What clients say',
-      newsletter: 'Newsletter',
-      stayUpdated: 'Stay updated',
-      newsletterDescription: 'Get the latest updates on my projects and posts.',
-    },
-    now: {
-      title: 'What I\'m doing now',
-      subtitle: 'My current activities and projects',
-      workingOn: 'I\'m working on',
-      currentlyLearning: 'Currently learning',
-      usingRightNow: 'Using right now',
-      listeningTo: 'Listening to',
-      lastUpdated: 'Last updated',
-    },
-    footer: {
-      description: 'Full-Stack Developer passionate about creating exceptional digital experiences.',
-      quickLinks: 'Quick Links',
-      connect: 'Connect',
-      newsletter: 'Newsletter',
-      allRightsReserved: 'All rights reserved.',
-    },
-  },
-  ht: {
-    nav: {
-      home: 'Lakay',
-      portfolio: 'Pòtfòy',
-      blog: 'Blog',
-      about: 'Sou mwen',
-      contact: 'Kontak',
-      work: 'Travay',
-      content: 'Kontni',
-      resources: 'Resous',
-    },
-    hero: {
-      greeting: 'Bonjou, mwen se',
-      title: 'Depo Full-Stack ak Ekspè UX/UI',
-      subtitle: 'Mwen kreye eksperyans dijital eksepsyonèl ki konbine yon bèl design ak kòd pwòp.',
-      cta: 'Gade travay mwen',
-      secondary: 'Kontakte mwen',
-    },
-    home: {
-      featuredProjects: 'Pwojè ki gen valè',
-      viewAllProjects: 'Gade tout pwojè yo',
-      latestPosts: 'Dènye atik yo',
-      viewAllPosts: 'Gade tout atik yo',
-      journalActivities: 'Aktivite jounal yo',
-      viewAllEntries: 'Gade tout antre yo',
-      services: 'Sèvis yo',
-      whatIOffer: 'Sa m ofri',
-      testimonials: 'Temwayaj',
-      whatClientsSay: 'Sa kliyan yo di',
-      newsletter: 'Biletèn',
-      stayUpdated: 'Rete enfòme',
-      newsletterDescription: 'Resevwa dènye mizajou yo sou pwojè ak atik mwen yo.',
-    },
-    now: {
-      title: 'Sa m ap fè kounye a',
-      subtitle: 'Aktivite ak pwojè aktyèl mwen yo',
-      workingOn: 'M ap travay sou',
-      currentlyLearning: 'M ap aprann kounye a',
-      usingRightNow: 'M ap itilize kounye a',
-      listeningTo: 'M ap koute',
-      lastUpdated: 'Dènye mizajou',
-    },
-    footer: {
-      description: 'Yon depo Full-Stack ki gen pasyon pou kreye eksperyans dijital eksepsyonèl.',
-      quickLinks: 'Lyen rapid',
-      connect: 'Konekte',
-      newsletter: 'Biletèn',
-      allRightsReserved: 'Tout dwa yo rezève.',
-    },
-  },
-} as const;
+export const useLanguage = () => {
+  const context = useContext(LanguageContext);
+  if (!context) {
+    throw new Error('useLanguage must be used within a LanguageProvider');
+  }
+  return context;
+};
 
-interface TranslationFn {
-  (key: string): string;
+interface LanguageProviderProps {
+  children: React.ReactNode;
 }
 
-export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [language, setLanguage] = useState<Language>('en');
+export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
+  const [language, setLanguage] = useState<Language>('fr');
 
-  const t = useCallback(
-    (key: string): string => {
-      const keys = key.split('.');
-      let value: any = translations[language];
-      for (const k of keys) {
-        if (value && typeof value === 'object' && k in value) {
-          value = value[k as keyof typeof value];
-        } else {
-          console.warn(`Translation not found for key: ${key} in language: ${language}`);
-          return key;
-        }
-      }
-      return typeof value === 'string' ? value : key;
-    },
-    [language]
-  );
-
-  const formatDate = useCallback((dateString: string): string => {
-    const date = new Date(dateString);
-    
-    // Format based on current language
-    if (language === 'fr') {
-      return date.toLocaleDateString('fr-FR', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      });
-    } else if (language === 'ht') {
-      // Use French formatting for Haitian Creole as it's commonly used
-      return date.toLocaleDateString('fr-FR', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      });
-    } else {
-      // Default to English
-      return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      });
+  useEffect(() => {
+    const savedLanguage = localStorage.getItem('language') as Language;
+    if (savedLanguage && ['fr', 'en', 'ht'].includes(savedLanguage)) {
+      setLanguage(savedLanguage);
     }
-  }, [language]);
+  }, []);
+
+  const handleSetLanguage = (lang: Language) => {
+    setLanguage(lang);
+    localStorage.setItem('language', lang);
+  };
+
+  const t = (key: string): string => {
+    return translations[language]?.[key] || translations.fr[key] || key;
+  };
+
+  const formatDate = (date: string | Date): string => {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    
+    const locales = {
+      fr: 'fr-FR',
+      en: 'en-US',
+      ht: 'fr-FR' // Using French formatting for Haitian Creole
+    };
+
+    return new Intl.DateTimeFormat(locales[language], {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    }).format(dateObj);
+  };
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t, formatDate }}>
+    <LanguageContext.Provider value={{ language, setLanguage: handleSetLanguage, t, formatDate }}>
       {children}
     </LanguageContext.Provider>
   );
 };
 
-export const useLanguage = (): LanguageContextProps => {
-  const context = useContext(LanguageContext);
-  if (!context) {
-    throw new Error("useLanguage must be used within a LanguageProvider");
+const translations = {
+  fr: {
+    // Navigation
+    'nav.home': 'Accueil',
+    'nav.portfolio': 'Portfolio',
+    'nav.blog': 'Blog',
+    'nav.about': 'À propos',
+    'nav.contact': 'Contact',
+    
+    // Hero Section
+    'hero.greeting': 'Bonjour, je suis',
+    'hero.title': 'Expert Data & Tech',
+    'hero.subtitle': 'Spécialisé dans la transformation de données complexes en insights exploitables et la création de solutions technologiques innovantes.',
+    'hero.cta.portfolio': 'Voir mon travail',
+    'hero.cta.contact': 'Me contacter',
+    
+    // Services
+    'services.title': 'Services',
+    'services.subtitle': 'Solutions complètes de données et de technologie',
+    
+    // Portfolio
+    'portfolio.title': 'Portfolio',
+    'portfolio.subtitle': 'Présentation de mes derniers travaux et projets',
+    'portfolio.featuredProjects': 'Projets en vedette',
+    'portfolio.featuredProjectsSubtitle': 'Découvrez mes derniers projets et réalisations',
+    'portfolio.viewProject': 'Voir le projet',
+    'portfolio.readMore': 'Lire plus',
+    'portfolio.viewAll': 'Voir tous les projets',
+    'portfolio.noProjectsFound': 'Aucun projet trouvé',
+    'portfolio.noProjectsMessage': 'Essayez d\'ajuster votre recherche ou filtre pour trouver ce que vous cherchez.',
+    
+    // Blog
+    'blog.title': 'Blog',
+    'blog.subtitle': 'Aperçus sur les données, la technologie et l\'innovation',
+    'blog.readMore': 'Lire plus',
+    'blog.viewAll': 'Voir tous les articles',
+    'blog.latestPosts': 'Derniers articles du Blog',
+    'blog.latestPostsSubtitle': 'Aperçus, tutoriels et réflexions sur les données et la tech',
+    'blog.noPostsFound': 'Aucun article trouvé',
+    'blog.noPostsMessage': 'Essayez d\'ajuster votre recherche ou filtre pour trouver ce que vous cherchez.',
+    'blog.searchPlaceholder': 'Rechercher des articles...',
+    
+    // Contact
+    'contact.title': 'Me contacter',
+    'contact.subtitle': 'Contactez-moi pour des collaborations, consultations ou simplement pour dire bonjour',
+    'contact.letsConnect': 'Connectons-nous',
+    'contact.description': 'Que vous recherchiez une expertise en données et technologie, ayez une question sur mon travail, ou souhaitiez simplement vous connecter, j\'aimerais avoir de vos nouvelles.',
+    'contact.form.name': 'Nom',
+    'contact.form.email': 'Email',
+    'contact.form.subject': 'Sujet',
+    'contact.form.message': 'Message',
+    'contact.form.send': 'Envoyer le message',
+    'contact.form.sending': 'Envoi en cours...',
+    'contact.form.namePlaceholder': 'Votre nom',
+    'contact.form.emailPlaceholder': 'votre.email@exemple.com',
+    'contact.form.subjectPlaceholder': 'De quoi s\'agit-il ?',
+    'contact.form.messagePlaceholder': 'Votre message...',
+    'contact.success.title': 'Message envoyé',
+    'contact.success.description': 'Merci pour votre message. Je vous répondrai bientôt !',
+    'contact.error.title': 'Erreur',
+    'contact.error.description': 'Il y a eu un problème lors de l\'envoi de votre message. Veuillez réessayer.',
+    
+    // Footer
+    'footer.quickLinks': 'Liens rapides',
+    'footer.connect': 'Se connecter',
+    'footer.socialMedia': 'Réseaux sociaux',
+    'footer.copyright': 'Tous droits réservés.',
+    
+    // Common
+    'common.loading': 'Chargement...',
+    'common.error': 'Erreur',
+    'common.retry': 'Réessayer',
+    'common.backTo': 'Retour à',
+    'common.publishedOn': 'Publié le',
+    'common.updated': 'Mis à jour',
+    'common.all': 'Tout',
+    'common.search': 'Rechercher',
+    'common.filter': 'Filtrer',
+    'common.previous': 'Précédent',
+    'common.next': 'Suivant',
+    'common.page': 'Page',
+    'common.of': 'sur',
+    
+    // 404 Page
+    '404.title': 'Page non trouvée',
+    '404.description': 'La page que vous recherchez n\'existe pas ou a été déplacée.',
+    '404.backHome': 'Retour à l\'accueil',
+    '404.searchPlaceholder': 'Rechercher...',
+    
+    // Testimonials
+    'testimonials.title': 'Témoignages',
+    'testimonials.subtitle': 'Ce que disent mes clients et partenaires',
+
+    // Now Page
+    'now.title': 'Ce que je fais maintenant',
+    'now.subtitle': 'Un aperçu de mes projets actuels, intérêts et vie quotidienne.',
+    'now.lastUpdated': 'Dernière mise à jour',
+    'now.workingOn': 'Je travaille sur',
+    'now.currentlyLearning': 'J\'apprends actuellement',
+    'now.usingRightNow': 'J\'utilise en ce moment',
+    'now.listeningTo': 'J\'écoute',
+    'now.monthlyUpdate': 'Cette page est mise à jour chaque mois pour refléter mes centres d\'intérêt actuels.',
+    'now.inspirationQuote': 'Le meilleur moment pour planter un arbre était il y a 20 ans. Le deuxième meilleur moment est maintenant.',
+    'now.quoteAuthor': 'Proverbe chinois'
+  },
+  en: {
+    // Navigation
+    'nav.home': 'Home',
+    'nav.portfolio': 'Portfolio',
+    'nav.blog': 'Blog',
+    'nav.about': 'About',
+    'nav.contact': 'Contact',
+    
+    // Hero Section
+    'hero.greeting': 'Hello, I\'m',
+    'hero.title': 'Data & Tech Expert',
+    'hero.subtitle': 'Specializing in transforming complex data into actionable insights and building innovative tech solutions.',
+    'hero.cta.portfolio': 'View My Work',
+    'hero.cta.contact': 'Get In Touch',
+    
+    // Services
+    'services.title': 'Services',
+    'services.subtitle': 'Comprehensive data and technology solutions',
+    
+    // Portfolio
+    'portfolio.title': 'Portfolio',
+    'portfolio.subtitle': 'Showcasing my latest work and projects',
+    'portfolio.featuredProjects': 'Featured Projects',
+    'portfolio.featuredProjectsSubtitle': 'Discover my latest projects and achievements',
+    'portfolio.viewProject': 'View Project',
+    'portfolio.readMore': 'Read More',
+    'portfolio.viewAll': 'View All Projects',
+    'portfolio.noProjectsFound': 'No projects found',
+    'portfolio.noProjectsMessage': 'Try adjusting your search or filter to find what you\'re looking for.',
+    
+    // Blog
+    'blog.title': 'Blog',
+    'blog.subtitle': 'Insights on data, technology, and innovation',
+    'blog.readMore': 'Read More',
+    'blog.viewAll': 'View All Posts',
+    'blog.latestPosts': 'Latest from the Blog',
+    'blog.latestPostsSubtitle': 'Insights, tutorials, and thoughts on data and tech',
+    'blog.noPostsFound': 'No posts found',
+    'blog.noPostsMessage': 'Try adjusting your search or filter to find what you\'re looking for.',
+    'blog.searchPlaceholder': 'Search posts...',
+    
+    // Contact
+    'contact.title': 'Contact Me',
+    'contact.subtitle': 'Get in touch for collaborations, consultations, or just to say hello',
+    'contact.letsConnect': 'Let\'s Connect',
+    'contact.description': 'Whether you\'re looking for data and technology expertise, have a question about my work, or just want to connect, I\'d love to hear from you.',
+    'contact.form.name': 'Name',
+    'contact.form.email': 'Email',
+    'contact.form.subject': 'Subject',
+    'contact.form.message': 'Message',
+    'contact.form.send': 'Send Message',
+    'contact.form.sending': 'Sending...',
+    'contact.form.namePlaceholder': 'Your name',
+    'contact.form.emailPlaceholder': 'your.email@example.com',
+    'contact.form.subjectPlaceholder': 'What is this regarding?',
+    'contact.form.messagePlaceholder': 'Your message...',
+    'contact.success.title': 'Message Sent',
+    'contact.success.description': 'Thank you for your message. I\'ll get back to you soon!',
+    'contact.error.title': 'Error',
+    'contact.error.description': 'There was a problem sending your message. Please try again.',
+    
+    // Footer
+    'footer.quickLinks': 'Quick Links',
+    'footer.connect': 'Connect',
+    'footer.socialMedia': 'Social Media',
+    'footer.copyright': 'All rights reserved.',
+    
+    // Common
+    'common.loading': 'Loading...',
+    'common.error': 'Error',
+    'common.retry': 'Retry',
+    'common.backTo': 'Back to',
+    'common.publishedOn': 'Published on',
+    'common.updated': 'Updated',
+    'common.all': 'All',
+    'common.search': 'Search',
+    'common.filter': 'Filter',
+    'common.previous': 'Previous',
+    'common.next': 'Next',
+    'common.page': 'Page',
+    'common.of': 'of',
+    
+    // 404 Page
+    '404.title': 'Page Not Found',
+    '404.description': 'The page you\'re looking for doesn\'t exist or has been moved.',
+    '404.backHome': 'Back to Home',
+    '404.searchPlaceholder': 'Search...',
+    
+    // Testimonials
+    'testimonials.title': 'Testimonials',
+    'testimonials.subtitle': 'What my clients and partners say',
+
+    // Now Page
+    'now.title': 'What I\'m Up To Right Now',
+    'now.subtitle': 'A glimpse into my current projects, interests, and daily life.',
+    'now.lastUpdated': 'Last updated',
+    'now.workingOn': 'I\'m Working On',
+    'now.currentlyLearning': 'Currently Learning',
+    'now.usingRightNow': 'Using Right Now',
+    'now.listeningTo': 'Listening To',
+    'now.monthlyUpdate': 'This page is updated monthly to reflect my current focus and interests.',
+    'now.inspirationQuote': 'The best time to plant a tree was 20 years ago. The second best time is now.',
+    'now.quoteAuthor': 'Chinese Proverb'
+  },
+  ht: {
+    // Navigation
+    'nav.home': 'Lakay',
+    'nav.portfolio': 'Travay yo',
+    'nav.blog': 'Blog',
+    'nav.about': 'Konsènan',
+    'nav.contact': 'Kontak',
+    
+    // Hero Section
+    'hero.greeting': 'Bonjou, mwen se',
+    'hero.title': 'Ekspè nan Done ak Teknoloji',
+    'hero.subtitle': 'Mwen spesyaliste nan transfòme done konplèks yo nan ensèt ki ka itilize ak kreye solisyon teknolojik inovatè yo.',
+    'hero.cta.portfolio': 'Gade travay mwen',
+    'hero.cta.contact': 'Kontakte mwen',
+    
+    // Services
+    'services.title': 'Sèvis yo',
+    'services.subtitle': 'Solisyon done ak teknoloji konplè',
+    
+    // Portfolio
+    'portfolio.title': 'Travay yo',
+    'portfolio.subtitle': 'Montre dènye travay ak pwojè mwen yo',
+    'portfolio.featuredProjects': 'Pwojè yo ki nan tèt la',
+    'portfolio.featuredProjectsSubtitle': 'Dekouvri dènye pwojè ak reyalizasyon mwen yo',
+    'portfolio.viewProject': 'Gade pwojè a',
+    'portfolio.readMore': 'Li plis',
+    'portfolio.viewAll': 'Gade tout pwojè yo',
+    'portfolio.noProjectsFound': 'Pa gen pwojè yo jwenn',
+    'portfolio.noProjectsMessage': 'Eseye ajiste rechèch ou a oswa filtè a pou jwenn sa w ap chèche a.',
+    
+    // Blog
+    'blog.title': 'Blog',
+    'blog.subtitle': 'Konesans sou done, teknoloji, ak inovasyon',
+    'blog.readMore': 'Li plis',
+    'blog.viewAll': 'Gade tout atik yo',
+    'blog.latestPosts': 'Dènye atik yo nan Blog la',
+    'blog.latestPostsSubtitle': 'Konesans, tutorial, ak reflexyon sou done ak teknoloji',
+    'blog.noPostsFound': 'Pa gen atik yo jwenn',
+    'blog.noPostsMessage': 'Eseye ajiste rechèch ou a oswa filtè a pou jwenn sa w ap chèche a.',
+    'blog.searchPlaceholder': 'Chèche atik yo...',
+    
+    // Contact
+    'contact.title': 'Kontakte mwen',
+    'contact.subtitle': 'Kontakte mwen pou kolaborasyon, konsèy, oswa jis pou di bonjou',
+    'contact.letsConnect': 'Ann konekte',
+    'contact.description': 'Kit ou ap chèche ekspètiz nan done ak teknoloji, gen yon kesyon sou travay mwen, oswa ou jis vle konekte, mwen ta renmen tande nan men ou.',
+    'contact.form.name': 'Non',
+    'contact.form.email': 'Imel',
+    'contact.form.subject': 'Sijè',
+    'contact.form.message': 'Mesaj',
+    'contact.form.send': 'Voye mesaj',
+    'contact.form.sending': 'Ap voye...',
+    'contact.form.namePlaceholder': 'Non ou',
+    'contact.form.emailPlaceholder': 'imel.ou@egzanp.com',
+    'contact.form.subjectPlaceholder': 'Sa ki konsènen?',
+    'contact.form.messagePlaceholder': 'Mesaj ou...',
+    'contact.success.title': 'Mesaj voye',
+    'contact.success.description': 'Mèsi pou mesaj ou. Mwen pral reponn ou byento!',
+    'contact.error.title': 'Erè',
+    'contact.error.description': 'Te gen yon pwoblèm nan voye mesaj ou. Tanpri eseye ankò.',
+    
+    // Footer
+    'footer.quickLinks': 'Lyen rapid yo',
+    'footer.connect': 'Konekte',
+    'footer.socialMedia': 'Rezo sosyal yo',
+    'footer.copyright': 'Tout dwa rezève.',
+    
+    // Common
+    'common.loading': 'Ap chaje...',
+    'common.error': 'Erè',
+    'common.retry': 'Eseye ankò',
+    'common.backTo': 'Retounen nan',
+    'common.publishedOn': 'Pibliye nan',
+    'common.updated': 'Mizajou',
+    'common.all': 'Tout',
+    'common.search': 'Chèche',
+    'common.filter': 'Filtè',
+    'common.previous': 'Anvan',
+    'common.next': 'Pwochen',
+    'common.page': 'Paj',
+    'common.of': 'sou',
+    
+    // 404 Page
+    '404.title': 'Paj la pa jwenn',
+    '404.description': 'Paj w ap chèche a pa egziste oswa yo deplase li.',
+    '404.backHome': 'Retounen lakay',
+    '404.searchPlaceholder': 'Chèche...',
+    
+    // Testimonials
+    'testimonials.title': 'Temwayaj yo',
+    'testimonials.subtitle': 'Sa kliyan ak patnè mwen yo di',
+
+    // Now Page
+    'now.title': 'Sa mwen ap fè kounye a',
+    'now.subtitle': 'Yon kout je sou pwojè kounye a mwen yo, enterè ak lavi chak jou.',
+    'now.lastUpdated': 'Dènye mizajou',
+    'now.workingOn': 'Mwen ap travay sou',
+    'now.currentlyLearning': 'Mwen ap aprann kounye a',
+    'now.usingRightNow': 'Mwen ap itilize kounye a',
+    'now.listeningTo': 'Mwen ap koute',
+    'now.monthlyUpdate': 'Paj sa a ap mete ajou chak mwa pou li montre sa mwen ap konsantre sou ak enterè mwen yo.',
+    'now.inspirationQuote': 'Pi bon moman pou plante yon pye bwa te gen 20 ane pase. Dezyèm pi bon moman an se kounye a.',
+    'now.quoteAuthor': 'Pwovèb Chinwa'
   }
-  return context;
 };
