@@ -10,9 +10,9 @@ import {
 import { useLanguage, Language } from "@/contexts/LanguageContext";
 
 const languages = [
-  { code: 'fr' as Language, name: 'Français', flag: '🇫🇷' },
-  { code: 'en' as Language, name: 'English', flag: '🇺🇸' },
-  { code: 'ht' as Language, name: 'Kreyòl', flag: '🇭🇹' }
+  { code: 'fr' as Language, name: 'Français', flag: '🇫🇷', shortName: 'FR' },
+  { code: 'en' as Language, name: 'English', flag: '🇺🇸', shortName: 'EN' },
+  { code: 'ht' as Language, name: 'Kreyòl', flag: '🇭🇹', shortName: 'HT' }
 ];
 
 export const LanguageToggle = () => {
@@ -23,20 +23,36 @@ export const LanguageToggle = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon">
-          <Globe className="h-[1.2rem] w-[1.2rem]" />
-          <span className="sr-only">Toggle language</span>
+        <Button 
+          variant="ghost" 
+          size="sm"
+          className="gap-2 font-medium"
+          aria-label="Change language"
+        >
+          <Globe className="h-4 w-4" />
+          <span className="hidden sm:inline">{currentLanguage?.flag}</span>
+          <span className="text-sm font-medium">{currentLanguage?.shortName}</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent 
+        align="end" 
+        className="min-w-[140px] bg-background/95 backdrop-blur-sm border border-border/50 shadow-lg"
+      >
         {languages.map((lang) => (
           <DropdownMenuItem
             key={lang.code}
             onClick={() => setLanguage(lang.code)}
-            className={language === lang.code ? "bg-accent" : ""}
+            className={`cursor-pointer transition-colors ${
+              language === lang.code 
+                ? "bg-primary/10 text-primary font-medium" 
+                : "hover:bg-muted"
+            }`}
           >
-            <span className="mr-2">{lang.flag}</span>
-            {lang.name}
+            <span className="mr-3 text-base">{lang.flag}</span>
+            <span className="flex-1">{lang.name}</span>
+            {language === lang.code && (
+              <span className="ml-2 text-xs text-primary">✓</span>
+            )}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

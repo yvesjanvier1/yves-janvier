@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 export type Language = 'fr' | 'en' | 'ht';
@@ -24,23 +23,50 @@ interface LanguageProviderProps {
   children: React.ReactNode;
 }
 
+// Browser language detection helper
+const detectBrowserLanguage = (): Language => {
+  if (typeof window === 'undefined') return 'fr'; // Default for SSR
+  
+  const browserLang = navigator.language.toLowerCase();
+  if (browserLang.startsWith('en')) return 'en';
+  if (browserLang.startsWith('ht')) return 'ht';
+  return 'fr'; // Default to French
+};
+
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
   const [language, setLanguage] = useState<Language>('fr');
 
   useEffect(() => {
+    // First check localStorage, then browser language, then default
     const savedLanguage = localStorage.getItem('language') as Language;
     if (savedLanguage && ['fr', 'en', 'ht'].includes(savedLanguage)) {
       setLanguage(savedLanguage);
+    } else {
+      const detectedLanguage = detectBrowserLanguage();
+      setLanguage(detectedLanguage);
+      localStorage.setItem('language', detectedLanguage);
     }
   }, []);
 
   const handleSetLanguage = (lang: Language) => {
     setLanguage(lang);
     localStorage.setItem('language', lang);
+    
+    // Update document language attribute for accessibility and SEO
+    if (typeof document !== 'undefined') {
+      document.documentElement.lang = lang;
+    }
   };
 
   const t = (key: string): string => {
-    return translations[language]?.[key] || translations.fr[key] || key;
+    const translation = translations[language]?.[key] || translations.fr[key] || key;
+    
+    // Log missing translations in development
+    if (process.env.NODE_ENV === 'development' && !translations[language]?.[key]) {
+      console.warn(`Missing translation for key "${key}" in language "${language}"`);
+    }
+    
+    return translation;
   };
 
   const formatDate = (date: string | Date): string => {

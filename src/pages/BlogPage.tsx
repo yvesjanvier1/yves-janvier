@@ -32,7 +32,7 @@ const POSTS_PER_PAGE = 6;
 const BlogPage = () => {
   const { page } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   
   const currentPage = parseInt(page || "1", 10);
   const selectedTag = searchParams.get("tag") || "all";
@@ -47,7 +47,7 @@ const BlogPage = () => {
   
   useEffect(() => {
     fetchPosts();
-  }, [currentPage, selectedTag, sortBy, searchTerm]);
+  }, [currentPage, selectedTag, sortBy, searchTerm, language]);
 
   const fetchPosts = async () => {
     try {
@@ -124,8 +124,8 @@ const BlogPage = () => {
       }
     } catch (err) {
       console.error("Error fetching blog posts:", err);
-      setError("Failed to load blog posts");
-      toast.error("Failed to load blog posts");
+      setError(t('blog.noPostsMessage'));
+      toast.error(t('blog.noPostsMessage'));
     } finally {
       setIsLoading(false);
     }
@@ -147,8 +147,8 @@ const BlogPage = () => {
     <ResponsiveContainer className="py-16 md:py-24">
       <AnimatedSection>
         <SectionHeader
-          title={t('blog.title') || "Blog"}
-          subtitle={t('blog.subtitle') || "Articles, insights, and updates"}
+          title={t('blog.title')}
+          subtitle={t('blog.subtitle')}
           centered
         />
       </AnimatedSection>
@@ -159,7 +159,7 @@ const BlogPage = () => {
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search posts..."
+              placeholder={t('blog.searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => updateSearchParams("search", e.target.value)}
               className="pl-10 max-w-sm"
@@ -169,10 +169,10 @@ const BlogPage = () => {
           <div className="flex gap-2 flex-wrap">
             <Select value={selectedTag} onValueChange={(value) => updateSearchParams("tag", value)}>
               <SelectTrigger className="w-32">
-                <SelectValue placeholder="Tag" />
+                <SelectValue placeholder={t('common.filter')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Tags</SelectItem>
+                <SelectItem value="all">{t('common.all')} Tags</SelectItem>
                 {availableTags.map((tag) => (
                   <SelectItem key={tag} value={tag}>{tag}</SelectItem>
                 ))}
@@ -204,13 +204,13 @@ const BlogPage = () => {
       ) : error ? (
         <AnimatedSection>
           <div className="text-center py-16">
-            <h3 className="text-xl font-medium mb-2">Error Loading Posts</h3>
+            <h3 className="text-xl font-medium mb-2">{t('common.error')}</h3>
             <p className="text-muted-foreground mb-4">{error}</p>
             <button 
               onClick={fetchPosts}
               className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90"
             >
-              Try Again
+              {t('common.retry')}
             </button>
           </div>
         </AnimatedSection>
@@ -252,10 +252,10 @@ const BlogPage = () => {
       ) : (
         <AnimatedSection>
           <div className="text-center py-16">
-            <h3 className="text-xl font-medium mb-2">No Posts Found</h3>
+            <h3 className="text-xl font-medium mb-2">{t('blog.noPostsFound')}</h3>
             <p className="text-muted-foreground">
               {searchTerm || selectedTag !== "all" 
-                ? "Try adjusting your search criteria or filters." 
+                ? t('blog.noPostsMessage')
                 : "Check back soon for new content."}
             </p>
           </div>

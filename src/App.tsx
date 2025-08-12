@@ -7,6 +7,7 @@ import { ThemeProvider } from "next-themes";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { SecurityProvider } from "@/components/security/SecurityProvider";
 import { AuthProvider } from "@/components/dashboard/AuthProvider";
+import { SEOInternational } from "@/components/seo/SEOInternational";
 import AppRouter from "@/router/AppRouter";
 
 const queryClient = new QueryClient();
@@ -17,6 +18,14 @@ function App() {
       <TooltipProvider>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <LanguageProvider>
+            <SEOInternational 
+              canonicalUrl={window.location.origin + window.location.pathname}
+              alternateUrls={{
+                fr: window.location.origin + window.location.pathname,
+                en: window.location.origin + window.location.pathname,
+                ht: window.location.origin + window.location.pathname
+              }}
+            />
             <SecurityProvider>
               <BrowserRouter>
                 <AuthProvider>
