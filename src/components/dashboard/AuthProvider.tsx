@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Session, User } from "@supabase/supabase-js";
 import { toast } from "sonner";
@@ -25,7 +25,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [lastActivity, setLastActivity] = useState(Date.now());
-  const navigate = useNavigate();
+  
+  // Use navigate and location conditionally
+  let navigate: ReturnType<typeof useNavigate> | null = null;
+  let location: ReturnType<typeof useLocation> | null = null;
+  
+  try {
+    navigate = useNavigate();
+    location = useLocation();
+  } catch (error) {
+    // Router context not available yet
+    console.log('Router context not available in AuthProvider');
+  }
 
   const updateActivity = () => {
     setLastActivity(Date.now());
@@ -117,7 +128,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       secureLog.info('User signed in successfully');
       toast.success("Signed in successfully");
       updateActivity();
-      navigate(redirectPath);
+      
+      // Only navigate if navigate function is available
+      if (navigate) {
+        navigate(redirectPath);
+      }
     } catch (error) {
       throw error;
     } finally {
@@ -139,7 +154,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       secureLog.info('User signed out successfully');
       toast.success("Signed out successfully");
-      navigate("/dashboard/login");
+      
+      // Only navigate if navigate function is available
+      if (navigate) {
+        navigate("/dashboard/login");
+      }
     } catch (error) {
       const errorMessage = sanitizeError(error);
       toast.error(errorMessage);
