@@ -78,7 +78,8 @@ export const generateCSRFToken = (): string => {
 export const sanitizeError = (error: unknown): string => {
   if (error instanceof Error) {
     // In production, don't expose sensitive error details
-    if (process.env.NODE_ENV === 'production') {
+    const isProduction = process.env.NODE_ENV === 'production';
+    if (isProduction) {
       // Log the full error for debugging but return sanitized message
       console.error('Internal error:', {
         message: error.message,

@@ -14,8 +14,7 @@ export const HoneypotField = ({ name, value, onChange }: HoneypotFieldProps) => 
         position: 'absolute',
         left: '-9999px',
         opacity: 0,
-        pointerEvents: 'none',
-        tabIndex: -1
+        pointerEvents: 'none'
       }}
       aria-hidden="true"
     >
