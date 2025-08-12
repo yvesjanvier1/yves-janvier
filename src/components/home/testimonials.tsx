@@ -2,8 +2,7 @@
 import { useEffect, useState } from "react";
 import { SectionHeader } from "@/components/ui/section-header";
 import { supabase } from "@/integrations/supabase/client";
-import { sanitizeError } from "@/lib/security";
-import { toast } from "sonner";
+import { sanitizeError, secureLog } from "@/lib/security";
 
 interface Testimonial {
   id: string;
@@ -30,15 +29,16 @@ const TestimonialsSection = () => {
           .order("created_at", { ascending: false });
 
         if (error) {
-          console.error("Error fetching testimonials:", error);
+          secureLog.error("Error fetching testimonials", error);
           throw error;
         }
 
         setTestimonials(data || []);
+        secureLog.info("Testimonials loaded successfully");
       } catch (error) {
         const errorMessage = sanitizeError(error);
         setError(errorMessage);
-        console.error("Error fetching testimonials:", error);
+        secureLog.error("Error fetching testimonials", error);
       } finally {
         setIsLoading(false);
       }
@@ -65,7 +65,7 @@ const TestimonialsSection = () => {
   }
 
   if (error) {
-    console.warn("Failed to load testimonials:", error);
+    secureLog.warn("Failed to load testimonials", error);
     return null; // Silently fail for public sections
   }
 

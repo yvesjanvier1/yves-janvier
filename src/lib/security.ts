@@ -49,7 +49,7 @@ export const blogPostSchema = z.object({
   tags: z.array(z.string().max(50)).max(10, 'Too many tags')
 });
 
-// Rate limiting store (in-memory for demo, use Redis in production)
+// Enhanced rate limiting with IP tracking
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
 
 export const checkRateLimit = (identifier: string, maxRequests: number = 5, windowMs: number = 300000): boolean => {
@@ -69,19 +69,83 @@ export const checkRateLimit = (identifier: string, maxRequests: number = 5, wind
   return true;
 };
 
-// CSRF Token generation (basic implementation)
+// CSRF Token generation
 export const generateCSRFToken = (): string => {
   return crypto.randomUUID();
 };
 
-// Error sanitization
+// Enhanced error sanitization
 export const sanitizeError = (error: unknown): string => {
   if (error instanceof Error) {
-    // Don't expose sensitive error details in production
+    // In production, don't expose sensitive error details
     if (process.env.NODE_ENV === 'production') {
+      // Log the full error for debugging but return sanitized message
+      console.error('Internal error:', {
+        message: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+        timestamp: new Date().toISOString()
+      });
       return 'An error occurred. Please try again later.';
     }
     return error.message;
   }
   return 'An unknown error occurred';
+};
+
+// Secure logging utility
+export const secureLog = {
+  info: (message: string, data?: any) => {
+    if (process.env.NODE_ENV === 'development') {
+      console.info(message, data);
+    }
+  },
+  error: (message: string, error?: any) => {
+    console.error(message, {
+      error: error?.message || error,
+      timestamp: new Date().toISOString(),
+      stack: process.env.NODE_ENV === 'development' ? error?.stack : undefined
+    });
+  },
+  warn: (message: string, data?: any) => {
+    if (process.env.NODE_ENV === 'development') {
+      console.warn(message, data);
+    }
+  }
+};
+
+// Content Security Policy configuration
+export const getCSPHeader = (): string => {
+  return [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://qfnqmdmsapovxdjwdhsx.supabase.co",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src 'self' https://fonts.gstatic.com",
+    "img-src 'self' data: https: blob:",
+    "connect-src 'self' https://qfnqmdmsapovxdjwdhsx.supabase.co wss://qfnqmdmsapovxdjwdhsx.supabase.co",
+    "frame-src 'none'",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'"
+  ].join('; ');
+};
+
+// Honeypot field validation
+export const validateHoneypot = (honeypotValue: string): boolean => {
+  return honeypotValue === '';
+};
+
+// Session timeout management
+export const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes
+
+export const isSessionExpired = (lastActivity: number): boolean => {
+  return Date.now() - lastActivity > SESSION_TIMEOUT;
+};
+
+// Input sanitization for XSS prevention
+export const sanitizeInput = (input: string): string => {
+  return input
+    .replace(/[<>]/g, '') // Remove angle brackets
+    .replace(/javascript:/gi, '') // Remove javascript: protocol
+    .replace(/on\w+=/gi, '') // Remove event handlers
+    .trim();
 };

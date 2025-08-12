@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { secureLog } from "@/lib/security";
 
 interface ProjectLink {
   title: string;
@@ -49,6 +50,7 @@ export const useProjectData = (id: string | undefined) => {
         }
         
         if (error) {
+          secureLog.error('Failed to fetch project', error);
           throw error;
         }
         
@@ -75,7 +77,7 @@ export const useProjectData = (id: string | undefined) => {
                 }));
               }
             } catch (err) {
-              // Silently handle link formatting errors
+              secureLog.warn('Failed to format project links', err);
             }
           }
           
@@ -83,6 +85,7 @@ export const useProjectData = (id: string | undefined) => {
             ...data,
             links: formattedLinks
           });
+          secureLog.info('Project loaded successfully');
         } else {
           setError("Project not found");
           toast.error("Project not found");
@@ -90,6 +93,7 @@ export const useProjectData = (id: string | undefined) => {
       } catch (err) {
         setError("Failed to load project details");
         toast.error("Failed to load project details");
+        secureLog.error('Project fetch error', err);
       } finally {
         setIsLoading(false);
       }
