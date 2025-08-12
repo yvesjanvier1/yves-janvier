@@ -7,9 +7,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import ProjectCard from "@/components/portfolio/project-card";
 import { AnimatedSection } from "@/components/ui/animated-section";
+import { ProjectSkeleton } from "@/components/ui/loading-skeletons";
+import { ResponsiveContainer } from "@/components/ui/responsive-container";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Project {
@@ -36,7 +37,7 @@ const PortfolioPage = () => {
   const [availableTags, setAvailableTags] = useState<string[]>([]);
   const selectedCategory = searchParams.get("category") || "all";
   const selectedTag = searchParams.get("tag") || "all";
-  const sortBy = searchParams.get("sort") || "date";
+  const sortBy = searchParams.get("sort") || "featured";
   const searchTerm = searchParams.get("search") || "";
   
   const [projects, setProjects] = useState<Project[]>([]);
@@ -125,6 +126,7 @@ const PortfolioPage = () => {
         }
       }
     } catch (err) {
+      console.error("Error fetching projects:", err);
       setError("Failed to load projects");
       toast.error("Failed to load projects");
     } finally {
@@ -145,11 +147,11 @@ const PortfolioPage = () => {
   };
 
   return (
-    <div className="container px-4 py-16 md:py-24 mx-auto">
+    <ResponsiveContainer className="py-16 md:py-24">
       <AnimatedSection>
         <SectionHeader
-          title={t('portfolio.title')}
-          subtitle={t('portfolio.subtitle')}
+          title={t('portfolio.title') || "Portfolio"}
+          subtitle={t('portfolio.subtitle') || "A showcase of my work and projects"}
           centered
         />
       </AnimatedSection>
@@ -182,10 +184,10 @@ const PortfolioPage = () => {
 
             <Select value={selectedTag} onValueChange={(value) => updateSearchParams("tag", value)}>
               <SelectTrigger className="w-32">
-                <SelectValue placeholder="Tag" />
+                <SelectValue placeholder="Tech" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Tags</SelectItem>
+                <SelectItem value="all">All Tech</SelectItem>
                 {availableTags.map((tag) => (
                   <SelectItem key={tag} value={tag}>{tag}</SelectItem>
                 ))}
@@ -197,9 +199,9 @@ const PortfolioPage = () => {
                 <SelectValue placeholder="Sort" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="featured">Featured First</SelectItem>
                 <SelectItem value="date">By Date</SelectItem>
                 <SelectItem value="title">By Title</SelectItem>
-                <SelectItem value="featured">By Featured</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -210,27 +212,20 @@ const PortfolioPage = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {[1, 2, 3, 4, 5, 6].map(i => (
             <AnimatedSection key={i} delay={i * 0.1}>
-              <div className="flex flex-col h-full">
-                <Skeleton className="h-48 w-full mb-4" />
-                <Skeleton className="h-4 w-12 mb-2" />
-                <Skeleton className="h-6 w-3/4 mb-2" />
-                <Skeleton className="h-4 w-full mb-2" />
-                <Skeleton className="h-4 w-full mb-2" />
-                <Skeleton className="h-4 w-2/3" />
-              </div>
+              <ProjectSkeleton />
             </AnimatedSection>
           ))}
         </div>
       ) : error ? (
         <AnimatedSection>
           <div className="text-center py-16">
-            <h3 className="text-xl font-medium mb-2">{t('common.error')}</h3>
+            <h3 className="text-xl font-medium mb-2">Error Loading Projects</h3>
             <p className="text-muted-foreground mb-4">{error}</p>
             <button 
-              onClick={() => window.location.reload()}
-              className="bg-primary text-primary-foreground px-4 py-2 rounded-md"
+              onClick={fetchProjects}
+              className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90"
             >
-              {t('common.retry')}
+              Try Again
             </button>
           </div>
         </AnimatedSection>
@@ -260,14 +255,16 @@ const PortfolioPage = () => {
       ) : (
         <AnimatedSection>
           <div className="text-center py-16">
-            <h3 className="text-xl font-medium mb-2">{t('portfolio.noProjectsFound')}</h3>
+            <h3 className="text-xl font-medium mb-2">No Projects Found</h3>
             <p className="text-muted-foreground">
-              {t('portfolio.noProjectsMessage')}
+              {searchTerm || selectedCategory !== "all" || selectedTag !== "all" 
+                ? "Try adjusting your search criteria or filters." 
+                : "Check back soon for new projects."}
             </p>
           </div>
         </AnimatedSection>
       )}
-    </div>
+    </ResponsiveContainer>
   );
 };
 

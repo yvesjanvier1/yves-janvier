@@ -7,7 +7,7 @@ import { SectionHeader } from "@/components/ui/section-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Calendar, Headphones, Code, BookOpen } from "lucide-react";
 import { useNowPage } from "@/hooks/useNowPage";
-import { Skeleton } from "@/components/ui/skeleton";
+import { NowPageSkeleton } from "@/components/ui/loading-skeletons";
 
 const NowPage = () => {
   const { data, isLoading, error } = useNowPage();
@@ -56,12 +56,14 @@ const NowPage = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-destructive mb-2">Error Loading Page</h1>
-          <p className="text-muted-foreground">{error}</p>
+      <ResponsiveContainer className="py-16">
+        <div className="min-h-[50vh] flex items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-destructive mb-2">Error Loading Page</h1>
+            <p className="text-muted-foreground">{error}</p>
+          </div>
         </div>
-      </div>
+      </ResponsiveContainer>
     );
   }
 
@@ -70,7 +72,7 @@ const NowPage = () => {
       <SEOHead
         title="Now – Yves Janvier"
         description="What I'm working on, learning, and loving this month. A personal status update from Yves Janvier."
-        url={`${window.location.origin}/now`}
+        url={`${window.location.origin}/content/now`}
         type="website"
       />
 
@@ -83,55 +85,55 @@ const NowPage = () => {
           />
         </AnimatedSection>
 
-        <div className="grid gap-8 md:gap-12 max-w-4xl mx-auto">
-          {sections.map((section, index) => {
-            const IconComponent = section.icon;
-            return (
-              <AnimatedSection
-                key={section.title}
-                delay={section.delay}
-                className="group"
-              >
-                <Card className="glass-card hover-lift border-0 shadow-lg hover:shadow-xl transition-all duration-500">
-                  <CardContent className="p-8">
-                    <div className="flex items-center gap-4 mb-6">
-                      <div className={`p-3 rounded-xl bg-gradient-to-r ${section.gradient} shadow-lg`}>
-                        <IconComponent className="h-6 w-6 text-white" />
+        {isLoading ? (
+          <NowPageSkeleton />
+        ) : (
+          <div className="grid gap-8 md:gap-12 max-w-4xl mx-auto">
+            {sections.map((section, index) => {
+              const IconComponent = section.icon;
+              return (
+                <AnimatedSection
+                  key={section.title}
+                  delay={section.delay}
+                  className="group"
+                >
+                  <Card className="glass-card hover-lift border-0 shadow-lg hover:shadow-xl transition-all duration-500">
+                    <CardContent className="p-8">
+                      <div className="flex items-center gap-4 mb-6">
+                        <div className={`p-3 rounded-xl bg-gradient-to-r ${section.gradient} shadow-lg`}>
+                          <IconComponent className="h-6 w-6 text-white" />
+                        </div>
+                        <h2 className={`text-2xl font-bold bg-gradient-to-r ${section.gradient} text-transparent bg-clip-text`}>
+                          {section.title}
+                        </h2>
                       </div>
-                      <h2 className={`text-2xl font-bold bg-gradient-to-r ${section.gradient} text-transparent bg-clip-text`}>
-                        {section.title}
-                      </h2>
-                    </div>
-                    
-                    <div className="space-y-4">
-                      {isLoading ? (
-                        // Loading skeleton
-                        Array.from({ length: 3 }).map((_, itemIndex) => (
-                          <div key={itemIndex} className="flex items-start gap-3 p-4 rounded-lg bg-background/50 border border-border/50">
-                            <Skeleton className="w-2 h-2 rounded-full mt-2 flex-shrink-0" />
-                            <Skeleton className="h-4 w-full" />
+                      
+                      <div className="space-y-4">
+                        {section.items.length > 0 ? (
+                          section.items.map((item, itemIndex) => (
+                            <div
+                              key={itemIndex}
+                              className="flex items-start gap-3 p-4 rounded-lg bg-background/50 border border-border/50 hover:border-border transition-colors duration-300"
+                            >
+                              <div className="w-2 h-2 rounded-full bg-gradient-to-r from-primary to-secondary mt-2 flex-shrink-0"></div>
+                              <p className="text-foreground/90 leading-relaxed">
+                                {item}
+                              </p>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="flex items-center justify-center py-8 text-muted-foreground">
+                            <p>Nothing to show here yet.</p>
                           </div>
-                        ))
-                      ) : (
-                        section.items.map((item, itemIndex) => (
-                          <div
-                            key={itemIndex}
-                            className="flex items-start gap-3 p-4 rounded-lg bg-background/50 border border-border/50 hover:border-border transition-colors duration-300"
-                          >
-                            <div className="w-2 h-2 rounded-full bg-gradient-to-r from-primary to-secondary mt-2 flex-shrink-0"></div>
-                            <p className="text-foreground/90 leading-relaxed">
-                              {item}
-                            </p>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </AnimatedSection>
-            );
-          })}
-        </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </AnimatedSection>
+              );
+            })}
+          </div>
+        )}
 
         {/* Inspiration Quote */}
         <AnimatedSection delay={0.8} className="mt-16">
