@@ -1,3 +1,4 @@
+
 import { Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,10 +12,6 @@ import SkipNavigation from "@/components/accessibility/SkipNavigation";
 import { PerformanceTracker } from "@/components/analytics/PerformanceTracker";
 import { PageViewTracker } from "@/components/PageViewTracker";
 import { AuthProvider } from "@/components/dashboard/AuthProvider";
-import { CookieConsentBanner } from "@/components/ui/cookie-consent-banner";
-import { ExitIntentModal } from "@/components/modals/ExitIntentModal";
-import { useCookieConsent } from "@/hooks/useCookieConsent";
-import { useExitIntentModal } from "@/hooks/useExitIntentModal";
 import "./App.css";
 
 // Lazy load components for better performance
@@ -36,111 +33,6 @@ const DashboardPage = lazy(() => import("@/pages/DashboardPage"));
 
 const queryClient = new QueryClient();
 
-function AppContent() {
-  const { hasConsented, shouldShowBanner, handleConsent } = useCookieConsent();
-  const { isModalOpen, closeModal, handleSubscribe } = useExitIntentModal();
-
-  return (
-    <div className="relative flex min-h-screen flex-col bg-background">
-      <Routes>
-        {/* Public routes */}
-        <Route path="/" element={<Layout />}>
-          <Route index element={<HomePage />} />
-          <Route path="about" element={
-            <Suspense fallback={<div>Loading...</div>}>
-              <AboutPage />
-            </Suspense>
-          } />
-          <Route path="blog" element={
-            <Suspense fallback={<div>Loading...</div>}>
-              <BlogPage />
-            </Suspense>
-          } />
-          <Route path="blog/:slug" element={
-            <Suspense fallback={<div>Loading...</div>}>
-              <BlogPostPage />
-            </Suspense>
-          } />
-          <Route path="contact" element={
-            <Suspense fallback={<div>Loading...</div>}>
-              <ContactPage />
-            </Suspense>
-          } />
-          <Route path="portfolio" element={
-            <Suspense fallback={<div>Loading...</div>}>
-              <PortfolioPage />
-            </Suspense>
-          } />
-          <Route path="portfolio/:slug" element={
-            <Suspense fallback={<div>Loading...</div>}>
-              <ProjectDetailPage />
-            </Suspense>
-          } />
-          <Route path="journal" element={
-            <Suspense fallback={<div>Loading...</div>}>
-              <JournalPage />
-            </Suspense>
-          } />
-          <Route path="resources" element={
-            <Suspense fallback={<div>Loading...</div>}>
-              <ResourcesPage />
-            </Suspense>
-          } />
-          <Route path="now" element={
-            <Suspense fallback={<div>Loading...</div>}>
-              <NowPage />
-            </Suspense>
-          } />
-          <Route path="unsubscribe" element={
-            <Suspense fallback={<div>Loading...</div>}>
-              <UnsubscribePage />
-            </Suspense>
-          } />
-        </Route>
-
-        {/* Dashboard routes - wrap both login and main dashboard with AuthProvider */}
-        <Route path="/dashboard/*" element={
-          <AuthProvider>
-            <Routes>
-              <Route path="login" element={
-                <Suspense fallback={<div>Loading...</div>}>
-                  <DashboardLoginPage />
-                </Suspense>
-              } />
-              <Route path="*" element={
-                <Suspense fallback={<div>Loading...</div>}>
-                  <DashboardPage />
-                </Suspense>
-              } />
-            </Routes>
-          </AuthProvider>
-        } />
-
-        {/* 404 route */}
-        <Route path="*" element={
-          <Suspense fallback={<div>Loading...</div>}>
-            <NotFound />
-          </Suspense>
-        } />
-      </Routes>
-      
-      {/* Cookie Consent Banner */}
-      {shouldShowBanner && (
-        <CookieConsentBanner onConsent={handleConsent} />
-      )}
-      
-      {/* Exit Intent Modal */}
-      <ExitIntentModal
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        onSubscribe={handleSubscribe}
-      />
-      
-      <Toaster />
-    </div>
-  );
-}
-
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -155,7 +47,91 @@ function App() {
               <PerformanceTracker />
               <PageViewTracker />
               
-              <AppContent />
+              <div className="relative flex min-h-screen flex-col bg-background">
+                <Routes>
+                  {/* Public routes */}
+                  <Route path="/" element={<Layout />}>
+                    <Route index element={<HomePage />} />
+                    <Route path="about" element={
+                      <Suspense fallback={<div>Loading...</div>}>
+                        <AboutPage />
+                      </Suspense>
+                    } />
+                    <Route path="blog" element={
+                      <Suspense fallback={<div>Loading...</div>}>
+                        <BlogPage />
+                      </Suspense>
+                    } />
+                    <Route path="blog/:slug" element={
+                      <Suspense fallback={<div>Loading...</div>}>
+                        <BlogPostPage />
+                      </Suspense>
+                    } />
+                    <Route path="contact" element={
+                      <Suspense fallback={<div>Loading...</div>}>
+                        <ContactPage />
+                      </Suspense>
+                    } />
+                    <Route path="portfolio" element={
+                      <Suspense fallback={<div>Loading...</div>}>
+                        <PortfolioPage />
+                      </Suspense>
+                    } />
+                    <Route path="portfolio/:slug" element={
+                      <Suspense fallback={<div>Loading...</div>}>
+                        <ProjectDetailPage />
+                      </Suspense>
+                    } />
+                    <Route path="journal" element={
+                      <Suspense fallback={<div>Loading...</div>}>
+                        <JournalPage />
+                      </Suspense>
+                    } />
+                    <Route path="resources" element={
+                      <Suspense fallback={<div>Loading...</div>}>
+                        <ResourcesPage />
+                      </Suspense>
+                    } />
+                    <Route path="now" element={
+                      <Suspense fallback={<div>Loading...</div>}>
+                        <NowPage />
+                      </Suspense>
+                    } />
+                    <Route path="unsubscribe" element={
+                      <Suspense fallback={<div>Loading...</div>}>
+                        <UnsubscribePage />
+                      </Suspense>
+                    } />
+                  </Route>
+
+                  {/* Dashboard routes - wrap both login and main dashboard with AuthProvider */}
+                  <Route path="/dashboard/*" element={
+                    <AuthProvider>
+                      <Routes>
+                        <Route path="login" element={
+                          <Suspense fallback={<div>Loading...</div>}>
+                            <DashboardLoginPage />
+                          </Suspense>
+                        } />
+                        <Route path="*" element={
+                          <Suspense fallback={<div>Loading...</div>}>
+                            <DashboardPage />
+                          </Suspense>
+                        } />
+                      </Routes>
+                    </AuthProvider>
+                  } />
+
+                  {/* 404 route */}
+                  <Route path="*" element={
+                    <Suspense fallback={<div>Loading...</div>}>
+                      <NotFound />
+                    </Suspense>
+                  } />
+                </Routes>
+              </div>
+              
+              <Toaster />
             </BrowserRouter>
           </TooltipProvider>
         </LanguageProvider>
