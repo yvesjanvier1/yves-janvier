@@ -18,14 +18,14 @@ function App() {
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <LanguageProvider>
             <SecurityProvider>
-              <AuthProvider>
-                <BrowserRouter>
+              <BrowserRouter>
+                <AuthProvider>
                   <div className="min-h-screen bg-background font-sans antialiased">
                     <AppRouter />
                   </div>
                   <Toaster />
-                </BrowserRouter>
-              </AuthProvider>
+                </AuthProvider>
+              </BrowserRouter>
             </SecurityProvider>
           </LanguageProvider>
         </ThemeProvider>
