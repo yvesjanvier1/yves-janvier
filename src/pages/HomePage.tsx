@@ -8,13 +8,20 @@ import LatestPosts from "@/components/home/latest-posts";
 import { NewsletterSection } from "@/components/home/newsletter-section";
 import SEOHead from "@/components/seo/SEOHead";
 import { ExitIntentModal } from "@/components/modals/ExitIntentModal";
-import { CookieConsentBanner } from "@/components/ui/cookie-consent-banner";
+import { SubscriptionModal } from "@/components/modals/SubscriptionModal";
+import { PrivacyConsentBanner } from "@/components/ui/privacy-consent-banner";
 import { useExitIntentModal } from "@/hooks/useExitIntentModal";
-import { useCookieConsent } from "@/hooks/useCookieConsent";
+import { useConsentFlow } from "@/hooks/useConsentFlow";
 
 const HomePage = () => {
   const { isModalOpen, closeModal, handleSubscribe } = useExitIntentModal();
-  const { shouldShowBanner, handleConsent } = useCookieConsent();
+  const { 
+    showPrivacyBanner, 
+    showSubscriptionModal, 
+    privacyConsent,
+    handlePrivacyConsent, 
+    handleSubscriptionModalClose 
+  } = useConsentFlow();
 
   return (
     <>
@@ -40,10 +47,18 @@ const HomePage = () => {
         onSubscribe={handleSubscribe}
       />
 
-      {/* Cookie Consent Banner */}
-      {shouldShowBanner && (
-        <CookieConsentBanner onConsent={handleConsent} />
-      )}
+      {/* Privacy Consent Banner */}
+      <PrivacyConsentBanner
+        onConsent={handlePrivacyConsent}
+        isVisible={showPrivacyBanner}
+      />
+
+      {/* Subscription Modal */}
+      <SubscriptionModal
+        isOpen={showSubscriptionModal}
+        onClose={handleSubscriptionModalClose}
+        privacyConsent={privacyConsent || false}
+      />
     </>
   );
 };

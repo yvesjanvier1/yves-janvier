@@ -6,21 +6,34 @@ export const useCookieConsent = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check localStorage for existing consent
-    const consent = localStorage.getItem('cookieConsent');
-    if (consent === 'accepted') {
+    // Check localStorage for existing privacy consent (new system)
+    const privacyConsent = localStorage.getItem('privacy-consent');
+    
+    if (privacyConsent === 'accepted') {
       setHasConsented(true);
-    } else if (consent === 'declined') {
+    } else if (privacyConsent === 'declined') {
       setHasConsented(false);
     } else {
-      setHasConsented(null); // No decision made yet
+      // Check for old cookie consent system
+      const oldConsent = localStorage.getItem('cookieConsent');
+      if (oldConsent === 'accepted') {
+        setHasConsented(true);
+        // Migrate to new system
+        localStorage.setItem('privacy-consent', 'accepted');
+      } else if (oldConsent === 'declined') {
+        setHasConsented(false);
+        // Migrate to new system
+        localStorage.setItem('privacy-consent', 'declined');
+      } else {
+        setHasConsented(null); // No decision made yet
+      }
     }
     setIsLoading(false);
   }, []);
 
   const handleConsent = (accepted: boolean) => {
     setHasConsented(accepted);
-    localStorage.setItem('cookieConsent', accepted ? 'accepted' : 'declined');
+    localStorage.setItem('privacy-consent', accepted ? 'accepted' : 'declined');
   };
 
   return {
