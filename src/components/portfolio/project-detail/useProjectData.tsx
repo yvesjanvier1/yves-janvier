@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { secureLog } from "@/lib/security";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ProjectLink {
   title: string;
@@ -18,9 +19,11 @@ interface ProjectDetails {
   created_at: string;
   images?: string[];
   links?: ProjectLink[];
+  locale?: string;
 }
 
 export const useProjectData = (id: string | undefined) => {
+  const { language, t } = useLanguage();
   const [project, setProject] = useState<ProjectDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -33,11 +36,13 @@ export const useProjectData = (id: string | undefined) => {
         setIsLoading(true);
         setError(null);
         
-        // First try to fetch by slug
+        // First try to fetch by slug with language preference
         let { data, error } = await supabase
           .from("portfolio_projects")
           .select("*")
           .eq("slug", id)
+          .or(`locale.eq.${language},locale.is.null`)
+          .order('locale', { ascending: false }) // Prefer current language
           .maybeSingle();
 
         if (!data && !error) {
@@ -46,6 +51,8 @@ export const useProjectData = (id: string | undefined) => {
             .from("portfolio_projects")
             .select("*")
             .eq("id", id)
+            .or(`locale.eq.${language},locale.is.null`)
+            .order('locale', { ascending: false })
             .maybeSingle());
         }
         
@@ -87,12 +94,12 @@ export const useProjectData = (id: string | undefined) => {
           });
           secureLog.info('Project loaded successfully');
         } else {
-          setError("Project not found");
-          toast.error("Project not found");
+          setError(t('portfolio.noProjectsFound'));
+          toast.error(t('portfolio.noProjectsFound'));
         }
       } catch (err) {
-        setError("Failed to load project details");
-        toast.error("Failed to load project details");
+        setError(t('common.error'));
+        toast.error(t('common.error'));
         secureLog.error('Project fetch error', err);
       } finally {
         setIsLoading(false);
@@ -100,7 +107,7 @@ export const useProjectData = (id: string | undefined) => {
     };
     
     fetchProject();
-  }, [id]);
+  }, [id, language, t]);
 
   return { project, isLoading, error };
 };

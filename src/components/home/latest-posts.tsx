@@ -5,62 +5,16 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { SectionHeader } from "@/components/ui/section-header";
 import { LazyImage } from "@/components/ui/lazy-image";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { useMultilingualBlogPosts } from "@/hooks/useMultilingualData";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useResponsive } from "@/hooks/useResponsive";
 
-interface BlogPost {
-  id: string;
-  title: string;
-  excerpt: string;
-  slug: string;
-  content: string;
-  cover_image?: string;
-  tags: string[];
-  created_at: string;
-  published: boolean;
-}
-
 const LatestPosts = () => {
-  const [posts, setPosts] = useState<BlogPost[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const { t, formatDate } = useLanguage();
   const { isMobile } = useResponsive();
-
-  useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        
-        const { data, error } = await supabase
-          .from("blog_posts")
-          .select("*")
-          .eq("published", true)
-          .order("created_at", { ascending: false })
-          .limit(isMobile ? 2 : 3);
-
-        if (error) throw error;
-
-        if (data) {
-          const validPosts = data.filter(post => 
-            post.title && post.slug && post.content
-          );
-          setPosts(validPosts);
-        }
-      } catch (error) {
-        console.error("LatestPosts: Error fetching latest posts:", error);
-        setError("Failed to load latest blog posts");
-        toast.error("Failed to load latest blog posts");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchPosts();
-  }, [isMobile]);
+  const { data: posts = [], isLoading, error } = useMultilingualBlogPosts({ 
+    limit: isMobile ? 2 : 3 
+  });
 
   if (error) {
     return (
@@ -72,7 +26,7 @@ const LatestPosts = () => {
             centered
           />
           <div className="text-center py-12">
-            <p className="text-destructive mb-4">{error}</p>
+            <p className="text-destructive mb-4">{t('common.error')}</p>
             <Button onClick={() => window.location.reload()} variant="outline">{t('common.retry')}</Button>
           </div>
         </div>
@@ -152,7 +106,7 @@ const LatestPosts = () => {
         ) : (
           <div className="text-center py-16">
             <p className="text-muted-foreground mb-4">{t('blog.noPostsFound')}</p>
-            <p className="text-sm text-muted-foreground">Check back later for new content.</p>
+            <p className="text-sm text-muted-foreground">{t('blog.noPostsMessage')}</p>
           </div>
         )}
 

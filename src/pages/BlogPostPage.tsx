@@ -1,15 +1,17 @@
+
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
-import { formatDate } from "@/lib/utils";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import SocialShare from "@/components/blog/social-share";
 import SEOHead from "@/components/seo/SEOHead";
+import { SEOInternational } from "@/components/seo/SEOInternational";
 import { SecureHtml } from "@/components/ui/secure-html";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface BlogPost {
   id: string;
@@ -22,11 +24,13 @@ interface BlogPost {
   updated_at: string;
   author_id?: string;
   published: boolean;
+  locale?: string;
 }
 
 const BlogPostPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t, formatDate, language } = useLanguage();
   const [post, setPost] = useState<BlogPost | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,22 +46,25 @@ const BlogPostPage = () => {
         setError(null);
         console.log(`BlogPostPage: Fetching blog post with id/slug: ${id}`);
         
-        // First try to fetch by slug
+        // First try to fetch by slug with language preference
         let { data, error } = await supabase
           .from("blog_posts")
           .select("*")
           .eq("slug", id)
           .eq("published", true)
+          .or(`locale.eq.${language},locale.is.null`)
+          .order('locale', { ascending: false }) // Prefer current language
           .maybeSingle();
 
         if (!data && !error) {
-          console.log("BlogPostPage: No post found by slug, trying by ID");
           // If no post found by slug, try by id
           ({ data, error } = await supabase
             .from("blog_posts")
             .select("*")
             .eq("id", id)
             .eq("published", true)
+            .or(`locale.eq.${language},locale.is.null`)
+            .order('locale', { ascending: false })
             .maybeSingle());
         }
 
@@ -71,51 +78,53 @@ const BlogPostPage = () => {
         if (data) {
           setPost(data);
         } else {
-          // No post found
           console.error("BlogPostPage: No blog post found with this ID/slug");
-          setError("Blog post not found");
-          toast.error("Blog post not found");
+          setError(t('blog.noPostsFound'));
+          toast.error(t('blog.noPostsFound'));
         }
       } catch (err) {
         console.error("BlogPostPage: Error fetching blog post:", err);
-        setError("Failed to load blog post");
-        toast.error("Failed to load blog post");
+        setError(t('common.error'));
+        toast.error(t('common.error'));
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchPost();
-  }, [id, navigate]);
+  }, [id, navigate, language, t]);
 
   if (isLoading) {
     return (
-      <div className="container max-w-4xl px-4 py-16 mx-auto">
-        <div className="mb-8">
-          <Button variant="ghost" asChild>
-            <Link to="/blog">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Blog
-            </Link>
-          </Button>
-        </div>
-        <div className="space-y-6">
-          <Skeleton className="h-12 w-3/4" />
-          <div className="flex gap-2">
-            {[1, 2, 3].map(i => (
-              <Skeleton key={i} className="h-6 w-20" />
-            ))}
+      <>
+        <SEOInternational />
+        <div className="container max-w-4xl px-4 py-16 mx-auto">
+          <div className="mb-8">
+            <Button variant="ghost" asChild>
+              <Link to="/blog">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                {t('common.backTo')} {t('blog.title')}
+              </Link>
+            </Button>
           </div>
-          <Skeleton className="h-6 w-48" />
-          <Skeleton className="h-64 w-full" />
-          <div className="space-y-4">
-            <Skeleton className="h-6 w-full" />
-            <Skeleton className="h-6 w-full" />
-            <Skeleton className="h-6 w-5/6" />
-            <Skeleton className="h-6 w-4/6" />
+          <div className="space-y-6">
+            <Skeleton className="h-12 w-3/4" />
+            <div className="flex gap-2">
+              {[1, 2, 3].map(i => (
+                <Skeleton key={i} className="h-6 w-20" />
+              ))}
+            </div>
+            <Skeleton className="h-6 w-48" />
+            <Skeleton className="h-64 w-full" />
+            <div className="space-y-4">
+              <Skeleton className="h-6 w-full" />
+              <Skeleton className="h-6 w-full" />
+              <Skeleton className="h-6 w-5/6" />
+              <Skeleton className="h-6 w-4/6" />
+            </div>
           </div>
         </div>
-      </div>
+      </>
     );
   }
 
@@ -123,23 +132,24 @@ const BlogPostPage = () => {
     return (
       <>
         <SEOHead 
-          title="Post Not Found - Yves Janvier"
-          description="The blog post you're looking for could not be found."
+          title={`${t('blog.noPostsFound')} - Yves Janvier`}
+          description={t('blog.noPostsMessage')}
         />
+        <SEOInternational />
         <div className="container max-w-4xl px-4 py-16 mx-auto">
           <div className="mb-8">
             <Button variant="ghost" asChild>
               <Link to="/blog">
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Blog
+                {t('common.backTo')} {t('blog.title')}
               </Link>
             </Button>
           </div>
           <div className="text-center py-16">
-            <h2 className="text-2xl font-bold mb-2">Error</h2>
+            <h2 className="text-2xl font-bold mb-2">{t('common.error')}</h2>
             <p className="text-muted-foreground mb-6">{error}</p>
             <Button onClick={() => navigate("/blog")}>
-              Return to Blog
+              {t('common.backTo')} {t('blog.title')}
             </Button>
           </div>
         </div>
@@ -151,23 +161,24 @@ const BlogPostPage = () => {
     return (
       <>
         <SEOHead 
-          title="Post Not Found - Yves Janvier"
-          description="The blog post you're looking for could not be found."
+          title={`${t('blog.noPostsFound')} - Yves Janvier`}
+          description={t('blog.noPostsMessage')}
         />
+        <SEOInternational />
         <div className="container max-w-4xl px-4 py-16 mx-auto">
           <div className="mb-8">
             <Button variant="ghost" asChild>
               <Link to="/blog">
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Blog
+                {t('common.backTo')} {t('blog.title')}
               </Link>
             </Button>
           </div>
           <div className="text-center py-16">
-            <h2 className="text-2xl font-bold mb-2">Post Not Found</h2>
-            <p className="text-muted-foreground mb-6">The blog post you're looking for doesn't exist or has been removed.</p>
+            <h2 className="text-2xl font-bold mb-2">{t('blog.noPostsFound')}</h2>
+            <p className="text-muted-foreground mb-6">{t('blog.noPostsMessage')}</p>
             <Button onClick={() => navigate("/blog")}>
-              Return to Blog
+              {t('common.backTo')} {t('blog.title')}
             </Button>
           </div>
         </div>
@@ -187,12 +198,13 @@ const BlogPostPage = () => {
         tags={post.tags}
         url={currentUrl}
       />
+      <SEOInternational />
       <div className="container max-w-4xl px-4 py-16 mx-auto">
         <div className="mb-8">
           <Button variant="ghost" asChild>
             <Link to="/blog">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Blog
+              {t('common.backTo')} {t('blog.title')}
             </Link>
           </Button>
         </div>
@@ -209,12 +221,12 @@ const BlogPostPage = () => {
             
             <div className="text-muted-foreground mb-6">
               <time dateTime={post.created_at}>
-                Published on {formatDate(post.created_at)}
+                {t('common.publishedOn')} {formatDate(post.created_at)}
               </time>
               {post.updated_at !== post.created_at && (
                 <span className="ml-4">
                   <time dateTime={post.updated_at}>
-                    Updated {formatDate(post.updated_at)}
+                    {t('common.updated')} {formatDate(post.updated_at)}
                   </time>
                 </span>
               )}
@@ -224,7 +236,7 @@ const BlogPostPage = () => {
               <div className="relative aspect-video mb-8 overflow-hidden rounded-lg">
                 <img 
                   src={post.cover_image} 
-                  alt={`Cover image for ${post.title}`}
+                  alt={`${t('blog.title')} - ${post.title}`}
                   className="absolute inset-0 w-full h-full object-cover"
                 />
               </div>

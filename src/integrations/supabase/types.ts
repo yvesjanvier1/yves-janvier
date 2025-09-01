@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -88,6 +88,7 @@ export type Database = {
           created_at: string
           excerpt: string | null
           id: string
+          locale: string | null
           published: boolean | null
           slug: string
           tags: string[] | null
@@ -101,6 +102,7 @@ export type Database = {
           created_at?: string
           excerpt?: string | null
           id?: string
+          locale?: string | null
           published?: boolean | null
           slug: string
           tags?: string[] | null
@@ -114,6 +116,7 @@ export type Database = {
           created_at?: string
           excerpt?: string | null
           id?: string
+          locale?: string | null
           published?: boolean | null
           slug?: string
           tags?: string[] | null
@@ -192,6 +195,7 @@ export type Database = {
           featured: boolean | null
           id: string
           image_url: string | null
+          locale: string | null
           status: string | null
           tags: string[] | null
           title: string
@@ -207,6 +211,7 @@ export type Database = {
           featured?: boolean | null
           id?: string
           image_url?: string | null
+          locale?: string | null
           status?: string | null
           tags?: string[] | null
           title: string
@@ -222,6 +227,7 @@ export type Database = {
           featured?: boolean | null
           id?: string
           image_url?: string | null
+          locale?: string | null
           status?: string | null
           tags?: string[] | null
           title?: string
@@ -344,6 +350,7 @@ export type Database = {
           id: string
           images: string[] | null
           links: Json | null
+          locale: string | null
           slug: string
           tech_stack: string[] | null
           title: string
@@ -357,6 +364,7 @@ export type Database = {
           id?: string
           images?: string[] | null
           links?: Json | null
+          locale?: string | null
           slug: string
           tech_stack?: string[] | null
           title: string
@@ -370,6 +378,7 @@ export type Database = {
           id?: string
           images?: string[] | null
           links?: Json | null
+          locale?: string | null
           slug?: string
           tech_stack?: string[] | null
           title?: string
@@ -428,6 +437,7 @@ export type Database = {
           description: string
           icon: string | null
           id: string
+          locale: string | null
           title: string
           updated_at: string
         }
@@ -436,6 +446,7 @@ export type Database = {
           description: string
           icon?: string | null
           id?: string
+          locale?: string | null
           title: string
           updated_at?: string
         }
@@ -444,6 +455,7 @@ export type Database = {
           description?: string
           icon?: string | null
           id?: string
+          locale?: string | null
           title?: string
           updated_at?: string
         }
@@ -478,6 +490,7 @@ export type Database = {
           created_at: string
           id: string
           image: string | null
+          locale: string | null
           name: string
           position: string
           testimonial: string
@@ -487,6 +500,7 @@ export type Database = {
           created_at?: string
           id?: string
           image?: string | null
+          locale?: string | null
           name: string
           position: string
           testimonial: string
@@ -496,6 +510,7 @@ export type Database = {
           created_at?: string
           id?: string
           image?: string | null
+          locale?: string | null
           name?: string
           position?: string
           testimonial?: string
@@ -540,10 +555,10 @@ export type Database = {
       create_audit_log: {
         Args: {
           _action: string
-          _table_name: string
-          _record_id?: string
-          _old_values?: Json
           _new_values?: Json
+          _old_values?: Json
+          _record_id?: string
+          _table_name: string
         }
         Returns: undefined
       }
@@ -553,17 +568,17 @@ export type Database = {
       }
       has_role: {
         Args: {
-          _user_id: string
           _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
         }
         Returns: boolean
       }
       track_page_view: {
         Args: {
-          page_path: string
-          visitor: string
-          referrer: string
           agent: string
+          page_path: string
+          referrer: string
+          visitor: string
         }
         Returns: string
       }
