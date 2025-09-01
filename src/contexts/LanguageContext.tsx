@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 export type Language = 'fr' | 'en' | 'ht';
@@ -33,36 +34,75 @@ const detectBrowserLanguage = (): Language => {
   return 'fr'; // Default to French
 };
 
+// Validate language function
+const validateLanguage = (lang: any): Language => {
+  return ['fr', 'en', 'ht'].includes(lang) ? lang : 'fr';
+};
+
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
   const [language, setLanguage] = useState<Language>('fr');
+  const [translations, setTranslations] = useState<Record<string, Record<string, string>>>({});
 
   useEffect(() => {
-    // First check localStorage, then browser language, then default
-    const savedLanguage = localStorage.getItem('language') as Language;
-    if (savedLanguage && ['fr', 'en', 'ht'].includes(savedLanguage)) {
-      setLanguage(savedLanguage);
+    // Load translations
+    const loadTranslations = async () => {
+      try {
+        const [enTranslations, frTranslations, htTranslations] = await Promise.all([
+          fetch('/locales/en/translation.json').then(r => r.json()).catch(() => ({})),
+          fetch('/locales/fr/translation.json').then(r => r.json()).catch(() => ({})),
+          fetch('/locales/ht/translation.json').then(r => r.json()).catch(() => ({}))
+        ]);
+
+        setTranslations({
+          en: enTranslations,
+          fr: frTranslations,
+          ht: htTranslations
+        });
+      } catch (error) {
+        console.warn('Failed to load translations:', error);
+        // Fallback to embedded translations
+        setTranslations(embeddedTranslations);
+      }
+    };
+
+    loadTranslations();
+
+    // Initialize language from localStorage or browser detection
+    const savedLanguage = localStorage.getItem('i18n-lang') || localStorage.getItem('language');
+    if (savedLanguage) {
+      const validLang = validateLanguage(savedLanguage);
+      setLanguage(validLang);
     } else {
       const detectedLanguage = detectBrowserLanguage();
       setLanguage(detectedLanguage);
-      localStorage.setItem('language', detectedLanguage);
+      localStorage.setItem('i18n-lang', detectedLanguage);
     }
   }, []);
 
   const handleSetLanguage = (lang: Language) => {
-    setLanguage(lang);
-    localStorage.setItem('language', lang);
+    const validLang = validateLanguage(lang);
+    setLanguage(validLang);
+    localStorage.setItem('i18n-lang', validLang);
     
     // Update document language attribute for accessibility and SEO
     if (typeof document !== 'undefined') {
-      document.documentElement.lang = lang;
+      document.documentElement.lang = validLang;
     }
   };
 
   const t = (key: string): string => {
-    const translation = translations[language]?.[key] || translations.fr[key] || key;
+    // First try current language, then fallback to French, then English, then return key
+    const currentTranslations = translations[language] || embeddedTranslations[language] || {};
+    const frenchTranslations = translations.fr || embeddedTranslations.fr || {};
+    const englishTranslations = translations.en || embeddedTranslations.en || {};
+    
+    const translation = currentTranslations[key] || 
+                       frenchTranslations[key] || 
+                       englishTranslations[key] || 
+                       key;
     
     // Log missing translations in development
-    if (process.env.NODE_ENV === 'development' && !translations[language]?.[key]) {
+    if (process.env.NODE_ENV === 'development' && !currentTranslations[key]) {
       console.warn(`Missing translation for key "${key}" in language "${language}"`);
     }
     
@@ -92,7 +132,8 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
   );
 };
 
-const translations = {
+// Embedded fallback translations (in case external files fail to load)
+const embeddedTranslations = {
   fr: {
     // Navigation
     'nav.home': 'Accueil',
@@ -174,6 +215,7 @@ const translations = {
     'common.next': 'Suivant',
     'common.page': 'Page',
     'common.of': 'sur',
+    'common.changeLanguage': 'Changer de langue',
     
     // 404 Page
     '404.title': 'Page non trouvée',
@@ -266,6 +308,7 @@ const translations = {
     'common.next': 'Next',
     'common.page': 'Page',
     'common.of': 'of',
+    'common.changeLanguage': 'Change language',
     
     // 404 Page
     '404.title': 'Page Not Found',
@@ -358,6 +401,7 @@ const translations = {
     'common.next': 'Pwochen',
     'common.page': 'Paj',
     'common.of': 'sou',
+    'common.changeLanguage': 'Chanje lang',
     
     // 404 Page
     '404.title': 'Paj la pa jwenn',

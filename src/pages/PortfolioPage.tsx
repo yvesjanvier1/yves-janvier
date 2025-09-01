@@ -27,11 +27,12 @@ interface Project {
   }[];
   featured: boolean;
   created_at: string;
+  locale?: string;
 }
 
 const PortfolioPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   
   const [categories, setCategories] = useState<string[]>([]);
   const [availableTags, setAvailableTags] = useState<string[]>([]);
@@ -46,7 +47,7 @@ const PortfolioPage = () => {
   
   useEffect(() => {
     fetchProjects();
-  }, [selectedCategory, selectedTag, sortBy, searchTerm]);
+  }, [selectedCategory, selectedTag, sortBy, searchTerm, language]);
 
   const fetchProjects = async () => {
     try {
@@ -56,6 +57,11 @@ const PortfolioPage = () => {
       let query = supabase
         .from("portfolio_projects")
         .select("*");
+
+      // Apply locale filter if locale column exists (fallback to all if not)
+      if (language) {
+        query = query.or(`locale.eq.${language},locale.is.null`);
+      }
 
       // Apply category filter
       if (selectedCategory !== "all") {
@@ -127,8 +133,8 @@ const PortfolioPage = () => {
       }
     } catch (err) {
       console.error("Error fetching projects:", err);
-      setError("Failed to load projects");
-      toast.error("Failed to load projects");
+      setError(t('portfolio.noProjectsMessage'));
+      toast.error(t('portfolio.noProjectsMessage'));
     } finally {
       setIsLoading(false);
     }
@@ -150,8 +156,8 @@ const PortfolioPage = () => {
     <ResponsiveContainer className="py-16 md:py-24">
       <AnimatedSection>
         <SectionHeader
-          title={t('portfolio.title') || "Portfolio"}
-          subtitle={t('portfolio.subtitle') || "A showcase of my work and projects"}
+          title={t('portfolio.title')}
+          subtitle={t('portfolio.subtitle')}
           centered
         />
       </AnimatedSection>
@@ -162,7 +168,7 @@ const PortfolioPage = () => {
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search projects..."
+              placeholder={t('portfolio.searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => updateSearchParams("search", e.target.value)}
               className="pl-10 max-w-sm"
@@ -171,11 +177,11 @@ const PortfolioPage = () => {
           
           <div className="flex gap-2 flex-wrap">
             <Select value={selectedCategory} onValueChange={(value) => updateSearchParams("category", value)}>
-              <SelectTrigger className="w-32">
-                <SelectValue placeholder="Category" />
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder={t('portfolio.category')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
+                <SelectItem value="all">{t('portfolio.allCategories')}</SelectItem>
                 {categories.map((category) => (
                   <SelectItem key={category} value={category}>{category}</SelectItem>
                 ))}
@@ -187,7 +193,7 @@ const PortfolioPage = () => {
                 <SelectValue placeholder="Tech" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Tech</SelectItem>
+                <SelectItem value="all">{t('portfolio.allTech')}</SelectItem>
                 {availableTags.map((tag) => (
                   <SelectItem key={tag} value={tag}>{tag}</SelectItem>
                 ))}
@@ -195,13 +201,13 @@ const PortfolioPage = () => {
             </Select>
 
             <Select value={sortBy} onValueChange={(value) => updateSearchParams("sort", value)}>
-              <SelectTrigger className="w-32">
-                <SelectValue placeholder="Sort" />
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder={t('common.sort')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="featured">Featured First</SelectItem>
-                <SelectItem value="date">By Date</SelectItem>
-                <SelectItem value="title">By Title</SelectItem>
+                <SelectItem value="featured">{t('portfolio.featuredFirst')}</SelectItem>
+                <SelectItem value="date">{t('portfolio.byDate')}</SelectItem>
+                <SelectItem value="title">{t('portfolio.byTitle')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -219,13 +225,13 @@ const PortfolioPage = () => {
       ) : error ? (
         <AnimatedSection>
           <div className="text-center py-16">
-            <h3 className="text-xl font-medium mb-2">Error Loading Projects</h3>
+            <h3 className="text-xl font-medium mb-2">{t('common.error')}</h3>
             <p className="text-muted-foreground mb-4">{error}</p>
             <button 
               onClick={fetchProjects}
               className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90"
             >
-              Try Again
+              {t('common.retry')}
             </button>
           </div>
         </AnimatedSection>
@@ -246,7 +252,7 @@ const PortfolioPage = () => {
                     ? project.images[0] 
                     : "/placeholder.svg",
                   tags: project.tech_stack || [],
-                  category: project.category || "Project"
+                  category: project.category || t('portfolio.title')
                 }}
               />
             </AnimatedSection>
@@ -255,10 +261,10 @@ const PortfolioPage = () => {
       ) : (
         <AnimatedSection>
           <div className="text-center py-16">
-            <h3 className="text-xl font-medium mb-2">No Projects Found</h3>
+            <h3 className="text-xl font-medium mb-2">{t('portfolio.noProjectsFound')}</h3>
             <p className="text-muted-foreground">
               {searchTerm || selectedCategory !== "all" || selectedTag !== "all" 
-                ? "Try adjusting your search criteria or filters." 
+                ? t('portfolio.noProjectsMessage')
                 : "Check back soon for new projects."}
             </p>
           </div>
