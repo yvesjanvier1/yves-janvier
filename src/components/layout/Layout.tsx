@@ -1,7 +1,7 @@
 
 import { Outlet } from "react-router-dom";
-import { Navbar } from "./Navbar";
-import { Footer } from "./Footer";
+import Navbar from "./Navbar";
+import Footer from "./Footer";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 import { LanguageProvider } from "@/contexts/LanguageContext";
@@ -10,7 +10,7 @@ import { CookieConsentBanner } from "@/components/ui/cookie-consent-banner";
 import { ExitIntentModal } from "@/components/modals/ExitIntentModal";
 import PageViewTracker from "@/components/PageViewTracker";
 import { PerformanceTracker } from "@/components/analytics/PerformanceTracker";
-import { SkipNavigation } from "@/components/accessibility/SkipNavigation";
+import SkipNavigation from "@/components/accessibility/SkipNavigation";
 import { SEOInternational } from "@/components/seo/SEOInternational";
 
 export const Layout = () => {
@@ -28,8 +28,8 @@ export const Layout = () => {
             <Footer />
           </div>
           <Toaster />
-          <CookieConsentBanner />
-          <ExitIntentModal />
+          <CookieConsentBanner onConsent={() => {}} />
+          <ExitIntentModal isOpen={false} onClose={() => {}} />
           <PageViewTracker />
           <PerformanceTracker />
         </SecurityProvider>

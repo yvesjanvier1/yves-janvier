@@ -1,11 +1,12 @@
 
 import { useLocation } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { Helmet } from 'react-helmet-async';
 
 export const SEOInternational = () => {
   const { language } = useLanguage();
   const location = useLocation();
-  const baseUrl = 'https://yvesjanvier.com'; // Replace with actual domain
+  const baseUrl = import.meta.env.VITE_BASE_URL || 'https://yvesjanvier.com';
   const path = location.pathname;
 
   const alternates = [
