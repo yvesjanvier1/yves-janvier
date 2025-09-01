@@ -8,7 +8,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import { SecurityProvider } from "@/components/security/SecurityProvider";
 import { CookieConsentBanner } from "@/components/ui/cookie-consent-banner";
 import { ExitIntentModal } from "@/components/modals/ExitIntentModal";
-import PageViewTracker from "@/components/PageViewTracker";
+import { PageViewTracker } from "@/components/PageViewTracker";
 import { PerformanceTracker } from "@/components/analytics/PerformanceTracker";
 import SkipNavigation from "@/components/accessibility/SkipNavigation";
 import { SEOInternational } from "@/components/seo/SEOInternational";

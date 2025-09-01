@@ -16,7 +16,7 @@ export const SEOInternational = () => {
   ];
 
   return (
-    <>
+    <Helmet>
       {alternates.map(({ lang, href }) => (
         <link
           key={lang}
@@ -27,6 +27,6 @@ export const SEOInternational = () => {
       ))}
       <link rel="alternate" hrefLang="x-default" href={`${baseUrl}/fr${path}`} />
       <meta name="language" content={language} />
-    </>
+    </Helmet>
   );
 };

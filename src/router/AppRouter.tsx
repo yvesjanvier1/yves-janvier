@@ -1,30 +1,32 @@
+
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Layout } from "@/components/layout/Layout";
-import Home from "@/pages/Home";
-import About from "@/pages/About";
-import Contact from "@/pages/Contact";
-import Blog from "@/pages/Blog";
-import Portfolio from "@/pages/Portfolio";
-import Services from "@/pages/Services";
-import Journal from "@/pages/Journal";
-import Now from "@/pages/Now";
-import Resources from "@/pages/Resources";
-import ErrorPage from "@/pages/ErrorPage";
-import ComingSoon from "@/pages/ComingSoon";
+import Home from "@/pages/HomePage";
+import About from "@/pages/AboutPage";
+import Contact from "@/pages/ContactPage";
+import Blog from "@/pages/BlogPage";
+import Portfolio from "@/pages/PortfolioPage";
+import Services from "@/pages/Index";
+import Journal from "@/pages/JournalPage";
+import Now from "@/pages/NowPage";
+import Resources from "@/pages/ResourcesPage";
+import ErrorPage from "@/pages/NotFound";
+import ComingSoon from "@/pages/Index";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import Dashboard from "@/pages/dashboard/Dashboard";
-import DashboardBlog from "@/pages/dashboard/DashboardBlog";
-import DashboardPortfolio from "@/pages/dashboard/DashboardPortfolio";
-import DashboardJournal from "@/pages/dashboard/DashboardJournal";
-import DashboardNow from "@/pages/dashboard/DashboardNow";
-import DashboardTestimonials from "@/pages/dashboard/DashboardTestimonials";
-import DashboardServices from "@/pages/dashboard/DashboardServices";
-import DashboardResources from "@/pages/dashboard/DashboardResources";
-import DashboardAbout from "@/pages/dashboard/DashboardAbout";
-import DashboardMessages from "@/pages/dashboard/DashboardMessages";
-import DashboardAnalytics from "@/pages/dashboard/DashboardAnalytics";
-import Login from "@/pages/Login";
+import Dashboard from "@/pages/dashboard/DashboardHomePage";
+import DashboardBlog from "@/pages/dashboard/BlogManagePage";
+import DashboardPortfolio from "@/pages/dashboard/PortfolioManagePage";
+import DashboardJournal from "@/pages/dashboard/JournalManagePage";
+import DashboardNow from "@/pages/dashboard/NowManagePage";
+import DashboardTestimonials from "@/pages/dashboard/TestimonialsManagePage";
+import DashboardServices from "@/pages/dashboard/ServicesManagePage";
+import DashboardResources from "@/pages/dashboard/ResourcesManagePage";
+import DashboardAbout from "@/pages/dashboard/AboutManagePage";
+import DashboardMessages from "@/pages/dashboard/MessagesPage";
+import DashboardAnalytics from "@/pages/dashboard/AnalyticsPage";
+import Login from "@/pages/DashboardLoginPage";
+import { Outlet } from "react-router-dom";
 
 const queryClient = new QueryClient();
 
@@ -80,7 +82,7 @@ const router = createBrowserRouter([
       },
       {
         path: "/dashboard",
-        element: <DashboardLayout />,
+        element: <DashboardLayout><Outlet /></DashboardLayout>,
         children: [
           {
             path: "/dashboard",
