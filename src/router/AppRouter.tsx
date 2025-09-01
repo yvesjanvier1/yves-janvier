@@ -1,6 +1,5 @@
 
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Routes, Route } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import Home from "@/pages/HomePage";
 import About from "@/pages/AboutPage";
@@ -26,118 +25,39 @@ import DashboardAbout from "@/pages/dashboard/AboutManagePage";
 import DashboardMessages from "@/pages/dashboard/MessagesPage";
 import DashboardAnalytics from "@/pages/dashboard/AnalyticsPage";
 import Login from "@/pages/DashboardLoginPage";
-import { Outlet } from "react-router-dom";
-
-const queryClient = new QueryClient();
-
-const router = createBrowserRouter([
-  {
-    path: "/",
-    element: <Layout />,
-    errorElement: <ErrorPage />,
-    children: [
-      {
-        path: "/",
-        element: <Home />,
-      },
-      {
-        path: "/about",
-        element: <About />,
-      },
-      {
-        path: "/contact",
-        element: <Contact />,
-      },
-      {
-        path: "/content/blog",
-        element: <Blog />,
-      },
-      {
-        path: "/work",
-        element: <Portfolio />,
-      },
-      {
-        path: "/services",
-        element: <Services />,
-      },
-      {
-        path: "/content/journal",
-        element: <Journal />,
-      },
-      {
-        path: "/content/now",
-        element: <Now />,
-      },
-      {
-        path: "/resources",
-        element: <Resources />,
-      },
-      {
-        path: "/coming-soon",
-        element: <ComingSoon />,
-      },
-      {
-        path: "/login",
-        element: <Login />,
-      },
-      {
-        path: "/dashboard",
-        element: <DashboardLayout><Outlet /></DashboardLayout>,
-        children: [
-          {
-            path: "/dashboard",
-            element: <Dashboard />,
-          },
-          {
-            path: "/dashboard/blog",
-            element: <DashboardBlog />,
-          },
-          {
-            path: "/dashboard/portfolio",
-            element: <DashboardPortfolio />,
-          },
-          {
-            path: "/dashboard/journal",
-            element: <DashboardJournal />,
-          },
-          {
-            path: "/dashboard/now",
-            element: <DashboardNow />,
-          },
-          {
-            path: "/dashboard/testimonials",
-            element: <DashboardTestimonials />,
-          },
-          {
-            path: "/dashboard/services",
-            element: <DashboardServices />,
-          },
-          {
-            path: "/dashboard/resources",
-            element: <DashboardResources />,
-          },
-          {
-            path: "/dashboard/about",
-            element: <DashboardAbout />,
-          },
-          {
-            path: "/dashboard/messages",
-            element: <DashboardMessages />,
-          },
-          {
-            path: "/dashboard/analytics",
-            element: <DashboardAnalytics />,
-          },
-        ],
-      },
-    ],
-  },
-]);
 
 export default function AppRouter() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>
+    <Routes>
+      <Route path="/" element={<Layout />}>
+        <Route index element={<Home />} />
+        <Route path="about" element={<About />} />
+        <Route path="contact" element={<Contact />} />
+        <Route path="content/blog" element={<Blog />} />
+        <Route path="work" element={<Portfolio />} />
+        <Route path="services" element={<Services />} />
+        <Route path="content/journal" element={<Journal />} />
+        <Route path="content/now" element={<Now />} />
+        <Route path="resources" element={<Resources />} />
+        <Route path="coming-soon" element={<ComingSoon />} />
+        <Route path="login" element={<Login />} />
+      </Route>
+      
+      <Route path="/dashboard" element={<DashboardLayout />}>
+        <Route index element={<Dashboard />} />
+        <Route path="blog" element={<DashboardBlog />} />
+        <Route path="portfolio" element={<DashboardPortfolio />} />
+        <Route path="journal" element={<DashboardJournal />} />
+        <Route path="now" element={<DashboardNow />} />
+        <Route path="testimonials" element={<DashboardTestimonials />} />
+        <Route path="services" element={<DashboardServices />} />
+        <Route path="resources" element={<DashboardResources />} />
+        <Route path="about" element={<DashboardAbout />} />
+        <Route path="messages" element={<DashboardMessages />} />
+        <Route path="analytics" element={<DashboardAnalytics />} />
+      </Route>
+      
+      <Route path="*" element={<ErrorPage />} />
+    </Routes>
   );
 }
