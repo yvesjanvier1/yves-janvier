@@ -33,14 +33,32 @@ export default function AppRouter() {
         <Route index element={<Home />} />
         <Route path="about" element={<About />} />
         <Route path="contact" element={<Contact />} />
-        <Route path="content/blog" element={<Blog />} />
-        <Route path="work" element={<Portfolio />} />
         <Route path="services" element={<Services />} />
+        <Route path="login" element={<Login />} />
+        
+        {/* Work Routes */}
+        <Route path="work" element={<Portfolio />} />
+        <Route path="work/portfolio" element={<Portfolio />} />
+        <Route path="work/projects" element={<ComingSoon />} />
+        
+        {/* Content Routes */}
+        <Route path="content/blog" element={<Blog />} />
         <Route path="content/journal" element={<Journal />} />
         <Route path="content/now" element={<Now />} />
+        
+        {/* Resources Routes */}
         <Route path="resources" element={<Resources />} />
+        <Route path="resources/tools" element={<Resources />} />
+        <Route path="resources/guides" element={<Resources />} />
+        <Route path="resources/downloads" element={<Resources />} />
+        
+        {/* Legacy routes for backward compatibility */}
+        <Route path="portfolio" element={<Portfolio />} />
+        <Route path="blog" element={<Blog />} />
+        <Route path="journal" element={<Journal />} />
+        <Route path="now" element={<Now />} />
+        
         <Route path="coming-soon" element={<ComingSoon />} />
-        <Route path="login" element={<Login />} />
       </Route>
       
       <Route path="/dashboard" element={<DashboardLayout />}>

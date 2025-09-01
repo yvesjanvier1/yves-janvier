@@ -1,8 +1,7 @@
 
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { useLocation } from "react-router-dom";
-import { Menu, X, ChevronDown } from "lucide-react";
+import { Link, NavLink, useLocation } from "react-router-dom";
+import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { LanguageToggle } from "@/components/ui/language-toggle";
@@ -31,14 +30,14 @@ const Navbar = () => {
     work: {
       title: "Work",
       items: [
-        { name: "Portfolio", path: "/work", description: "View my complete portfolio" },
-        { name: "Projects", path: "/work/projects", description: "Featured projects and case studies" },
+        { name: "Portfolio", path: "/work/portfolio", description: "View my complete portfolio" },
+        { name: "Projects", path: "/work/projects", description: "Featured projects and case studies", comingSoon: true },
       ]
     },
     content: {
       title: "Content",
       items: [
-        { name: t('nav.blog'), path: "/content/blog", description: "Latest articles and insights" },
+        { name: t('nav.blog') || "Blog", path: "/content/blog", description: "Latest articles and insights" },
         { name: "Journal", path: "/content/journal", description: "Project updates and activities" },
         { name: "Now", path: "/content/now", description: "What I'm currently working on" },
       ]
@@ -46,23 +45,27 @@ const Navbar = () => {
     resources: {
       title: "Resources",
       items: [
-        { name: "Tools", path: "/resources?category=tools", description: "Useful development tools" },
-        { name: "Guides", path: "/resources?category=guides", description: "Technical guides and tutorials" },
-        { name: "Downloads", path: "/resources", description: "Free resources and downloads" },
+        { name: "Tools", path: "/resources/tools", description: "Useful development tools" },
+        { name: "Guides", path: "/resources/guides", description: "Technical guides and tutorials" },
+        { name: "Downloads", path: "/resources/downloads", description: "Free resources and downloads" },
       ]
     },
     about: {
       title: "About",
       items: [
-        { name: t('nav.about'), path: "/about", description: "Learn more about me" },
+        { name: t('nav.about') || "About", path: "/about", description: "Learn more about me" },
         { name: "Resume", path: "/about#resume", description: "Professional experience" },
-        { name: t('nav.contact'), path: "/contact", description: "Get in touch" },
+        { name: t('nav.contact') || "Contact", path: "/contact", description: "Get in touch" },
       ]
     }
   };
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
+  };
+
+  const closeMenu = () => {
+    setIsOpen(false);
   };
 
   // Close mobile menu when route changes
@@ -103,6 +106,14 @@ const Navbar = () => {
     return location.pathname === itemPath || location.pathname.startsWith(itemPath + '/');
   };
 
+  const handleItemClick = (item: any) => {
+    if (item.comingSoon) {
+      alert("Coming soon! This feature is under development.");
+      return;
+    }
+    closeMenu();
+  };
+
   return (
     <nav 
       id="navigation" 
@@ -116,18 +127,18 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-2">
-            <Link
+            <NavLink
               to="/"
-              className={cn(
+              className={({ isActive }) => cn(
                 navigationMenuTriggerStyle(),
                 "text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
-                location.pathname === "/" 
+                isActive
                   ? "text-primary font-semibold bg-primary/10" 
                   : "text-foreground/80 hover:text-foreground hover:bg-muted/50"
               )}
             >
               Home
-            </Link>
+            </NavLink>
 
             <NavigationMenu>
               <NavigationMenuList>
@@ -135,7 +146,7 @@ const Navbar = () => {
                   <NavigationMenuItem key={key}>
                     <NavigationMenuTrigger 
                       className={cn(
-                        isActiveSection(`/${key === 'work' ? 'work' : key === 'content' ? 'content' : key}`) 
+                        isActiveSection(`/${key === 'work' ? 'work' : key === 'content' ? 'content' : key === 'resources' ? 'resources' : key}`) 
                           ? "text-primary font-semibold bg-primary/10" 
                           : "text-foreground/80"
                       )}
@@ -143,23 +154,36 @@ const Navbar = () => {
                       {section.title}
                     </NavigationMenuTrigger>
                     <NavigationMenuContent>
-                      <div className="w-64 p-4 bg-background/95 backdrop-blur-md border border-border/50 rounded-lg shadow-lg">
+                      <div className="w-64 p-4 bg-background/95 backdrop-blur-md border border-border/50 rounded-lg shadow-lg z-50">
                         <ul className="space-y-2">
                           {section.items.map((item) => (
                             <li key={item.path}>
                               <NavigationMenuLink asChild>
-                                <Link
-                                  to={item.path}
-                                  className={cn(
-                                    "block p-3 rounded-md transition-colors hover:bg-muted/50",
-                                    isActiveItem(item.path) 
-                                      ? "text-primary font-medium bg-primary/10" 
-                                      : "text-foreground/80 hover:text-foreground"
-                                  )}
-                                >
-                                  <div className="font-medium">{item.name}</div>
-                                  <div className="text-sm text-muted-foreground">{item.description}</div>
-                                </Link>
+                                {item.comingSoon ? (
+                                  <button
+                                    onClick={() => handleItemClick(item)}
+                                    className={cn(
+                                      "block w-full text-left p-3 rounded-md transition-colors hover:bg-muted/50 cursor-pointer",
+                                      "text-foreground/60 hover:text-foreground/80"
+                                    )}
+                                  >
+                                    <div className="font-medium">{item.name} <span className="text-xs text-muted-foreground">(Coming Soon)</span></div>
+                                    <div className="text-sm text-muted-foreground">{item.description}</div>
+                                  </button>
+                                ) : (
+                                  <Link
+                                    to={item.path}
+                                    className={cn(
+                                      "block p-3 rounded-md transition-colors hover:bg-muted/50",
+                                      isActiveItem(item.path) 
+                                        ? "text-primary font-medium bg-primary/10" 
+                                        : "text-foreground/80 hover:text-foreground"
+                                    )}
+                                  >
+                                    <div className="font-medium">{item.name}</div>
+                                    <div className="text-sm text-muted-foreground">{item.description}</div>
+                                  </Link>
+                                )}
                               </NavigationMenuLink>
                             </li>
                           ))}
@@ -207,18 +231,18 @@ const Navbar = () => {
             aria-label="Mobile navigation menu"
           >
             <div className="px-4 py-6 space-y-4 max-h-[calc(100vh-4rem)] overflow-y-auto">
-              <Link
+              <NavLink
                 to="/"
-                className={cn(
-                  "block px-4 py-3 rounded-lg text-base font-medium transition-colors",
-                  location.pathname === "/"
+                onClick={closeMenu}
+                className={({ isActive }) => cn(
+                  "block px-4 py-3 rounded-lg text-base font-medium transition-colors min-h-[48px] flex items-center",
+                  isActive
                     ? "text-primary font-semibold bg-primary/10"
                     : "text-foreground/80 hover:text-foreground hover:bg-muted/50"
                 )}
-                onClick={() => setIsOpen(false)}
               >
                 Home
-              </Link>
+              </NavLink>
 
               {Object.entries(navigationItems).map(([key, section]) => (
                 <div key={key} className="space-y-2">
@@ -226,20 +250,34 @@ const Navbar = () => {
                     {section.title}
                   </div>
                   {section.items.map((item) => (
-                    <Link
-                      key={item.path}
-                      to={item.path}
-                      className={cn(
-                        "block px-6 py-3 rounded-lg text-base transition-colors",
-                        isActiveItem(item.path)
-                          ? "text-primary font-medium bg-primary/10"
-                          : "text-foreground/80 hover:text-foreground hover:bg-muted/50"
+                    <div key={item.path}>
+                      {item.comingSoon ? (
+                        <button
+                          onClick={() => handleItemClick(item)}
+                          className={cn(
+                            "block w-full text-left px-6 py-3 rounded-lg text-base transition-colors min-h-[48px]",
+                            "text-foreground/60 hover:text-foreground/80 hover:bg-muted/50"
+                          )}
+                        >
+                          <div className="font-medium">{item.name} <span className="text-xs text-muted-foreground">(Coming Soon)</span></div>
+                          <div className="text-sm text-muted-foreground">{item.description}</div>
+                        </button>
+                      ) : (
+                        <NavLink
+                          to={item.path}
+                          onClick={closeMenu}
+                          className={({ isActive }) => cn(
+                            "block px-6 py-3 rounded-lg text-base transition-colors min-h-[48px]",
+                            isActive
+                              ? "text-primary font-medium bg-primary/10"
+                              : "text-foreground/80 hover:text-foreground hover:bg-muted/50"
+                          )}
+                        >
+                          <div className="font-medium">{item.name}</div>
+                          <div className="text-sm text-muted-foreground">{item.description}</div>
+                        </NavLink>
                       )}
-                      onClick={() => setIsOpen(false)}
-                    >
-                      <div className="font-medium">{item.name}</div>
-                      <div className="text-sm text-muted-foreground">{item.description}</div>
-                    </Link>
+                    </div>
                   ))}
                 </div>
               ))}

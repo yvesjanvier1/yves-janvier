@@ -50,17 +50,17 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/portfolio" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link to="/work/portfolio" className="text-muted-foreground hover:text-foreground transition-colors">
                   Portfolio
                 </Link>
               </li>
               <li>
-                <Link to="/blog" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link to="/content/blog" className="text-muted-foreground hover:text-foreground transition-colors">
                   Blog
                 </Link>
               </li>
               <li>
-                <Link to="/now" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link to="/content/now" className="text-muted-foreground hover:text-foreground transition-colors">
                   Now
                 </Link>
               </li>
@@ -77,30 +77,24 @@ const Footer = () => {
             <h4 className="font-semibold mb-4">Resources</h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link to="/resources" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link to="/resources/downloads" className="text-muted-foreground hover:text-foreground transition-colors">
                   Downloads
                 </Link>
               </li>
               <li>
-                <Link to="/journal" className="text-muted-foreground hover:text-foreground transition-colors">
+                <Link to="/content/journal" className="text-muted-foreground hover:text-foreground transition-colors">
                   Journal
                 </Link>
               </li>
               <li>
-                <a 
-                  href="#"
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Privacy Policy
-                </a>
+                <Link to="/resources/guides" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Guides
+                </Link>
               </li>
               <li>
-                <a 
-                  href="#"
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Terms of Service
-                </a>
+                <Link to="/resources/tools" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Tools
+                </Link>
               </li>
             </ul>
           </div>
