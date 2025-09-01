@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger } from "@/components/ui/sidebar";
 import { LayoutDashboard, FileText, Briefcase, MessageSquare, BarChart2, User, LogOut, MessageCircle, UserRound, BookOpen, TrendingUp, FolderOpen, Clock } from "lucide-react";
 import { useAuth } from "./AuthProvider";
@@ -14,6 +14,7 @@ interface DashboardLayoutProps {
 const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const { user, signOut, isAuthenticated } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const location = useLocation();
 
   // Show loading or redirect if not authenticated
   if (!isAuthenticated) {
@@ -24,6 +25,14 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       </div>
     );
   }
+
+  // Helper function to check if a route is active
+  const isRouteActive = (path: string) => {
+    if (path === "/dashboard") {
+      return location.pathname === "/dashboard";
+    }
+    return location.pathname.startsWith(path);
+  };
 
   return (
     <SidebarProvider defaultOpen={true} open={sidebarOpen} onOpenChange={setSidebarOpen}>
@@ -37,9 +46,8 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           <SidebarContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <NavLink to="/dashboard" end 
-                    className={({ isActive }) => isActive ? "text-primary font-medium" : "text-foreground"}>
+                <SidebarMenuButton asChild isActive={isRouteActive("/dashboard") && location.pathname === "/dashboard"}>
+                  <NavLink to="/dashboard" end>
                     <LayoutDashboard className="w-5 h-5 mr-2" />
                     <span>Dashboard</span>
                   </NavLink>
@@ -47,9 +55,8 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               </SidebarMenuItem>
               
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <NavLink to="/dashboard/blog" 
-                    className={({ isActive }) => isActive ? "text-primary font-medium" : "text-foreground"}>
+                <SidebarMenuButton asChild isActive={isRouteActive("/dashboard/blog")}>
+                  <NavLink to="/dashboard/blog">
                     <FileText className="w-5 h-5 mr-2" />
                     <span>Blog Posts</span>
                   </NavLink>
@@ -57,9 +64,8 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               </SidebarMenuItem>
               
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <NavLink to="/dashboard/portfolio" 
-                    className={({ isActive }) => isActive ? "text-primary font-medium" : "text-foreground"}>
+                <SidebarMenuButton asChild isActive={isRouteActive("/dashboard/portfolio")}>
+                  <NavLink to="/dashboard/portfolio">
                     <Briefcase className="w-5 h-5 mr-2" />
                     <span>Portfolio</span>
                   </NavLink>
@@ -67,9 +73,8 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               </SidebarMenuItem>
               
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <NavLink to="/dashboard/journal" 
-                    className={({ isActive }) => isActive ? "text-primary font-medium" : "text-foreground"}>
+                <SidebarMenuButton asChild isActive={isRouteActive("/dashboard/journal")}>
+                  <NavLink to="/dashboard/journal">
                     <BookOpen className="w-5 h-5 mr-2" />
                     <span>Journal</span>
                   </NavLink>
@@ -77,9 +82,8 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               </SidebarMenuItem>
               
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <NavLink to="/dashboard/now" 
-                    className={({ isActive }) => isActive ? "text-primary font-medium" : "text-foreground"}>
+                <SidebarMenuButton asChild isActive={isRouteActive("/dashboard/now")}>
+                  <NavLink to="/dashboard/now">
                     <Clock className="w-5 h-5 mr-2" />
                     <span>Now Page</span>
                   </NavLink>
@@ -87,9 +91,8 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               </SidebarMenuItem>
               
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <NavLink to="/dashboard/testimonials" 
-                    className={({ isActive }) => isActive ? "text-primary font-medium" : "text-foreground"}>
+                <SidebarMenuButton asChild isActive={isRouteActive("/dashboard/testimonials")}>
+                  <NavLink to="/dashboard/testimonials">
                     <MessageCircle className="w-5 h-5 mr-2" />
                     <span>Testimonials</span>
                   </NavLink>
@@ -97,9 +100,8 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               </SidebarMenuItem>
               
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <NavLink to="/dashboard/services" 
-                    className={({ isActive }) => isActive ? "text-primary font-medium" : "text-foreground"}>
+                <SidebarMenuButton asChild isActive={isRouteActive("/dashboard/services")}>
+                  <NavLink to="/dashboard/services">
                     <Briefcase className="w-5 h-5 mr-2" />
                     <span>Services</span>
                   </NavLink>
@@ -107,9 +109,8 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               </SidebarMenuItem>
               
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <NavLink to="/dashboard/resources" 
-                    className={({ isActive }) => isActive ? "text-primary font-medium" : "text-foreground"}>
+                <SidebarMenuButton asChild isActive={isRouteActive("/dashboard/resources")}>
+                  <NavLink to="/dashboard/resources">
                     <FolderOpen className="w-5 h-5 mr-2" />
                     <span>Resources</span>
                   </NavLink>
@@ -117,9 +118,8 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               </SidebarMenuItem>
               
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <NavLink to="/dashboard/about" 
-                    className={({ isActive }) => isActive ? "text-primary font-medium" : "text-foreground"}>
+                <SidebarMenuButton asChild isActive={isRouteActive("/dashboard/about")}>
+                  <NavLink to="/dashboard/about">
                     <UserRound className="w-5 h-5 mr-2" />
                     <span>About Page</span>
                   </NavLink>
@@ -127,9 +127,8 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               </SidebarMenuItem>
               
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <NavLink to="/dashboard/messages" 
-                    className={({ isActive }) => isActive ? "text-primary font-medium" : "text-foreground"}>
+                <SidebarMenuButton asChild isActive={isRouteActive("/dashboard/messages")}>
+                  <NavLink to="/dashboard/messages">
                     <MessageSquare className="w-5 h-5 mr-2" />
                     <span>Messages</span>
                   </NavLink>
@@ -137,9 +136,8 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               </SidebarMenuItem>
               
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <NavLink to="/dashboard/analytics" 
-                    className={({ isActive }) => isActive ? "text-primary font-medium" : "text-foreground"}>
+                <SidebarMenuButton asChild isActive={isRouteActive("/dashboard/analytics")}>
+                  <NavLink to="/dashboard/analytics">
                     <TrendingUp className="w-5 h-5 mr-2" />
                     <span>Insights & Analytics</span>
                   </NavLink>

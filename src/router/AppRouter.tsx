@@ -1,5 +1,11 @@
+
 import { Routes, Route } from "react-router-dom";
+import { lazy, Suspense } from "react";
 import Layout from "@/components/layout/Layout";
+import DashboardLayout from "@/components/dashboard/DashboardLayout";
+import ProtectedRoute from "@/components/dashboard/ProtectedRoute";
+
+// Public pages
 import HomePage from "@/pages/HomePage";
 import PortfolioPage from "@/pages/PortfolioPage";
 import ProjectDetailPage from "@/pages/ProjectDetailPage";
@@ -11,30 +17,34 @@ import ResourcesPage from "@/pages/ResourcesPage";
 import AboutPage from "@/pages/AboutPage";
 import ContactPage from "@/pages/ContactPage";
 import NotFound from "@/pages/NotFound";
-
-// Dashboard routes
 import DashboardLoginPage from "@/pages/DashboardLoginPage";
-import DashboardPage from "@/pages/DashboardPage";
-import DashboardHomePage from "@/pages/dashboard/DashboardHomePage";
-import BlogManagePage from "@/pages/dashboard/BlogManagePage";
-import BlogFormPage from "@/pages/dashboard/BlogFormPage";
-import PortfolioManagePage from "@/pages/dashboard/PortfolioManagePage";
-import PortfolioFormPage from "@/pages/dashboard/PortfolioFormPage";
-import JournalManagePage from "@/pages/dashboard/JournalManagePage";
-import JournalFormPage from "@/pages/dashboard/JournalFormPage";
-import NowManagePage from "@/pages/dashboard/NowManagePage";
-import TestimonialsManagePage from "@/pages/dashboard/TestimonialsManagePage";
-import TestimonialsFormPage from "@/pages/dashboard/TestimonialsFormPage";
-import ServicesManagePage from "@/pages/dashboard/ServicesManagePage";
-import ServiceFormPage from "@/pages/dashboard/ServiceFormPage";
-import ResourcesManagePage from "@/pages/dashboard/ResourcesManagePage";
-import ResourceFormPage from "@/pages/dashboard/ResourceFormPage";
-import AboutManagePage from "@/pages/dashboard/AboutManagePage";
-import MessagesPage from "@/pages/dashboard/MessagesPage";
-import AnalyticsPage from "@/pages/dashboard/AnalyticsPage";
 
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import ProtectedRoute from "@/components/dashboard/ProtectedRoute";
+// Lazy load dashboard pages for better performance
+const DashboardHomePage = lazy(() => import("@/pages/dashboard/DashboardHomePage"));
+const BlogManagePage = lazy(() => import("@/pages/dashboard/BlogManagePage"));
+const BlogFormPage = lazy(() => import("@/pages/dashboard/BlogFormPage"));
+const PortfolioManagePage = lazy(() => import("@/pages/dashboard/PortfolioManagePage"));
+const PortfolioFormPage = lazy(() => import("@/pages/dashboard/PortfolioFormPage"));
+const JournalManagePage = lazy(() => import("@/pages/dashboard/JournalManagePage"));
+const JournalFormPage = lazy(() => import("@/pages/dashboard/JournalFormPage"));
+const NowManagePage = lazy(() => import("@/pages/dashboard/NowManagePage"));
+const TestimonialsManagePage = lazy(() => import("@/pages/dashboard/TestimonialsManagePage"));
+const TestimonialsFormPage = lazy(() => import("@/pages/dashboard/TestimonialsFormPage"));
+const ServicesManagePage = lazy(() => import("@/pages/dashboard/ServicesManagePage"));
+const ServiceFormPage = lazy(() => import("@/pages/dashboard/ServiceFormPage"));
+const ResourcesManagePage = lazy(() => import("@/pages/dashboard/ResourcesManagePage"));
+const ResourceFormPage = lazy(() => import("@/pages/dashboard/ResourceFormPage"));
+const AboutManagePage = lazy(() => import("@/pages/dashboard/AboutManagePage"));
+const MessagesPage = lazy(() => import("@/pages/dashboard/MessagesPage"));
+const AnalyticsPage = lazy(() => import("@/pages/dashboard/AnalyticsPage"));
+
+// Loading component for Suspense
+const DashboardLoading = () => (
+  <div className="flex items-center justify-center h-64">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+    <span className="ml-2 text-muted-foreground">Loading...</span>
+  </div>
+);
 
 const AppRouter = () => {
   return (
@@ -70,41 +80,68 @@ const AppRouter = () => {
         <Route path="contact" element={<ContactPage />} />
       </Route>
 
-      {/* Dashboard routes */}
+      {/* Dashboard login route (outside protected routes) */}
       <Route path="/dashboard/login" element={<DashboardLoginPage />} />
-      <Route path="/dashboard" element={
+
+      {/* Protected dashboard routes */}
+      <Route path="/dashboard/*" element={
         <ProtectedRoute>
           <DashboardLayout>
-            <Routes>
-              <Route index element={<DashboardHomePage />} />
-              <Route path="blog" element={<BlogManagePage />} />
-              <Route path="blog/new" element={<BlogFormPage />} />
-              <Route path="blog/edit/:id" element={<BlogFormPage />} />
-              <Route path="portfolio" element={<PortfolioManagePage />} />
-              <Route path="portfolio/new" element={<PortfolioFormPage />} />
-              <Route path="portfolio/edit/:id" element={<PortfolioFormPage />} />
-              <Route path="journal" element={<JournalManagePage />} />
-              <Route path="journal/new" element={<JournalFormPage />} />
-              <Route path="journal/edit/:id" element={<JournalFormPage />} />
-              <Route path="now" element={<NowManagePage />} />
-              <Route path="testimonials" element={<TestimonialsManagePage />} />
-              <Route path="testimonials/new" element={<TestimonialsFormPage />} />
-              <Route path="testimonials/edit/:id" element={<TestimonialsFormPage />} />
-              <Route path="services" element={<ServicesManagePage />} />
-              <Route path="services/new" element={<ServiceFormPage />} />
-              <Route path="services/edit/:id" element={<ServiceFormPage />} />
-              <Route path="resources" element={<ResourcesManagePage />} />
-              <Route path="resources/new" element={<ResourceFormPage />} />
-              <Route path="resources/edit/:id" element={<ResourceFormPage />} />
-              <Route path="about" element={<AboutManagePage />} />
-              <Route path="messages" element={<MessagesPage />} />
-              <Route path="analytics" element={<AnalyticsPage />} />
-            </Routes>
+            <Suspense fallback={<DashboardLoading />}>
+              <Routes>
+                <Route index element={<DashboardHomePage />} />
+                
+                {/* Blog Management */}
+                <Route path="blog" element={<BlogManagePage />} />
+                <Route path="blog/new" element={<BlogFormPage />} />
+                <Route path="blog/edit/:id" element={<BlogFormPage />} />
+                
+                {/* Portfolio Management */}
+                <Route path="portfolio" element={<PortfolioManagePage />} />
+                <Route path="portfolio/new" element={<PortfolioFormPage />} />
+                <Route path="portfolio/edit/:id" element={<PortfolioFormPage />} />
+                
+                {/* Journal Management */}
+                <Route path="journal" element={<JournalManagePage />} />
+                <Route path="journal/new" element={<JournalFormPage />} />
+                <Route path="journal/edit/:id" element={<JournalFormPage />} />
+                
+                {/* Now Page Management */}
+                <Route path="now" element={<NowManagePage />} />
+                
+                {/* Testimonials Management */}
+                <Route path="testimonials" element={<TestimonialsManagePage />} />
+                <Route path="testimonials/new" element={<TestimonialsFormPage />} />
+                <Route path="testimonials/edit/:id" element={<TestimonialsFormPage />} />
+                
+                {/* Services Management */}
+                <Route path="services" element={<ServicesManagePage />} />
+                <Route path="services/new" element={<ServiceFormPage />} />
+                <Route path="services/edit/:id" element={<ServiceFormPage />} />
+                
+                {/* Resources Management */}
+                <Route path="resources" element={<ResourcesManagePage />} />
+                <Route path="resources/new" element={<ResourceFormPage />} />
+                <Route path="resources/edit/:id" element={<ResourceFormPage />} />
+                
+                {/* About Management */}
+                <Route path="about" element={<AboutManagePage />} />
+                
+                {/* Messages */}
+                <Route path="messages" element={<MessagesPage />} />
+                
+                {/* Analytics */}
+                <Route path="analytics" element={<AnalyticsPage />} />
+                
+                {/* Dashboard 404 fallback - redirect to dashboard home */}
+                <Route path="*" element={<DashboardHomePage />} />
+              </Routes>
+            </Suspense>
           </DashboardLayout>
         </ProtectedRoute>
       } />
 
-      {/* 404 page */}
+      {/* Global 404 page */}
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
