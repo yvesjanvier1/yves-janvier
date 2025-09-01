@@ -23,17 +23,12 @@ export const useMultilingualData = <T,>({
   return useQuery({
     queryKey: [table, language, filters, orderBy, select],
     queryFn: async () => {
-      let query = supabase.from(table).select(select);
+      // Use any to bypass TypeScript strict typing for dynamic table names
+      let query = (supabase as any).from(table).select(select);
 
-      // Apply language filter if locale column exists
-      // Check if the table has a locale column first
-      const { data: tableInfo } = await supabase
-        .from('information_schema.columns')
-        .select('column_name')
-        .eq('table_name', table)
-        .eq('column_name', 'locale');
-
-      if (tableInfo && tableInfo.length > 0) {
+      // Apply language filter - assume locale column exists for multilingual tables
+      // This is a safe assumption for blog_posts, portfolio_projects, etc.
+      if (['blog_posts', 'portfolio_projects', 'services', 'testimonials'].includes(table)) {
         query = query.eq('locale', language);
       }
 
