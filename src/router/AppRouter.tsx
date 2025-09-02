@@ -37,24 +37,36 @@ export default function AppRouter() {
         <Route path="login" element={<Login />} />
         
         {/* Work Routes */}
-        <Route path="work" element={<Portfolio />} />
-        <Route path="work/portfolio" element={<Portfolio />} />
-        <Route path="work/projects" element={<ComingSoon />} />
+        <Route path="work">
+          <Route index element={<Portfolio />} />
+          <Route path="portfolio" element={<Portfolio />} />
+          <Route path="projects" element={<ComingSoon />} />
+        </Route>
         
         {/* Content Routes */}
-        <Route path="content/blog" element={<Blog />} />
-        <Route path="content/journal" element={<Journal />} />
-        <Route path="content/now" element={<Now />} />
+        <Route path="content">
+          <Route path="blog" element={<Blog />} />
+          <Route path="blog/:slug" element={<Blog />} />
+          <Route path="journal" element={<Journal />} />
+          <Route path="now" element={<Now />} />
+        </Route>
         
         {/* Resources Routes */}
-        <Route path="resources" element={<Resources />} />
-        <Route path="resources/tools" element={<Resources />} />
-        <Route path="resources/guides" element={<Resources />} />
-        <Route path="resources/downloads" element={<Resources />} />
+        <Route path="resources">
+          <Route index element={<Resources />} />
+          <Route path="tools" element={<Resources />} />
+          <Route path="guides" element={<Resources />} />
+          <Route path="downloads" element={<Resources />} />
+        </Route>
+        
+        {/* Work Routes - Project Details */}
+        <Route path="work/portfolio/:slug" element={<Portfolio />} />
         
         {/* Legacy routes for backward compatibility */}
         <Route path="portfolio" element={<Portfolio />} />
+        <Route path="portfolio/:slug" element={<Portfolio />} />
         <Route path="blog" element={<Blog />} />
+        <Route path="blog/:slug" element={<Blog />} />
         <Route path="journal" element={<Journal />} />
         <Route path="now" element={<Now />} />
         

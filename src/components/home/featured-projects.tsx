@@ -61,7 +61,7 @@ export const FeaturedProjects = () => {
 
         <div className="mt-12 text-center">
           <Button asChild variant="outline" size="lg">
-            <Link to="/portfolio">{t('portfolio.viewAll')}</Link>
+            <Link to="/work/portfolio">{t('portfolio.viewAll')}</Link>
           </Button>
         </div>
       </div>
