@@ -120,9 +120,9 @@ const HeroSection = () => {
               transition={{ delay: 1.2, duration: 0.8 }}
             >
               {[
-                { number: "50+", label: "Projects Completed" },
-                { number: "5+", label: "Years Experience" },
-                { number: "100%", label: "Client Satisfaction" }
+                { number: "50+", label: t('hero.stats.projectsCompleted') },
+                { number: "5+", label: t('hero.stats.yearsExperience') },
+                { number: "100%", label: t('hero.stats.clientSatisfaction') }
               ].map((stat, index) => (
                 <div key={index} className="text-center glass-card p-4 hover-scale">
                   <div className="text-2xl font-bold text-gradient-accent mb-1">
@@ -146,7 +146,7 @@ const HeroSection = () => {
         transition={{ delay: 2, duration: 0.6 }}
       >
         <div className="flex flex-col items-center">
-          <span className="text-xs text-muted-foreground mb-2 uppercase tracking-wider">Scroll Down</span>
+          <span className="text-xs text-muted-foreground mb-2 uppercase tracking-wider">{t('hero.stats.scrollDown')}</span>
           <div className="w-6 h-10 border-2 border-primary/30 rounded-full flex justify-center">
             <div className="w-1 h-3 bg-primary rounded-full mt-2 animate-bounce" />
           </div>

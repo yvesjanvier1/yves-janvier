@@ -103,7 +103,67 @@
   "dashboard.messages": "Messages",
   "dashboard.analytics": "Analyses",
   
-  "language.english": "English",
-  "language.french": "Français",
-  "language.haitian": "Kreyòl Ayisyen"
+  "about": {
+    "title": "À Propos",
+    "subtitle": "Découvrez mon parcours, mes compétences et mon expertise",
+    "loading": "Chargement des données du profil...",
+    "notAvailable": "Les données de la page À propos ne sont pas disponibles.",
+    "skillsTitle": "Compétences Techniques & Expertise",
+    "journeyTitle": "Parcours Professionnel",
+    "downloadResume": "Télécharger CV",
+    "linkedin": "LinkedIn",
+    "github": "GitHub",
+    "emailMe": "M'envoyer un email"
+  },
+  
+  "hero": {
+    "greeting": "Bonjour, je suis",
+    "title": "Expert Data & Tech",
+    "subtitle": "Spécialisé dans la transformation de données complexes en insights actionnables et la création de solutions technologiques innovantes.",
+    "cta": {
+      "portfolio": "Voir mon travail",
+      "contact": "Prenons contact"
+    },
+    "stats": {
+      "projectsCompleted": "Projets Réalisés",
+      "yearsExperience": "Années d'Expérience", 
+      "clientSatisfaction": "Satisfaction Client",
+      "scrollDown": "Faire défiler"
+    }
+  },
+  
+  "resources": {
+    "tools": {
+      "title": "Outils",
+      "description": "Outils de développement utiles"
+    },
+    "guides": {
+      "title": "Guides", 
+      "description": "Guides techniques et tutoriels"
+    },
+    "downloads": {
+      "title": "Téléchargements",
+      "description": "Ressources et téléchargements gratuits"
+    }
+  },
+  
+  "nav": {
+    "home": "Accueil",
+    "portfolio": "Portfolio", 
+    "blog": "Blog",
+    "about": "À propos",
+    "contact": "Contact",
+    "work": "Travail",
+    "descriptions": {
+      "aboutMe": "En savoir plus sur moi",
+      "resume": "Expérience professionnelle",
+      "getInTouch": "Prendre contact"
+    }
+  },
+
+  "language": {
+    "english": "English",
+    "french": "Français",
+    "haitian": "Kreyòl Ayisyen"
+  }
 }

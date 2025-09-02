@@ -103,7 +103,67 @@
   "dashboard.messages": "Mesaj yo",
   "dashboard.analytics": "Analitik",
   
-  "language.english": "English",
-  "language.french": "Français", 
-  "language.haitian": "Kreyòl Ayisyen"
+  "about": {
+    "title": "Sou Mwen",
+    "subtitle": "Aprann plis sou antesèdan mwen, kapasite mwen ak ekspètiz mwen",
+    "loading": "K ap chaje done pwofil la...",
+    "notAvailable": "Done paj Sou Mwen an pa disponib.",
+    "skillsTitle": "Kapasite Teknik ak Ekspètiz",
+    "journeyTitle": "Chemen Pwofesyonèl",
+    "downloadResume": "Telechaje CV",
+    "linkedin": "LinkedIn",
+    "github": "GitHub",
+    "emailMe": "Voye yon imèl"
+  },
+  
+  "hero": {
+    "greeting": "Bonjou, mwen se",
+    "title": "Ekspè nan Done ak Teknoloji",
+    "subtitle": "Mwen spesyaliste nan transfòme done konplèks yo nan ensèt ki ka itilize ak kreye solisyon teknolojik inovatè yo.",
+    "cta": {
+      "portfolio": "Gade travay mwen",
+      "contact": "Kontakte mwen"
+    },
+    "stats": {
+      "projectsCompleted": "Pwojè Ki Fini",
+      "yearsExperience": "Ane Ekspèyans", 
+      "clientSatisfaction": "Satisfaksyon Klyan",
+      "scrollDown": "Desann"
+    }
+  },
+  
+  "resources": {
+    "tools": {
+      "title": "Zouti",
+      "description": "Zouti devlopman itil yo"
+    },
+    "guides": {
+      "title": "Gid", 
+      "description": "Gid teknik ak tutorial yo"
+    },
+    "downloads": {
+      "title": "Telechajman",
+      "description": "Resous ak telechajman gratis yo"
+    }
+  },
+  
+  "nav": {
+    "home": "Lakay",
+    "portfolio": "Travay yo",
+    "blog": "Blog",
+    "about": "Konsènan",
+    "contact": "Kontak",
+    "work": "Travay",
+    "descriptions": {
+      "aboutMe": "Aprann plis sou mwen",
+      "resume": "Ekspèyans pwofesyonèl",
+      "getInTouch": "Pran kontak"
+    }
+  },
+
+  "language": {
+    "english": "English",
+    "french": "Français", 
+    "haitian": "Kreyòl Ayisyen"
+  }
 }

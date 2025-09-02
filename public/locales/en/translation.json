@@ -103,7 +103,67 @@
   "dashboard.messages": "Messages",
   "dashboard.analytics": "Analytics",
   
-  "language.english": "English",
-  "language.french": "Français",
-  "language.haitian": "Kreyòl Ayisyen"
+  "about": {
+    "title": "About Me",
+    "subtitle": "Learn more about my background, skills, and expertise",
+    "loading": "Loading profile data...",
+    "notAvailable": "About page data not available.",
+    "skillsTitle": "Technical Skills & Expertise",
+    "journeyTitle": "Professional Journey",
+    "downloadResume": "Download Resume",
+    "linkedin": "LinkedIn",
+    "github": "GitHub",
+    "emailMe": "Email Me"
+  },
+  
+  "hero": {
+    "greeting": "Hello, I'm",
+    "title": "Data & Tech Expert",
+    "subtitle": "Specializing in transforming complex data into actionable insights and building innovative tech solutions.",
+    "cta": {
+      "portfolio": "View My Work",
+      "contact": "Get In Touch"
+    },
+    "stats": {
+      "projectsCompleted": "Projects Completed",
+      "yearsExperience": "Years Experience", 
+      "clientSatisfaction": "Client Satisfaction",
+      "scrollDown": "Scroll Down"
+    }
+  },
+  
+  "resources": {
+    "tools": {
+      "title": "Tools",
+      "description": "Useful development tools"
+    },
+    "guides": {
+      "title": "Guides", 
+      "description": "Technical guides and tutorials"
+    },
+    "downloads": {
+      "title": "Downloads",
+      "description": "Free resources and downloads"
+    }
+  },
+  
+  "nav": {
+    "home": "Home",
+    "portfolio": "Portfolio", 
+    "blog": "Blog",
+    "about": "About",
+    "contact": "Contact",
+    "work": "Work",
+    "descriptions": {
+      "aboutMe": "Learn more about me",
+      "resume": "Professional experience",
+      "getInTouch": "Get in touch"
+    }
+  },
+
+  "language": {
+    "english": "English",
+    "french": "Français",
+    "haitian": "Kreyòl Ayisyen"
+  }
 }

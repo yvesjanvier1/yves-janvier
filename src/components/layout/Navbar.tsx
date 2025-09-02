@@ -45,17 +45,17 @@ const Navbar = () => {
     resources: {
       title: "Resources",
       items: [
-        { name: "Tools", path: "/resources/tools", description: "Useful development tools" },
-        { name: "Guides", path: "/resources/guides", description: "Technical guides and tutorials" },
-        { name: "Downloads", path: "/resources/downloads", description: "Free resources and downloads" },
+        { name: t('resources.tools.title'), path: "/resources/tools", description: t('resources.tools.description') },
+        { name: t('resources.guides.title'), path: "/resources/guides", description: t('resources.guides.description') },
+        { name: t('resources.downloads.title'), path: "/resources/downloads", description: t('resources.downloads.description') },
       ]
     },
     about: {
-      title: "About",
+      title: t('nav.about'),
       items: [
-        { name: t('nav.about') || "About", path: "/about", description: "Learn more about me" },
-        { name: "Resume", path: "/about#resume", description: "Professional experience" },
-        { name: t('nav.contact') || "Contact", path: "/contact", description: "Get in touch" },
+        { name: t('nav.about'), path: "/about", description: t('nav.descriptions.aboutMe') },
+        { name: "Resume", path: "/about#resume", description: t('nav.descriptions.resume') },
+        { name: t('nav.contact'), path: "/contact", description: t('nav.descriptions.getInTouch') },
       ]
     }
   };
