@@ -11,7 +11,7 @@ import Journal from "@/pages/JournalPage";
 import Now from "@/pages/NowPage";
 import Resources from "@/pages/ResourcesPage";
 import ErrorPage from "@/pages/NotFound";
-import ComingSoon from "@/pages/Index";
+import ComingSoon from "@/pages/ComingSoonPage";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import Dashboard from "@/pages/dashboard/DashboardHomePage";
 import DashboardBlog from "@/pages/dashboard/BlogManagePage";

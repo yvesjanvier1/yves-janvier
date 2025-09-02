@@ -146,7 +146,7 @@ const Navbar = () => {
                   <NavigationMenuItem key={key}>
                     <NavigationMenuTrigger 
                       className={cn(
-                        isActiveSection(`/${key === 'work' ? 'work' : key === 'content' ? 'content' : key === 'resources' ? 'resources' : key}`) 
+                        isActiveSection(`/${key}`) 
                           ? "text-primary font-semibold bg-primary/10" 
                           : "text-foreground/80"
                       )}
