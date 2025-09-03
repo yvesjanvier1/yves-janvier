@@ -7,6 +7,7 @@ import { ThemeProvider } from "next-themes";
 import { HelmetProvider } from "react-helmet-async";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { SecurityProvider } from "@/components/security/SecurityProvider";
+import { SecurityHeaders } from "@/components/security/SecurityHeaders";
 import { AuthProvider } from "@/components/dashboard/AuthProvider";
 import AppRouter from "@/router/AppRouter";
 
@@ -22,6 +23,7 @@ function App() {
               <SecurityProvider>
                 <BrowserRouter>
                   <AuthProvider>
+                    <SecurityHeaders />
                     <div className="min-h-screen bg-background font-sans antialiased">
                       <AppRouter />
                     </div>

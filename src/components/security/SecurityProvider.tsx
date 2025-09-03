@@ -1,10 +1,10 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { getCSPHeader, checkRateLimit, secureLog } from '@/lib/security';
+import { getCSPHeader, checkRateLimitPersistent, secureLog } from '@/lib/security';
 
 interface SecurityContextType {
   csrfToken: string;
-  checkRateLimit: (identifier: string, maxRequests?: number, windowMs?: number) => boolean;
+  checkRateLimit: (identifier: string, maxRequests?: number, windowMinutes?: number) => Promise<boolean>;
 }
 
 const SecurityContext = createContext<SecurityContextType | undefined>(undefined);
@@ -50,7 +50,7 @@ export const SecurityProvider = ({ children }: { children: React.ReactNode }) =>
 
   const value = {
     csrfToken,
-    checkRateLimit,
+    checkRateLimit: checkRateLimitPersistent,
   };
 
   return (
