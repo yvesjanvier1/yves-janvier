@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Mail, Phone, MapPin, Linkedin, Github, Twitter } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { contactFormSchema, checkRateLimit, sanitizeError } from "@/lib/security";
+import { contactFormSchema, sanitizeError } from "@/lib/security";
 import { z } from "zod";
 
 const ContactPage = () => {
@@ -64,15 +64,26 @@ const ContactPage = () => {
       return;
     }
     
-    // Rate limiting check
-    const clientId = `${formData.email}_${Date.now().toString().slice(0, -3)}0000`; // 5-minute window
-    if (!checkRateLimit(clientId, 3, 300000)) {
-      toast({
-        title: "Too Many Requests",
-        description: "Please wait a few minutes before submitting another message",
-        variant: "destructive"
+    // Persistent rate limiting check using IP and email
+    const identifier = `${formData.email}_${window.location.hostname}`;
+    try {
+      const { data: rateLimitOk } = await supabase.rpc('check_rate_limit_persistent', {
+        p_identifier: identifier,
+        p_max_requests: 3,
+        p_window_minutes: 5
       });
-      return;
+      
+      if (!rateLimitOk) {
+        toast({
+          title: "Too Many Requests",
+          description: "Please wait a few minutes before submitting another message",
+          variant: "destructive"
+        });
+        return;
+      }
+    } catch (error) {
+      console.error("Rate limiting error:", error);
+      // Allow submission if rate limiting fails to avoid blocking legitimate users
     }
     
     setIsSubmitting(true);
