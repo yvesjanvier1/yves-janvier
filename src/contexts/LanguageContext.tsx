@@ -1,5 +1,6 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 
 export type Language = 'fr' | 'en' | 'ht';
 
@@ -40,7 +41,14 @@ const validateLanguage = (lang: any): Language => {
 };
 
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
-  const [language, setLanguage] = useState<Language>('fr');
+  const location = useLocation();
+  const navigate = useNavigate();
+  
+  // Extract language from URL
+  const urlLang = location.pathname.split('/')[1] as Language;
+  const isValidLang = ['en', 'fr', 'ht'].includes(urlLang);
+  
+  const [language, setLanguage] = useState<Language>(isValidLang ? urlLang : 'fr');
   const [translations, setTranslations] = useState<Record<string, Record<string, string>>>({});
 
   useEffect(() => {
@@ -67,27 +75,61 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
 
     loadTranslations();
 
-    // Initialize language from localStorage or browser detection
-    const savedLanguage = localStorage.getItem('i18n-lang') || localStorage.getItem('language');
-    if (savedLanguage) {
-      const validLang = validateLanguage(savedLanguage);
-      setLanguage(validLang);
-    } else {
-      const detectedLanguage = detectBrowserLanguage();
-      setLanguage(detectedLanguage);
-      localStorage.setItem('i18n-lang', detectedLanguage);
+    // Sync language with URL
+    if (isValidLang && urlLang !== language) {
+      setLanguage(urlLang);
+      document.documentElement.lang = urlLang;
+      localStorage.setItem('language', urlLang);
+      // Set locale in Supabase for RLS filtering
+      try {
+        supabase.rpc('set_current_locale', { _locale: urlLang });
+      } catch (error) {
+        console.warn('Failed to set locale:', error);
+      }
+    } else if (!isValidLang) {
+      // Detect and set browser language if URL doesn't have valid language
+      const browserLang = detectBrowserLanguage();
+      const savedLang = localStorage.getItem('language') as Language;
+      const initialLang = validateLanguage(savedLang) || browserLang;
+      
+      setLanguage(initialLang);
+      document.documentElement.lang = initialLang;
+      // Set locale in Supabase for RLS filtering  
+      try {
+        supabase.rpc('set_current_locale', { _locale: initialLang });
+      } catch (error) {
+        console.warn('Failed to set locale:', error);
+      }
     }
-  }, []);
+  }, [location.pathname, urlLang, isValidLang, language]);
 
-  const handleSetLanguage = (lang: Language) => {
-    const validLang = validateLanguage(lang);
-    setLanguage(validLang);
-    localStorage.setItem('i18n-lang', validLang);
+  const handleSetLanguage = (newLanguage: Language) => {
+    setLanguage(newLanguage);
+    localStorage.setItem('language', newLanguage);
     
-    // Update document language attribute for accessibility and SEO
-    if (typeof document !== 'undefined') {
-      document.documentElement.lang = validLang;
+    // Update document language
+    document.documentElement.lang = newLanguage;
+    
+    // Set locale in Supabase for RLS filtering
+    try {
+      supabase.rpc('set_current_locale', { _locale: newLanguage });
+    } catch (error) {
+      console.warn('Failed to set locale:', error);
     }
+    
+    // Update URL to reflect new language
+    const currentPath = location.pathname;
+    const pathSegments = currentPath.split('/');
+    
+    if (isValidLang) {
+      // Replace current language
+      pathSegments[1] = newLanguage;
+    } else {
+      // Add language prefix
+      pathSegments.splice(1, 0, newLanguage);
+    }
+    
+    navigate(pathSegments.join('/'), { replace: true });
   };
 
   const t = (key: string): string => {
@@ -141,6 +183,21 @@ const embeddedTranslations = {
     'nav.blog': 'Blog',
     'nav.about': 'À propos',
     'nav.contact': 'Contact',
+    'nav.work': 'Travail',
+    'nav.content': 'Contenu',
+    'nav.resources': 'Ressources',
+    'nav.journal': 'Journal',
+    'nav.now': 'Maintenant',
+    'nav.projects': 'Projets',
+    'nav.resume': 'CV',
+    'nav.descriptions.portfolio': 'Voir mon portfolio complet',
+    'nav.descriptions.blog': 'Derniers articles et insights',
+    'nav.descriptions.aboutMe': 'En savoir plus sur moi',
+    'nav.descriptions.getInTouch': 'Prendre contact',
+    'nav.descriptions.projects': 'Projets en vedette et études de cas',
+    'nav.descriptions.journal': 'Mises à jour et activités de projet',
+    'nav.descriptions.now': 'Ce sur quoi je travaille actuellement',
+    'nav.descriptions.resume': 'Voir mon CV',
     
     // Hero Section
     'hero.greeting': 'Bonjour, je suis',
@@ -148,84 +205,32 @@ const embeddedTranslations = {
     'hero.subtitle': 'Spécialisé dans la transformation de données complexes en insights exploitables et la création de solutions technologiques innovantes.',
     'hero.cta.portfolio': 'Voir mon travail',
     'hero.cta.contact': 'Me contacter',
+    'hero.stats.projectsCompleted': 'Projets Réalisés',
+    'hero.stats.yearsExperience': 'Années d\'Expérience',
+    'hero.stats.clientSatisfaction': 'Satisfaction Client',
+    'hero.stats.scrollDown': 'Défiler vers le bas',
     
-    // Services
-    'services.title': 'Services',
-    'services.subtitle': 'Solutions complètes de données et de technologie',
-    
-    // Portfolio
-    'portfolio.title': 'Portfolio',
-    'portfolio.subtitle': 'Présentation de mes derniers travaux et projets',
-    'portfolio.featuredProjects': 'Projets en vedette',
-    'portfolio.featuredProjectsSubtitle': 'Découvrez mes derniers projets et réalisations',
-    'portfolio.viewProject': 'Voir le projet',
-    'portfolio.readMore': 'Lire plus',
-    'portfolio.viewAll': 'Voir tous les projets',
-    'portfolio.noProjectsFound': 'Aucun projet trouvé',
-    'portfolio.noProjectsMessage': 'Essayez d\'ajuster votre recherche ou filtre pour trouver ce que vous cherchez.',
-    
-    // Blog
-    'blog.title': 'Blog',
-    'blog.subtitle': 'Aperçus sur les données, la technologie et l\'innovation',
-    'blog.readMore': 'Lire plus',
-    'blog.viewAll': 'Voir tous les articles',
-    'blog.latestPosts': 'Derniers articles du Blog',
-    'blog.latestPostsSubtitle': 'Aperçus, tutoriels et réflexions sur les données et la tech',
-    'blog.noPostsFound': 'Aucun article trouvé',
-    'blog.noPostsMessage': 'Essayez d\'ajuster votre recherche ou filtre pour trouver ce que vous cherchez.',
-    'blog.searchPlaceholder': 'Rechercher des articles...',
-    
-    // Contact
-    'contact.title': 'Me contacter',
-    'contact.subtitle': 'Contactez-moi pour des collaborations, consultations ou simplement pour dire bonjour',
-    'contact.letsConnect': 'Connectons-nous',
-    'contact.description': 'Que vous recherchiez une expertise en données et technologie, ayez une question sur mon travail, ou souhaitiez simplement vous connecter, j\'aimerais avoir de vos nouvelles.',
-    'contact.form.name': 'Nom',
-    'contact.form.email': 'Email',
-    'contact.form.subject': 'Sujet',
-    'contact.form.message': 'Message',
-    'contact.form.send': 'Envoyer le message',
-    'contact.form.sending': 'Envoi en cours...',
-    'contact.form.namePlaceholder': 'Votre nom',
-    'contact.form.emailPlaceholder': 'votre.email@exemple.com',
-    'contact.form.subjectPlaceholder': 'De quoi s\'agit-il ?',
-    'contact.form.messagePlaceholder': 'Votre message...',
-    'contact.success.title': 'Message envoyé',
-    'contact.success.description': 'Merci pour votre message. Je vous répondrai bientôt !',
-    'contact.error.title': 'Erreur',
-    'contact.error.description': 'Il y a eu un problème lors de l\'envoi de votre message. Veuillez réessayer.',
+    // Resources
+    'resources.tools.title': 'Outils',
+    'resources.tools.description': 'Outils de développement utiles',
+    'resources.guides.title': 'Guides',
+    'resources.guides.description': 'Tutoriels étape par étape',
+    'resources.downloads.title': 'Téléchargements',
+    'resources.downloads.description': 'Ressources et modèles gratuits',
     
     // Footer
+    'footer.description': 'Développeur Full Stack et Ingénieur Data créant des solutions digitales innovantes.',
     'footer.quickLinks': 'Liens rapides',
-    'footer.connect': 'Se connecter',
-    'footer.socialMedia': 'Réseaux sociaux',
-    'footer.copyright': 'Tous droits réservés.',
+    'footer.stayUpdated': 'Restez informé',
+    'footer.allRightsReserved': 'Tous droits réservés.',
     
     // Common
     'common.loading': 'Chargement...',
     'common.error': 'Erreur',
     'common.retry': 'Réessayer',
-    'common.backTo': 'Retour à',
-    'common.publishedOn': 'Publié le',
-    'common.updated': 'Mis à jour',
-    'common.all': 'Tout',
-    'common.search': 'Rechercher',
-    'common.filter': 'Filtrer',
-    'common.previous': 'Précédent',
-    'common.next': 'Suivant',
-    'common.page': 'Page',
-    'common.of': 'sur',
+    'common.comingSoon': 'Bientôt disponible',
+    'common.comingSoonDescription': 'Cette fonctionnalité est en cours de développement.',
     'common.changeLanguage': 'Changer de langue',
-    
-    // 404 Page
-    '404.title': 'Page non trouvée',
-    '404.description': 'La page que vous recherchez n\'existe pas ou a été déplacée.',
-    '404.backHome': 'Retour à l\'accueil',
-    '404.searchPlaceholder': 'Rechercher...',
-    
-    // Testimonials
-    'testimonials.title': 'Témoignages',
-    'testimonials.subtitle': 'Ce que disent mes clients et partenaires'
   },
   en: {
     // Navigation
@@ -234,6 +239,21 @@ const embeddedTranslations = {
     'nav.blog': 'Blog',
     'nav.about': 'About',
     'nav.contact': 'Contact',
+    'nav.work': 'Work',
+    'nav.content': 'Content',
+    'nav.resources': 'Resources',
+    'nav.journal': 'Journal',
+    'nav.now': 'Now',
+    'nav.projects': 'Projects',
+    'nav.resume': 'Resume',
+    'nav.descriptions.portfolio': 'View my complete portfolio',
+    'nav.descriptions.blog': 'Latest articles and insights',
+    'nav.descriptions.aboutMe': 'Learn more about me',
+    'nav.descriptions.getInTouch': 'Get in touch',
+    'nav.descriptions.projects': 'Featured projects and case studies',
+    'nav.descriptions.journal': 'Project updates and activities',
+    'nav.descriptions.now': 'What I\'m currently working on',
+    'nav.descriptions.resume': 'View my resume',
     
     // Hero Section
     'hero.greeting': 'Hello, I\'m',
@@ -241,84 +261,32 @@ const embeddedTranslations = {
     'hero.subtitle': 'Specializing in transforming complex data into actionable insights and building innovative tech solutions.',
     'hero.cta.portfolio': 'View My Work',
     'hero.cta.contact': 'Get In Touch',
+    'hero.stats.projectsCompleted': 'Projects Completed',
+    'hero.stats.yearsExperience': 'Years of Experience',
+    'hero.stats.clientSatisfaction': 'Client Satisfaction',
+    'hero.stats.scrollDown': 'Scroll Down',
     
-    // Services
-    'services.title': 'Services',
-    'services.subtitle': 'Comprehensive data and technology solutions',
-    
-    // Portfolio
-    'portfolio.title': 'Portfolio',
-    'portfolio.subtitle': 'Showcasing my latest work and projects',
-    'portfolio.featuredProjects': 'Featured Projects',
-    'portfolio.featuredProjectsSubtitle': 'Discover my latest projects and achievements',
-    'portfolio.viewProject': 'View Project',
-    'portfolio.readMore': 'Read More',
-    'portfolio.viewAll': 'View All Projects',
-    'portfolio.noProjectsFound': 'No projects found',
-    'portfolio.noProjectsMessage': 'Try adjusting your search or filter to find what you\'re looking for.',
-    
-    // Blog
-    'blog.title': 'Blog',
-    'blog.subtitle': 'Insights on data, technology, and innovation',
-    'blog.readMore': 'Read More',
-    'blog.viewAll': 'View All Posts',
-    'blog.latestPosts': 'Latest from the Blog',
-    'blog.latestPostsSubtitle': 'Insights, tutorials, and thoughts on data and tech',
-    'blog.noPostsFound': 'No posts found',
-    'blog.noPostsMessage': 'Try adjusting your search or filter to find what you\'re looking for.',
-    'blog.searchPlaceholder': 'Search posts...',
-    
-    // Contact
-    'contact.title': 'Contact Me',
-    'contact.subtitle': 'Get in touch for collaborations, consultations, or just to say hello',
-    'contact.letsConnect': 'Let\'s Connect',
-    'contact.description': 'Whether you\'re looking for data and technology expertise, have a question about my work, or just want to connect, I\'d love to hear from you.',
-    'contact.form.name': 'Name',
-    'contact.form.email': 'Email',
-    'contact.form.subject': 'Subject',
-    'contact.form.message': 'Message',
-    'contact.form.send': 'Send Message',
-    'contact.form.sending': 'Sending...',
-    'contact.form.namePlaceholder': 'Your name',
-    'contact.form.emailPlaceholder': 'your.email@example.com',
-    'contact.form.subjectPlaceholder': 'What is this regarding?',
-    'contact.form.messagePlaceholder': 'Your message...',
-    'contact.success.title': 'Message Sent',
-    'contact.success.description': 'Thank you for your message. I\'ll get back to you soon!',
-    'contact.error.title': 'Error',
-    'contact.error.description': 'There was a problem sending your message. Please try again.',
+    // Resources
+    'resources.tools.title': 'Tools',
+    'resources.tools.description': 'Useful development tools',
+    'resources.guides.title': 'Guides',
+    'resources.guides.description': 'Step-by-step tutorials',
+    'resources.downloads.title': 'Downloads',
+    'resources.downloads.description': 'Free resources and templates',
     
     // Footer
+    'footer.description': 'Full Stack Developer & Data Engineer creating innovative digital solutions.',
     'footer.quickLinks': 'Quick Links',
-    'footer.connect': 'Connect',
-    'footer.socialMedia': 'Social Media',
-    'footer.copyright': 'All rights reserved.',
+    'footer.stayUpdated': 'Stay Updated',
+    'footer.allRightsReserved': 'All rights reserved.',
     
     // Common
     'common.loading': 'Loading...',
     'common.error': 'Error',
     'common.retry': 'Retry',
-    'common.backTo': 'Back to',
-    'common.publishedOn': 'Published on',
-    'common.updated': 'Updated',
-    'common.all': 'All',
-    'common.search': 'Search',
-    'common.filter': 'Filter',
-    'common.previous': 'Previous',
-    'common.next': 'Next',
-    'common.page': 'Page',
-    'common.of': 'of',
+    'common.comingSoon': 'Coming Soon!',
+    'common.comingSoonDescription': 'This feature is under development.',
     'common.changeLanguage': 'Change language',
-    
-    // 404 Page
-    '404.title': 'Page Not Found',
-    '404.description': 'The page you\'re looking for doesn\'t exist or has been moved.',
-    '404.backHome': 'Back to Home',
-    '404.searchPlaceholder': 'Search...',
-    
-    // Testimonials
-    'testimonials.title': 'Testimonials',
-    'testimonials.subtitle': 'What my clients and partners say'
   },
   ht: {
     // Navigation
@@ -327,6 +295,21 @@ const embeddedTranslations = {
     'nav.blog': 'Blog',
     'nav.about': 'Konsènan',
     'nav.contact': 'Kontak',
+    'nav.work': 'Travay',
+    'nav.content': 'Kontni',
+    'nav.resources': 'Resous yo',
+    'nav.journal': 'Jounal',
+    'nav.now': 'Kounye a',
+    'nav.projects': 'Pwojè yo',
+    'nav.resume': 'CV',
+    'nav.descriptions.portfolio': 'Gade travay konplè mwen',
+    'nav.descriptions.blog': 'Dènye atik ak konesans yo',
+    'nav.descriptions.aboutMe': 'Aprann plis sou mwen',
+    'nav.descriptions.getInTouch': 'Kontakte mwen',
+    'nav.descriptions.projects': 'Pwojè yo ki nan tèt la ak etid ka yo',
+    'nav.descriptions.journal': 'Mizajou pwojè ak aktivite yo',
+    'nav.descriptions.now': 'Sa mwen ap travay sou kounye a',
+    'nav.descriptions.resume': 'Gade CV mwen',
     
     // Hero Section
     'hero.greeting': 'Bonjou, mwen se',
@@ -334,83 +317,31 @@ const embeddedTranslations = {
     'hero.subtitle': 'Mwen spesyaliste nan transfòme done konplèks yo nan ensèt ki ka itilize ak kreye solisyon teknolojik inovatè yo.',
     'hero.cta.portfolio': 'Gade travay mwen',
     'hero.cta.contact': 'Kontakte mwen',
+    'hero.stats.projectsCompleted': 'Pwojè yo Fini',
+    'hero.stats.yearsExperience': 'Ane Ekspèyans',
+    'hero.stats.clientSatisfaction': 'Satisfaksyon Kliyan',
+    'hero.stats.scrollDown': 'Desann',
     
-    // Services
-    'services.title': 'Sèvis yo',
-    'services.subtitle': 'Solisyon done ak teknoloji konplè',
-    
-    // Portfolio
-    'portfolio.title': 'Travay yo',
-    'portfolio.subtitle': 'Montre dènye travay ak pwojè mwen yo',
-    'portfolio.featuredProjects': 'Pwojè yo ki nan tèt la',
-    'portfolio.featuredProjectsSubtitle': 'Dekouvri dènye pwojè ak reyalizasyon mwen yo',
-    'portfolio.viewProject': 'Gade pwojè a',
-    'portfolio.readMore': 'Li plis',
-    'portfolio.viewAll': 'Gade tout pwojè yo',
-    'portfolio.noProjectsFound': 'Pa gen pwojè yo jwenn',
-    'portfolio.noProjectsMessage': 'Eseye ajiste rechèch ou a oswa filtè a pou jwenn sa w ap chèche a.',
-    
-    // Blog
-    'blog.title': 'Blog',
-    'blog.subtitle': 'Konesans sou done, teknoloji, ak inovasyon',
-    'blog.readMore': 'Li plis',
-    'blog.viewAll': 'Gade tout atik yo',
-    'blog.latestPosts': 'Dènye atik yo nan Blog la',
-    'blog.latestPostsSubtitle': 'Konesans, tutorial, ak reflexyon sou done ak teknoloji',
-    'blog.noPostsFound': 'Pa gen atik yo jwenn',
-    'blog.noPostsMessage': 'Eseye ajiste rechèch ou a oswa filtè a pou jwenn sa w ap chèche a.',
-    'blog.searchPlaceholder': 'Chèche atik yo...',
-    
-    // Contact
-    'contact.title': 'Kontakte mwen',
-    'contact.subtitle': 'Kontakte mwen pou kolaborasyon, konsèy, oswa jis pou di bonjou',
-    'contact.letsConnect': 'Ann konekte',
-    'contact.description': 'Kit ou ap chèche ekspètiz nan done ak teknoloji, gen yon kesyon sou travay mwen, oswa ou jis vle konekte, mwen ta renmen tande nan men ou.',
-    'contact.form.name': 'Non',
-    'contact.form.email': 'Imel',
-    'contact.form.subject': 'Sijè',
-    'contact.form.message': 'Mesaj',
-    'contact.form.send': 'Voye mesaj',
-    'contact.form.sending': 'Ap voye...',
-    'contact.form.namePlaceholder': 'Non ou',
-    'contact.form.emailPlaceholder': 'imel.ou@egzanp.com',
-    'contact.form.subjectPlaceholder': 'Sa ki konsènen?',
-    'contact.form.messagePlaceholder': 'Mesaj ou...',
-    'contact.success.title': 'Mesaj voye',
-    'contact.success.description': 'Mèsi pou mesaj ou. Mwen pral reponn ou byento!',
-    'contact.error.title': 'Erè',
-    'contact.error.description': 'Te gen yon pwoblèm nan voye mesaj ou. Tanpri eseye ankò.',
+    // Resources
+    'resources.tools.title': 'Zouti yo',
+    'resources.tools.description': 'Zouti devlopman itil yo',
+    'resources.guides.title': 'Gid yo',
+    'resources.guides.description': 'Tutorial etap pa etap yo',
+    'resources.downloads.title': 'Telechajman yo',
+    'resources.downloads.description': 'Resous ak modèl gratis yo',
     
     // Footer
+    'footer.description': 'Devlopè Full Stack ak Enjenyè Done k ap kreye solisyon dijital inovatè yo.',
     'footer.quickLinks': 'Lyen rapid yo',
-    'footer.connect': 'Konekte',
-    'footer.socialMedia': 'Rezo sosyal yo',
-    'footer.copyright': 'Tout dwa rezève.',
+    'footer.stayUpdated': 'Rete enfòme',
+    'footer.allRightsReserved': 'Tout dwa rezève.',
     
     // Common
     'common.loading': 'Ap chaje...',
     'common.error': 'Erè',
     'common.retry': 'Eseye ankò',
-    'common.backTo': 'Retounen nan',
-    'common.publishedOn': 'Pibliye nan',
-    'common.updated': 'Mizajou',
-    'common.all': 'Tout',
-    'common.search': 'Chèche',
-    'common.filter': 'Filtè',
-    'common.previous': 'Anvan',
-    'common.next': 'Pwochen',
-    'common.page': 'Paj',
-    'common.of': 'sou',
+    'common.comingSoon': 'Ap vini byento!',
+    'common.comingSoonDescription': 'Fonksyon sa a nan devlopman.',
     'common.changeLanguage': 'Chanje lang',
-    
-    // 404 Page
-    '404.title': 'Paj la pa jwenn',
-    '404.description': 'Paj w ap chèche a pa egziste oswa yo deplase li.',
-    '404.backHome': 'Retounen lakay',
-    '404.searchPlaceholder': 'Chèche...',
-    
-    // Testimonials
-    'testimonials.title': 'Temwayaj yo',
-    'testimonials.subtitle': 'Sa kliyan ak patnè mwen yo di'
   }
 };
