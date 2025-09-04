@@ -13,6 +13,7 @@ import Resources from "@/pages/ResourcesPage";
 import ErrorPage from "@/pages/NotFound";
 import ComingSoon from "@/pages/ComingSoonPage";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
+import ProtectedRoute from "@/components/dashboard/ProtectedRoute";
 import Dashboard from "@/pages/dashboard/DashboardHomePage";
 import DashboardBlog from "@/pages/dashboard/BlogManagePage";
 import DashboardPortfolio from "@/pages/dashboard/PortfolioManagePage";
@@ -34,7 +35,6 @@ export default function AppRouter() {
         <Route path="about" element={<About />} />
         <Route path="contact" element={<Contact />} />
         <Route path="services" element={<Services />} />
-        <Route path="login" element={<Login />} />
         
         {/* Work Routes */}
         <Route path="work">
@@ -73,7 +73,14 @@ export default function AppRouter() {
         <Route path="coming-soon" element={<ComingSoon />} />
       </Route>
       
-      <Route path="/dashboard" element={<DashboardLayout />}>
+      
+      {/* Dashboard Routes - Protected */}
+      <Route path="/dashboard/login" element={<Login />} />
+      <Route path="/dashboard" element={
+        <ProtectedRoute>
+          <DashboardLayout />
+        </ProtectedRoute>
+      }>
         <Route index element={<Dashboard />} />
         <Route path="blog" element={<DashboardBlog />} />
         <Route path="portfolio" element={<DashboardPortfolio />} />
@@ -86,6 +93,7 @@ export default function AppRouter() {
         <Route path="messages" element={<DashboardMessages />} />
         <Route path="analytics" element={<DashboardAnalytics />} />
       </Route>
+      
       
       <Route path="*" element={<ErrorPage />} />
     </Routes>

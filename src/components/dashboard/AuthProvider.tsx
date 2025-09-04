@@ -1,6 +1,5 @@
-
-import React, { createContext, useContext, useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Session, User } from "@supabase/supabase-js";
 import { toast } from "sonner";
@@ -26,21 +25,37 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [lastActivity, setLastActivity] = useState(Date.now());
   
-  // Use navigate and location conditionally
-  let navigate: ReturnType<typeof useNavigate> | null = null;
-  let location: ReturnType<typeof useLocation> | null = null;
-  
-  try {
-    navigate = useNavigate();
-    location = useLocation();
-  } catch (error) {
-    // Router context not available yet
-    console.log('Router context not available in AuthProvider');
-  }
+  const navigate = useNavigate();
 
   const updateActivity = () => {
     setLastActivity(Date.now());
   };
+
+  const signOut = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        const errorMessage = sanitizeError(error);
+        toast.error(errorMessage);
+        secureLog.error('Sign out failed', error);
+        throw error;
+      }
+      
+      secureLog.info('User signed out successfully');
+      toast.success("Signed out successfully");
+      
+      // Navigate to login page
+      navigate("/dashboard/login");
+    } catch (error) {
+      const errorMessage = sanitizeError(error);
+      toast.error(errorMessage);
+      secureLog.error('Sign out error', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [navigate]);
 
   useEffect(() => {
     // Set up auth state listener
@@ -89,7 +104,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }, 60000); // Check every minute
 
     return () => clearInterval(interval);
-  }, [isAuthenticated, lastActivity]);
+  }, [isAuthenticated, lastActivity, signOut]);
 
   // Update activity on user interactions
   useEffect(() => {
@@ -129,40 +144,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       toast.success("Signed in successfully");
       updateActivity();
       
-      // Only navigate if navigate function is available
-      if (navigate) {
-        navigate(redirectPath);
-      }
+      // Navigate to the intended destination
+      navigate(redirectPath);
     } catch (error) {
       throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const signOut = async () => {
-    try {
-      setIsLoading(true);
-      
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        const errorMessage = sanitizeError(error);
-        toast.error(errorMessage);
-        secureLog.error('Sign out failed', error);
-        throw error;
-      }
-      
-      secureLog.info('User signed out successfully');
-      toast.success("Signed out successfully");
-      
-      // Only navigate if navigate function is available
-      if (navigate) {
-        navigate("/dashboard/login");
-      }
-    } catch (error) {
-      const errorMessage = sanitizeError(error);
-      toast.error(errorMessage);
-      secureLog.error('Sign out error', error);
     } finally {
       setIsLoading(false);
     }

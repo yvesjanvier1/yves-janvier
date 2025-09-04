@@ -8,19 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/ui/logo";
 
 const DashboardLayout = () => {
-  const { user, signOut, isAuthenticated } = useAuth();
+  const { user, signOut } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const location = useLocation();
-
-  // Show loading or redirect if not authenticated
-  if (!isAuthenticated) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-        <p className="ml-3">Checking authentication...</p>
-      </div>
-    );
-  }
 
   // Helper function to check if a route is active
   const isRouteActive = (path: string) => {
