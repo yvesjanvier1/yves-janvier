@@ -1,13 +1,9 @@
 
-import { Link, useParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Github, Linkedin, Mail } from "lucide-react";
 import { NewsletterSubscription } from "@/components/newsletter/NewsletterSubscription";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 const Footer = () => {
-  const { lang = 'fr' } = useParams();
-  const { t } = useLanguage();
-  
   return (
     <footer className="bg-background border-t">
       <div className="container mx-auto px-4 py-12">
@@ -16,7 +12,7 @@ const Footer = () => {
           <div className="lg:col-span-1">
             <h3 className="text-lg font-semibold mb-4">Yves Janvier</h3>
             <p className="text-muted-foreground text-sm mb-4">
-              {t('footer.description') || "Full Stack Developer & Data Engineer creating innovative digital solutions."}
+              Full Stack Developer & Data Engineer creating innovative digital solutions.
             </p>
             <div className="flex space-x-4">
               <a
@@ -46,31 +42,31 @@ const Footer = () => {
 
           {/* Quick Links */}
           <div>
-            <h4 className="font-semibold mb-4">{t('footer.quickLinks') || "Quick Links"}</h4>
+            <h4 className="font-semibold mb-4">Quick Links</h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link to={`/${lang}/about`} className="text-muted-foreground hover:text-foreground transition-colors">
-                  {t('nav.about') || "About"}
+                <Link to="/about" className="text-muted-foreground hover:text-foreground transition-colors">
+                  About
                 </Link>
               </li>
               <li>
-                <Link to={`/${lang}/work/portfolio`} className="text-muted-foreground hover:text-foreground transition-colors">
-                  {t('nav.portfolio') || "Portfolio"}
+                <Link to="/work/portfolio" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Portfolio
                 </Link>
               </li>
               <li>
-                <Link to={`/${lang}/content/blog`} className="text-muted-foreground hover:text-foreground transition-colors">
-                  {t('nav.blog') || "Blog"}
+                <Link to="/content/blog" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Blog
                 </Link>
               </li>
               <li>
-                <Link to={`/${lang}/content/now`} className="text-muted-foreground hover:text-foreground transition-colors">
-                  {t('nav.now') || "Now"}
+                <Link to="/content/now" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Now
                 </Link>
               </li>
               <li>
-                <Link to={`/${lang}/contact`} className="text-muted-foreground hover:text-foreground transition-colors">
-                  {t('nav.contact') || "Contact"}
+                <Link to="/contact" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Contact
                 </Link>
               </li>
             </ul>
@@ -78,26 +74,26 @@ const Footer = () => {
 
           {/* Resources */}
           <div>
-            <h4 className="font-semibold mb-4">{t('nav.resources') || "Resources"}</h4>
+            <h4 className="font-semibold mb-4">Resources</h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link to={`/${lang}/resources/downloads`} className="text-muted-foreground hover:text-foreground transition-colors">
-                  {t('resources.downloads.title') || "Downloads"}
+                <Link to="/resources/downloads" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Downloads
                 </Link>
               </li>
               <li>
-                <Link to={`/${lang}/content/journal`} className="text-muted-foreground hover:text-foreground transition-colors">
-                  {t('nav.journal') || "Journal"}
+                <Link to="/content/journal" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Journal
                 </Link>
               </li>
               <li>
-                <Link to={`/${lang}/resources/guides`} className="text-muted-foreground hover:text-foreground transition-colors">
-                  {t('resources.guides.title') || "Guides"}
+                <Link to="/resources/guides" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Guides
                 </Link>
               </li>
               <li>
-                <Link to={`/${lang}/resources/tools`} className="text-muted-foreground hover:text-foreground transition-colors">
-                  {t('resources.tools.title') || "Tools"}
+                <Link to="/resources/tools" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Tools
                 </Link>
               </li>
             </ul>
@@ -105,13 +101,13 @@ const Footer = () => {
 
           {/* Newsletter */}
           <div>
-            <h4 className="font-semibold mb-4">{t('footer.stayUpdated') || "Stay Updated"}</h4>
+            <h4 className="font-semibold mb-4">Stay Updated</h4>
             <NewsletterSubscription variant="footer" />
           </div>
         </div>
 
         <div className="border-t mt-8 pt-8 text-center text-sm text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} Yves Janvier. {t('footer.allRightsReserved') || "All rights reserved."}</p>
+          <p>&copy; {new Date().getFullYear()} Yves Janvier. All rights reserved.</p>
         </div>
       </div>
     </footer>
