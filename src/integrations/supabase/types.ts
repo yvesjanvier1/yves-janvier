@@ -608,6 +608,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      set_current_locale: {
+        Args: { _locale: string }
+        Returns: undefined
+      }
       track_page_view: {
         Args: {
           agent: string

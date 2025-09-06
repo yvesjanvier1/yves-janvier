@@ -1,5 +1,5 @@
 
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import Home from "@/pages/HomePage";
 import About from "@/pages/AboutPage";
@@ -30,7 +30,11 @@ import Login from "@/pages/DashboardLoginPage";
 export default function AppRouter() {
   return (
     <Routes>
-      <Route path="/" element={<Layout />}>
+      {/* Root redirect to default language */}
+      <Route path="/" element={<Navigate to="/fr" replace />} />
+      
+      {/* Localized routes */}
+      <Route path="/:lang" element={<Layout />}>
         <Route index element={<Home />} />
         <Route path="about" element={<About />} />
         <Route path="contact" element={<Contact />} />
@@ -40,7 +44,7 @@ export default function AppRouter() {
         <Route path="work">
           <Route index element={<Portfolio />} />
           <Route path="portfolio" element={<Portfolio />} />
-          <Route path="projects" element={<ComingSoon />} />
+          <Route path="projects" element={<Navigate to="../" replace />} />
         </Route>
         
         {/* Content Routes */}
@@ -70,7 +74,22 @@ export default function AppRouter() {
         <Route path="journal" element={<Journal />} />
         <Route path="now" element={<Now />} />
         
-        <Route path="coming-soon" element={<ComingSoon />} />
+        <Route path="coming-soon" element={<Navigate to="../" replace />} />
+      </Route>
+      
+      {/* Non-localized routes */}
+      <Route path="/legacy" element={<Layout />}>
+        <Route path="about" element={<About />} />
+        <Route path="contact" element={<Contact />} />
+        <Route path="services" element={<Services />} />
+        <Route path="work/portfolio" element={<Portfolio />} />
+        <Route path="content/blog" element={<Blog />} />
+        <Route path="content/journal" element={<Journal />} />
+        <Route path="content/now" element={<Now />} />
+        <Route path="portfolio" element={<Portfolio />} />
+        <Route path="blog" element={<Blog />} />
+        <Route path="journal" element={<Journal />} />
+        <Route path="now" element={<Now />} />
       </Route>
       
       
