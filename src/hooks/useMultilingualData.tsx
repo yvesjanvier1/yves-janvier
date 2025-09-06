@@ -9,6 +9,7 @@ interface UseMultilingualDataOptions {
   filters?: Record<string, any>;
   orderBy?: { column: string; ascending?: boolean };
   enabled?: boolean;
+  limit?: number;
 }
 
 export const useMultilingualData = <T,>({
@@ -16,12 +17,13 @@ export const useMultilingualData = <T,>({
   select = "*",
   filters = {},
   orderBy,
-  enabled = true
+  enabled = true,
+  limit
 }: UseMultilingualDataOptions) => {
   const { language } = useLanguage();
 
   return useQuery({
-    queryKey: [table, language, filters, orderBy, select],
+    queryKey: [table, language, filters, orderBy, select, limit],
     queryFn: async () => {
       // Set current locale in Supabase for RLS filtering
       try {
@@ -43,6 +45,11 @@ export const useMultilingualData = <T,>({
       // Apply ordering
       if (orderBy) {
         query = query.order(orderBy.column, { ascending: orderBy.ascending ?? true });
+      }
+
+      // Apply limit
+      if (limit) {
+        query = query.limit(limit);
       }
 
       const { data, error } = await query;

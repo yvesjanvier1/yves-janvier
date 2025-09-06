@@ -82,6 +82,17 @@
   "common.page": "Page",
   "common.of": "de",
   "common.sort": "Trier",
+  "common.comingSoon": "Bientôt disponible !",
+  "common.comingSoonDescription": "Cette fonctionnalité est en cours de développement.",
+  "common.changeLanguage": "Changer de langue",
+  
+  "auth": {
+    "loadingAuthentication": "Chargement de l'authentification...",
+    "signOut": "Se déconnecter",
+    "signedOutSuccessfully": "Déconnexion réussie",
+    "sessionExpired": "Session expirée en raison d'inactivité",
+    "signedInSuccessfully": "Connexion réussie"
+  },
   
   "404.title": "Page non trouvée",
   "404.description": "La page que vous recherchez n'existe pas ou a été déplacée.",
