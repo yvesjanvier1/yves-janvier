@@ -35,10 +35,21 @@ export const useMultilingualData = <T,>({
       // Create the query with type assertion to handle dynamic table names
       let query = (supabase as any).from(table).select(select);
 
+      // Apply locale filtering for multilingual tables
+      query = query.or(`locale.eq.${language},locale.is.null`);
+
       // Apply additional filters
       Object.entries(filters).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
-          query = query.eq(key, value);
+          if (key === 'search' && typeof value === 'string') {
+            // Handle search across title and content fields
+            query = query.or(`title.ilike.%${value}%,description.ilike.%${value}%,content.ilike.%${value}%`);
+          } else if (Array.isArray(value)) {
+            // Handle array filters (like tags)
+            query = query.overlaps(key, value);
+          } else {
+            query = query.eq(key, value);
+          }
         }
       });
 
@@ -62,6 +73,8 @@ export const useMultilingualData = <T,>({
       return data as T[];
     },
     enabled,
+    retry: 1,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };
 
