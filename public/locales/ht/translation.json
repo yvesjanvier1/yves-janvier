@@ -82,6 +82,17 @@
   "common.page": "Paj",
   "common.of": "sou",
   "common.sort": "Klase",
+  "common.comingSoon": "Bientò ap vini!",
+  "common.comingSoonDescription": "Fonksyon sa a nan devlopman.",
+  "common.changeLanguage": "Chanje lang lan",
+  
+  "auth": {
+    "loadingAuthentication": "K ap chaje otantifikasyon...",
+    "signOut": "Dekonèkte",
+    "signedOutSuccessfully": "Ou dekonèkte ak siksè",
+    "sessionExpired": "Sesyon an fini pou koz inaktivite",
+    "signedInSuccessfully": "Ou konèkte ak siksè"
+  },
   
   "404.title": "Paj la pa jwenn",
   "404.description": "Paj w ap chèche a pa egziste oswa yo deplase li.",

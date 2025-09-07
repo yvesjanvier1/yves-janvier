@@ -30,17 +30,30 @@ export const useProjectData = (id: string | undefined) => {
 
   useEffect(() => {
     const fetchProject = async () => {
-      if (!id) return;
+      if (!id) {
+        setIsLoading(false);
+        return;
+      }
       
       try {
         setIsLoading(true);
         setError(null);
         
+        // Set locale before querying
+        try {
+          await supabase.rpc('set_current_locale', { _locale: language });
+        } catch (localeError) {
+          secureLog.warn('Failed to set locale', localeError);
+        }
+        
+        // Normalize slug for consistent querying
+        const normalizedId = decodeURIComponent(id.trim());
+        
         // First try to fetch by slug with language preference
         let { data, error } = await supabase
           .from("portfolio_projects")
           .select("*")
-          .eq("slug", id)
+          .eq("slug", normalizedId)
           .or(`locale.eq.${language},locale.is.null`)
           .order('locale', { ascending: false }) // Prefer current language
           .maybeSingle();
@@ -50,7 +63,7 @@ export const useProjectData = (id: string | undefined) => {
           ({ data, error } = await supabase
             .from("portfolio_projects")
             .select("*")
-            .eq("id", id)
+            .eq("id", normalizedId)
             .or(`locale.eq.${language},locale.is.null`)
             .order('locale', { ascending: false })
             .maybeSingle());
@@ -94,12 +107,33 @@ export const useProjectData = (id: string | undefined) => {
           });
           secureLog.info('Project loaded successfully');
         } else {
-          setError(t('portfolio.noProjectsFound'));
-          toast.error(t('portfolio.noProjectsFound'));
+          // Retry once after a short delay in case of timing issues
+          setTimeout(async () => {
+            try {
+              const { data: retryData, error: retryError } = await supabase
+                .from("portfolio_projects")
+                .select("*")
+                .eq("slug", normalizedId)
+                .or(`locale.eq.${language},locale.is.null`)
+                .maybeSingle();
+                
+              if (retryData) {
+                setProject({
+                  ...retryData,
+                  links: []
+                });
+                secureLog.info('Project loaded on retry');
+              } else {
+                setError(t('portfolio.noProjectsFound'));
+              }
+            } catch (retryErr) {
+              setError(t('portfolio.noProjectsFound'));
+              secureLog.error('Project retry failed', retryErr);
+            }
+          }, 500);
         }
       } catch (err) {
         setError(t('common.error'));
-        toast.error(t('common.error'));
         secureLog.error('Project fetch error', err);
       } finally {
         setIsLoading(false);

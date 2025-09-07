@@ -5,15 +5,18 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { SectionHeader } from "@/components/ui/section-header";
 import { LazyImage } from "@/components/ui/lazy-image";
-import { useMultilingualBlogPosts } from "@/hooks/useMultilingualData";
+import { useMultilingualData } from "@/hooks/useMultilingualData";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useResponsive } from "@/hooks/useResponsive";
 
 const LatestPosts = () => {
   const { t, formatDate } = useLanguage();
   const { isMobile } = useResponsive();
-  const { data: posts = [], isLoading, error } = useMultilingualBlogPosts({ 
-    limit: isMobile ? 2 : 3 
+  const { data: posts = [], isLoading, error } = useMultilingualData<any>({
+    table: 'blog_posts',
+    filters: { published: true },
+    orderBy: { column: 'created_at', ascending: false },
+    limit: isMobile ? 2 : 3
   });
 
   if (error) {
