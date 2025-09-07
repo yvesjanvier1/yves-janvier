@@ -162,15 +162,26 @@
   
   "nav": {
     "home": "Home",
-    "portfolio": "Portfolio", 
+    "portfolio": "Portfolio",
     "blog": "Blog",
     "about": "About",
     "contact": "Contact",
     "work": "Work",
+    "content": "Content",
+    "resources": "Resources",
+    "projects": "Projects",
+    "journal": "Journal",
+    "now": "Now",
+    "resume": "Resume",
     "descriptions": {
       "aboutMe": "Learn more about me",
-      "resume": "Professional experience",
-      "getInTouch": "Get in touch"
+      "resume": "View my resume",
+      "getInTouch": "Get in touch",
+      "portfolio": "View my complete portfolio",
+      "projects": "Featured projects and case studies",
+      "blog": "Latest articles and insights",
+      "journal": "Project updates and activities",
+      "now": "What I'm currently working on"
     }
   },
 

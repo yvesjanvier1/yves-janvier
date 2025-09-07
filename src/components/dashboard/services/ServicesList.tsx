@@ -6,15 +6,25 @@ import { ServicesListHeader } from "./services-list-header";
 import { getServicesColumns, Service } from "./services-columns";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { toast } from "sonner";
-import { useMultilingualData } from "@/hooks/useMultilingualData";
+import { useQuery } from "@tanstack/react-query";
 
 export function ServicesList() {
   const [searchQuery, setSearchQuery] = useState("");
   const [serviceToDelete, setServiceToDelete] = useState<string | null>(null);
   
-  const { data: services = [], isLoading, refetch } = useMultilingualData<Service>({
-    table: 'services',
-    orderBy: { column: 'created_at', ascending: false }
+  const { data: services = [], isLoading, refetch } = useQuery({
+    queryKey: ['admin_services'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('services')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data as Service[];
+    },
+    retry: 1,
+    staleTime: 5 * 60 * 1000,
   });
 
   const handleDeleteService = async () => {

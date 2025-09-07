@@ -6,15 +6,25 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { BlogListHeader } from "./blog-list/BlogListHeader";
 import { getBlogListColumns, BlogPost } from "./blog-list/BlogListColumns";
-import { useMultilingualData } from "@/hooks/useMultilingualData";
+import { useQuery } from "@tanstack/react-query";
 
 export function BlogList() {
   const [searchQuery, setSearchQuery] = useState("");
   const [postToDelete, setPostToDelete] = useState<string | null>(null);
   
-  const { data: posts = [], isLoading, refetch } = useMultilingualData<BlogPost>({
-    table: 'blog_posts',
-    orderBy: { column: 'created_at', ascending: false }
+  const { data: posts = [], isLoading, refetch } = useQuery({
+    queryKey: ['admin_blog_posts'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('blog_posts')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data as BlogPost[];
+    },
+    retry: 1,
+    staleTime: 5 * 60 * 1000,
   });
 
   const handleDeletePost = async () => {

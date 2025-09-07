@@ -8,7 +8,7 @@ import Blog from "@/pages/BlogPage";
 import BlogPost from "@/pages/BlogPostPage";
 import Portfolio from "@/pages/PortfolioPage";
 import ProjectDetail from "@/pages/ProjectDetailPage";
-// Services route will use Home component which includes ServicesSection
+import Services from "@/pages/ServicesPage";
 import Journal from "@/pages/JournalPage";
 import Now from "@/pages/NowPage";
 import Resources from "@/pages/ResourcesPage";
@@ -46,7 +46,7 @@ export default function AppRouter() {
         <Route index element={<Home />} />
         <Route path="about" element={<About />} />
         <Route path="contact" element={<Contact />} />
-        <Route path="services" element={<Home />} />
+        <Route path="services" element={<Services />} />
         
         {/* Work Routes */}
         <Route path="work">
@@ -89,7 +89,7 @@ export default function AppRouter() {
       <Route path="/legacy" element={<Layout />}>
         <Route path="about" element={<About />} />
         <Route path="contact" element={<Contact />} />
-        <Route path="services" element={<Home />} />
+        <Route path="services" element={<Services />} />
         <Route path="work/portfolio" element={<Portfolio />} />
         <Route path="content/blog" element={<Blog />} />
         <Route path="content/journal" element={<Journal />} />

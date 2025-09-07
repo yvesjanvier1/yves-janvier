@@ -161,16 +161,27 @@
   },
   
   "nav": {
-    "home": "Lakay",
-    "portfolio": "Travay yo",
-    "blog": "Blog",
+    "home": "Akèy",
+    "portfolio": "Portfolio",
+    "blog": "Blog", 
     "about": "Konsènan",
     "contact": "Kontak",
     "work": "Travay",
+    "content": "Kontni",
+    "resources": "Resous",
+    "projects": "Pwojè",
+    "journal": "Jounal",
+    "now": "Koulye a",
+    "resume": "CV",
     "descriptions": {
-      "aboutMe": "Aprann plis sou mwen",
-      "resume": "Ekspèyans pwofesyonèl",
-      "getInTouch": "Pran kontak"
+      "aboutMe": "Aprann pi plis sou mwen",
+      "resume": "Gade CV mwen",
+      "getInTouch": "Rete nan kontak",
+      "portfolio": "Gade portfolio konplè mwen",
+      "projects": "Pwojè yo ak etid ka yo",
+      "blog": "Dènye atik ak konsèy",
+      "journal": "Mizajou pwojè ak aktivite",
+      "now": "Sa map travay sou koulye a"
     }
   },
 

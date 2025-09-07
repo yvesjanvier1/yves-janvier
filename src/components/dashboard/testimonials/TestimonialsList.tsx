@@ -6,15 +6,25 @@ import { TestimonialsListHeader } from "./testimonials-list-header";
 import { getTestimonialsColumns, Testimonial } from "./testimonials-columns";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { toast } from "sonner";
-import { useMultilingualData } from "@/hooks/useMultilingualData";
+import { useQuery } from "@tanstack/react-query";
 
 export function TestimonialsList() {
   const [searchQuery, setSearchQuery] = useState("");
   const [testimonialToDelete, setTestimonialToDelete] = useState<string | null>(null);
   
-  const { data: testimonials = [], isLoading, refetch } = useMultilingualData<Testimonial>({
-    table: 'testimonials',
-    orderBy: { column: 'created_at', ascending: false }
+  const { data: testimonials = [], isLoading, refetch } = useQuery({
+    queryKey: ['admin_testimonials'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('testimonials')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data as Testimonial[];
+    },
+    retry: 1,
+    staleTime: 5 * 60 * 1000,
   });
 
   const handleDeleteTestimonial = async () => {

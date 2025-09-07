@@ -9,7 +9,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Edit, Trash2, Plus, Search, Star } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { useMultilingualData } from "@/hooks/useMultilingualData";
+import { useQuery } from "@tanstack/react-query";
 
 interface PortfolioProject {
   id: string;
@@ -25,9 +25,19 @@ export function ProjectList() {
   const [searchQuery, setSearchQuery] = useState("");
   const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
   
-  const { data: projects = [], isLoading, refetch } = useMultilingualData<PortfolioProject>({
-    table: 'portfolio_projects',
-    orderBy: { column: 'created_at', ascending: false }
+  const { data: projects = [], isLoading, refetch } = useQuery({
+    queryKey: ['admin_portfolio_projects'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('portfolio_projects')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data as PortfolioProject[];
+    },
+    retry: 1,
+    staleTime: 5 * 60 * 1000,
   });
 
   const handleDeleteProject = async () => {
