@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Session, User } from "@supabase/supabase-js";
 import { toast } from "sonner";
 import { sanitizeError, secureLog, SESSION_TIMEOUT, isSessionExpired } from "@/lib/security";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 interface AuthContextType {
   user: User | null;
@@ -27,7 +26,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [lastActivity, setLastActivity] = useState(Date.now());
   
   const navigate = useNavigate();
-  const { t } = useLanguage();
 
   const updateActivity = () => {
     setLastActivity(Date.now());
@@ -46,7 +44,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
       
       secureLog.info('User signed out successfully');
-      toast.success(t('auth.signedOutSuccessfully') || "Signed out successfully");
+      toast.success("Signed out successfully");
       
       // Navigate to login page
       navigate("/dashboard/login");
@@ -60,17 +58,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, [navigate]);
 
   useEffect(() => {
-    let mounted = true;
-
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        if (!mounted) return;
-        
         secureLog.info('Auth state changed', { event, hasSession: !!session });
         setSession(session);
         setUser(session?.user ?? null);
         setIsAuthenticated(!!session?.user);
+        setIsLoading(false);
         
         if (session?.user) {
           updateActivity();
@@ -78,15 +73,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     );
 
-    // Check for existing session only once
+    // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!mounted) return;
-      
       secureLog.info('Initial session check', { hasSession: !!session });
       setSession(session);
       setUser(session?.user ?? null);
       setIsAuthenticated(!!session?.user);
-      setIsLoading(false); // Only set loading false after initial session check
+      setIsLoading(false);
       
       if (session?.user) {
         updateActivity();
@@ -94,7 +87,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     });
 
     return () => {
-      mounted = false;
       subscription.unsubscribe();
     };
   }, []);
@@ -107,7 +99,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (isSessionExpired(lastActivity)) {
         secureLog.warn('Session expired due to inactivity');
         signOut();
-        toast.error(t('auth.sessionExpired') || "Session expired due to inactivity");
+        toast.error("Session expired due to inactivity");
       }
     }, 60000); // Check every minute
 
@@ -149,7 +141,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
       
       secureLog.info('User signed in successfully');
-      toast.success(t('auth.signedInSuccessfully') || "Signed in successfully");
+      toast.success("Signed in successfully");
       updateActivity();
       
       // Navigate to the intended destination

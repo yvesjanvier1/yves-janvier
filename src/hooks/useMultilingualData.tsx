@@ -9,7 +9,6 @@ interface UseMultilingualDataOptions {
   filters?: Record<string, any>;
   orderBy?: { column: string; ascending?: boolean };
   enabled?: boolean;
-  limit?: number;
 }
 
 export const useMultilingualData = <T,>({
@@ -17,50 +16,33 @@ export const useMultilingualData = <T,>({
   select = "*",
   filters = {},
   orderBy,
-  enabled = true,
-  limit
+  enabled = true
 }: UseMultilingualDataOptions) => {
   const { language } = useLanguage();
 
   return useQuery({
-    queryKey: [table, language, filters, orderBy, select, limit],
+    queryKey: [table, language, filters, orderBy, select],
     queryFn: async () => {
-      // Set current locale in Supabase for RLS filtering
-      try {
-        await supabase.rpc('set_current_locale', { _locale: language });
-      } catch (error) {
-        console.warn('Failed to set locale:', error);
-      }
-      
       // Create the query with type assertion to handle dynamic table names
       let query = (supabase as any).from(table).select(select);
 
-      // Apply locale filtering for multilingual tables
-      query = query.or(`locale.eq.${language},locale.is.null`);
+      // Apply language filter for multilingual tables
+      const multilingualTables = ['blog_posts', 'portfolio_projects', 'services', 'testimonials'];
+      if (multilingualTables.includes(table)) {
+        // Use OR condition to get content in selected language or without locale (fallback)
+        query = query.or(`locale.eq.${language},locale.is.null`);
+      }
 
       // Apply additional filters
       Object.entries(filters).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
-          if (key === 'search' && typeof value === 'string') {
-            // Handle search across title and content fields
-            query = query.or(`title.ilike.%${value}%,description.ilike.%${value}%,content.ilike.%${value}%`);
-          } else if (Array.isArray(value)) {
-            // Handle array filters (like tags)
-            query = query.overlaps(key, value);
-          } else {
-            query = query.eq(key, value);
-          }
+          query = query.eq(key, value);
         }
       });
 
       // Apply ordering
       if (orderBy) {
         query = query.order(orderBy.column, { ascending: orderBy.ascending ?? true });
-      }
-
-      // Apply limit
-      if (limit) {
-        query = query.limit(limit);
       }
 
       const { data, error } = await query;
@@ -73,8 +55,6 @@ export const useMultilingualData = <T,>({
       return data as T[];
     },
     enabled,
-    retry: 1,
-    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };
 

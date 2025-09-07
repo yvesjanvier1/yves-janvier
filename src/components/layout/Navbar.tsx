@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { Link, NavLink, useLocation, useParams, useNavigate } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
@@ -9,7 +9,6 @@ import { Logo } from "@/components/ui/logo";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useResponsive } from "@/hooks/useResponsive";
 import { ResponsiveContainer } from "@/components/ui/responsive-container";
-import { toast } from "@/hooks/use-toast";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -24,41 +23,39 @@ import { cn } from "@/lib/utils";
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
-  const { lang = 'fr' } = useParams();
-  const navigate = useNavigate();
   const { t } = useLanguage();
   const { isMobile } = useResponsive();
 
   const navigationItems = {
     work: {
-      title: t('nav.work') || "Work",
+      title: "Work",
       items: [
-        { name: t('nav.portfolio') || "Portfolio", path: `/${lang}/work/portfolio`, description: t('nav.descriptions.portfolio') || "View my complete portfolio" },
-        { name: t('nav.projects') || "Projects", path: `/${lang}/work/projects`, description: t('nav.descriptions.projects') || "Featured projects and case studies", comingSoon: true },
+        { name: "Portfolio", path: "/work/portfolio", description: "View my complete portfolio" },
+        { name: "Projects", path: "/work/projects", description: "Featured projects and case studies", comingSoon: true },
       ]
     },
     content: {
-      title: t('nav.content') || "Content",
+      title: "Content",
       items: [
-        { name: t('nav.blog') || "Blog", path: `/${lang}/content/blog`, description: t('nav.descriptions.blog') || "Latest articles and insights" },
-        { name: t('nav.journal') || "Journal", path: `/${lang}/content/journal`, description: t('nav.descriptions.journal') || "Project updates and activities" },
-        { name: t('nav.now') || "Now", path: `/${lang}/content/now`, description: t('nav.descriptions.now') || "What I'm currently working on" },
+        { name: t('nav.blog') || "Blog", path: "/content/blog", description: "Latest articles and insights" },
+        { name: "Journal", path: "/content/journal", description: "Project updates and activities" },
+        { name: "Now", path: "/content/now", description: "What I'm currently working on" },
       ]
     },
     resources: {
-      title: t('nav.resources') || "Resources",
+      title: "Resources",
       items: [
-        { name: t('resources.tools.title') || "Tools", path: `/${lang}/resources/tools`, description: t('resources.tools.description') || "Useful development tools" },
-        { name: t('resources.guides.title') || "Guides", path: `/${lang}/resources/guides`, description: t('resources.guides.description') || "Step-by-step tutorials" },
-        { name: t('resources.downloads.title') || "Downloads", path: `/${lang}/resources/downloads`, description: t('resources.downloads.description') || "Free resources and templates" },
+        { name: t('resources.tools.title'), path: "/resources/tools", description: t('resources.tools.description') },
+        { name: t('resources.guides.title'), path: "/resources/guides", description: t('resources.guides.description') },
+        { name: t('resources.downloads.title'), path: "/resources/downloads", description: t('resources.downloads.description') },
       ]
     },
     about: {
-      title: t('nav.about') || "About",
+      title: t('nav.about'),
       items: [
-        { name: t('nav.about') || "About", path: `/${lang}/about`, description: t('nav.descriptions.aboutMe') || "Learn more about me" },
-        { name: t('nav.resume') || "Resume", path: `/${lang}/about#resume`, description: t('nav.descriptions.resume') || "View my resume" },
-        { name: t('nav.contact') || "Contact", path: `/${lang}/contact`, description: t('nav.descriptions.getInTouch') || "Get in touch" },
+        { name: t('nav.about'), path: "/about", description: t('nav.descriptions.aboutMe') },
+        { name: "Resume", path: "/about#resume", description: t('nav.descriptions.resume') },
+        { name: t('nav.contact'), path: "/contact", description: t('nav.descriptions.getInTouch') },
       ]
     }
   };
@@ -111,10 +108,7 @@ const Navbar = () => {
 
   const handleItemClick = (item: any) => {
     if (item.comingSoon) {
-      toast({
-        title: t('common.comingSoon') || "Coming Soon!",
-        description: t('common.comingSoonDescription') || "This feature is under development.",
-      });
+      alert("Coming soon! This feature is under development.");
       return;
     }
     closeMenu();
@@ -134,7 +128,7 @@ const Navbar = () => {
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-2">
             <NavLink
-              to={`/${lang}`}
+              to="/"
               className={({ isActive }) => cn(
                 navigationMenuTriggerStyle(),
                 "text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
@@ -143,7 +137,7 @@ const Navbar = () => {
                   : "text-foreground/80 hover:text-foreground hover:bg-muted/50"
               )}
             >
-              {t('nav.home') || "Home"}
+              Home
             </NavLink>
 
             <NavigationMenu>
@@ -238,7 +232,7 @@ const Navbar = () => {
           >
             <div className="px-4 py-6 space-y-4 max-h-[calc(100vh-4rem)] overflow-y-auto">
               <NavLink
-                to={`/${lang}`}
+                to="/"
                 onClick={closeMenu}
                 className={({ isActive }) => cn(
                   "block px-4 py-3 rounded-lg text-base font-medium transition-colors min-h-[48px] flex items-center",
@@ -247,7 +241,7 @@ const Navbar = () => {
                     : "text-foreground/80 hover:text-foreground hover:bg-muted/50"
                 )}
               >
-                {t('nav.home') || "Home"}
+                Home
               </NavLink>
 
               {Object.entries(navigationItems).map(([key, section]) => (

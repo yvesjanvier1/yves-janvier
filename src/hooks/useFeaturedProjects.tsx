@@ -1,5 +1,6 @@
 
-import { useMultilingualData } from "./useMultilingualData";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { sanitizeError } from "@/lib/security";
 
 interface ProjectLink {
@@ -20,6 +21,10 @@ interface Project {
 }
 
 export const useFeaturedProjects = () => {
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   // Helper function to safely convert links from Json to ProjectLink[]
   const convertLinks = (links: any): ProjectLink[] => {
     if (!links || !Array.isArray(links)) return [];
@@ -35,29 +40,54 @@ export const useFeaturedProjects = () => {
     }));
   };
 
-  const { data: rawProjects = [], isLoading, error: queryError, refetch: queryRefetch } = useMultilingualData<any>({
-    table: 'portfolio_projects',
-    orderBy: { column: 'featured', ascending: false },
-    select: '*'
-  });
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
 
-  // Transform the data to match our Project interface and limit to 3
-  const projects: Project[] = rawProjects.slice(0, 3).map(project => ({
-    id: project.id,
-    title: project.title,
-    description: project.description,
-    slug: project.slug,
-    category: project.category,
-    tech_stack: project.tech_stack,
-    images: project.images,
-    created_at: project.created_at,
-    links: convertLinks(project.links)
-  }));
+        const { data, error } = await supabase
+          .from("portfolio_projects")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(3);
 
-  const error = queryError ? sanitizeError(queryError) : null;
+        if (error) {
+          console.error("Error fetching featured projects:", error);
+          throw error;
+        }
+
+        if (data) {
+          // Transform the data to match our Project interface
+          const transformedProjects: Project[] = data.map(project => ({
+            id: project.id,
+            title: project.title,
+            description: project.description,
+            slug: project.slug,
+            category: project.category,
+            tech_stack: project.tech_stack,
+            images: project.images,
+            created_at: project.created_at,
+            links: convertLinks(project.links)
+          }));
+          
+          setProjects(transformedProjects);
+        }
+      } catch (error) {
+        console.error("Error fetching featured projects:", error);
+        const errorMessage = sanitizeError(error);
+        setError(errorMessage);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProjects();
+  }, []);
 
   const refetch = () => {
-    queryRefetch();
+    // Simple refetch implementation
+    window.location.reload();
   };
 
   return { projects, isLoading, error, refetch };

@@ -82,17 +82,6 @@
   "common.page": "Page",
   "common.of": "of",
   "common.sort": "Sort",
-  "common.comingSoon": "Coming Soon!",
-  "common.comingSoonDescription": "This feature is under development.",
-  "common.changeLanguage": "Change language",
-  
-  "auth": {
-    "loadingAuthentication": "Loading authentication...",
-    "signOut": "Sign Out",
-    "signedOutSuccessfully": "Signed out successfully",
-    "sessionExpired": "Session expired due to inactivity",
-    "signedInSuccessfully": "Signed in successfully"
-  },
   
   "404.title": "Page Not Found",
   "404.description": "The page you're looking for doesn't exist or has been moved.",

@@ -19,9 +19,9 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-            <BrowserRouter>
-              <LanguageProvider>
-                <SecurityProvider>
+            <LanguageProvider>
+              <SecurityProvider>
+                <BrowserRouter>
                   <AuthProvider>
                     <SecurityHeaders />
                     <div className="min-h-screen bg-background font-sans antialiased">
@@ -29,9 +29,9 @@ function App() {
                     </div>
                     <Toaster />
                   </AuthProvider>
-                </SecurityProvider>
-              </LanguageProvider>
-            </BrowserRouter>
+                </BrowserRouter>
+              </SecurityProvider>
+            </LanguageProvider>
           </ThemeProvider>
         </TooltipProvider>
       </QueryClientProvider>

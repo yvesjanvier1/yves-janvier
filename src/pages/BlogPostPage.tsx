@@ -39,31 +39,18 @@ const BlogPostPage = () => {
 
   useEffect(() => {
     const fetchPost = async () => {
-      if (!id) {
-        setIsLoading(false);
-        return;
-      }
+      if (!id) return;
 
       try {
         setIsLoading(true);
         setError(null);
         console.log(`BlogPostPage: Fetching blog post with id/slug: ${id}`);
         
-        // Set locale before querying
-        try {
-          await supabase.rpc('set_current_locale', { _locale: language });
-        } catch (localeError) {
-          console.warn('Failed to set locale:', localeError);
-        }
-        
-        // Normalize slug for consistent querying
-        const normalizedId = decodeURIComponent(id.trim());
-        
         // First try to fetch by slug with language preference
         let { data, error } = await supabase
           .from("blog_posts")
           .select("*")
-          .eq("slug", normalizedId)
+          .eq("slug", id)
           .eq("published", true)
           .or(`locale.eq.${language},locale.is.null`)
           .order('locale', { ascending: false }) // Prefer current language
@@ -74,7 +61,7 @@ const BlogPostPage = () => {
           ({ data, error } = await supabase
             .from("blog_posts")
             .select("*")
-            .eq("id", normalizedId)
+            .eq("id", id)
             .eq("published", true)
             .or(`locale.eq.${language},locale.is.null`)
             .order('locale', { ascending: false })
@@ -91,40 +78,21 @@ const BlogPostPage = () => {
         if (data) {
           setPost(data);
         } else {
-          // Retry once after a short delay in case of timing issues
-          setTimeout(async () => {
-            try {
-              const { data: retryData, error: retryError } = await supabase
-                .from("blog_posts")
-                .select("*")
-                .eq("slug", normalizedId)
-                .eq("published", true)
-                .or(`locale.eq.${language},locale.is.null`)
-                .maybeSingle();
-                
-              if (retryData) {
-                setPost(retryData);
-                console.log("BlogPostPage: Blog post loaded on retry");
-              } else {
-                console.error("BlogPostPage: No blog post found with this ID/slug");
-                setError(t('blog.noPostsFound'));
-              }
-            } catch (retryErr) {
-              console.error("BlogPostPage: Retry failed:", retryErr);
-              setError(t('blog.noPostsFound'));
-            }
-          }, 500);
+          console.error("BlogPostPage: No blog post found with this ID/slug");
+          setError(t('blog.noPostsFound'));
+          toast.error(t('blog.noPostsFound'));
         }
       } catch (err) {
         console.error("BlogPostPage: Error fetching blog post:", err);
         setError(t('common.error'));
+        toast.error(t('common.error'));
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchPost();
-  }, [id, language, t]);
+  }, [id, navigate, language, t]);
 
   if (isLoading) {
     return (

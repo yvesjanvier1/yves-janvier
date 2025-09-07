@@ -4,13 +4,11 @@ import { Link, NavLink, useLocation, Outlet } from "react-router-dom";
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger } from "@/components/ui/sidebar";
 import { LayoutDashboard, FileText, Briefcase, MessageSquare, BarChart2, User, LogOut, MessageCircle, UserRound, BookOpen, TrendingUp, FolderOpen, Clock } from "lucide-react";
 import { useAuth } from "./AuthProvider";
-import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/ui/logo";
 
 const DashboardLayout = () => {
   const { user, signOut } = useAuth();
-  const { t } = useLanguage();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const location = useLocation();
 
@@ -143,7 +141,7 @@ const DashboardLayout = () => {
                 </div>
                 <Button variant="outline" className="w-full" onClick={signOut}>
                   <LogOut className="w-4 h-4 mr-2" />
-                  {t('auth.signOut')}
+                  Sign Out
                 </Button>
               </div>
             )}
