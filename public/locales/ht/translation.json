@@ -43,6 +43,8 @@
   "blog.noPostsFound": "Pa gen atik yo jwenn",
   "blog.noPostsMessage": "Eseye ajiste rechèch ou a oswa filtè a pou jwenn sa w ap chèche a.",
   "blog.searchPlaceholder": "Chèche atik yo...",
+  "blog.postNotFound": "Atik pa jwenn",
+  "blog.errorFetchingPost": "Erè nan chajman atik la",
   
   "contact.title": "Kontakte mwen",
   "contact.subtitle": "Kontakte mwen pou kolaborasyon, konsèy, oswa jis pou di bonjou",

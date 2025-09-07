@@ -28,7 +28,7 @@ interface BlogPost {
 }
 
 const BlogPostPage = () => {
-  const { id } = useParams();
+  const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { t, formatDate, language } = useLanguage();
   const [post, setPost] = useState<BlogPost | null>(null);
@@ -39,7 +39,7 @@ const BlogPostPage = () => {
 
   useEffect(() => {
     const fetchPost = async () => {
-      if (!id) {
+      if (!slug) {
         setIsLoading(false);
         return;
       }
@@ -47,7 +47,7 @@ const BlogPostPage = () => {
       try {
         setIsLoading(true);
         setError(null);
-        console.log(`BlogPostPage: Fetching blog post with id/slug: ${id}`);
+        console.log(`BlogPostPage: Fetching blog post with slug: ${slug}`);
         
         // Set locale before querying
         try {
@@ -57,13 +57,13 @@ const BlogPostPage = () => {
         }
         
         // Normalize slug for consistent querying
-        const normalizedId = decodeURIComponent(id.trim());
+        const normalizedSlug = decodeURIComponent(slug.trim());
         
         // First try to fetch by slug with language preference
         let { data, error } = await supabase
           .from("blog_posts")
           .select("*")
-          .eq("slug", normalizedId)
+          .eq("slug", normalizedSlug)
           .eq("published", true)
           .or(`locale.eq.${language},locale.is.null`)
           .order('locale', { ascending: false }) // Prefer current language
@@ -74,7 +74,7 @@ const BlogPostPage = () => {
           ({ data, error } = await supabase
             .from("blog_posts")
             .select("*")
-            .eq("id", normalizedId)
+            .eq("id", normalizedSlug)
             .eq("published", true)
             .or(`locale.eq.${language},locale.is.null`)
             .order('locale', { ascending: false })
@@ -97,7 +97,7 @@ const BlogPostPage = () => {
               const { data: retryData, error: retryError } = await supabase
                 .from("blog_posts")
                 .select("*")
-                .eq("slug", normalizedId)
+                .eq("slug", normalizedSlug)
                 .eq("published", true)
                 .or(`locale.eq.${language},locale.is.null`)
                 .maybeSingle();
@@ -106,7 +106,7 @@ const BlogPostPage = () => {
                 setPost(retryData);
                 console.log("BlogPostPage: Blog post loaded on retry");
               } else {
-                console.error("BlogPostPage: No blog post found with this ID/slug");
+                console.error("BlogPostPage: No blog post found with this slug");
                 setError(t('blog.noPostsFound'));
               }
             } catch (retryErr) {
@@ -124,7 +124,7 @@ const BlogPostPage = () => {
     };
 
     fetchPost();
-  }, [id, language, t]);
+  }, [slug, language, t]);
 
   if (isLoading) {
     return (

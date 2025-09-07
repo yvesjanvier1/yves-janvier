@@ -43,6 +43,8 @@
   "blog.noPostsFound": "Aucun article trouvé",
   "blog.noPostsMessage": "Essayez d'ajuster votre recherche ou filtre pour trouver ce que vous cherchez.",
   "blog.searchPlaceholder": "Rechercher des articles...",
+  "blog.postNotFound": "Article introuvable",
+  "blog.errorFetchingPost": "Erreur lors du chargement de l'article",
   
   "contact.title": "Me contacter",
   "contact.subtitle": "Contactez-moi pour des collaborations, consultations, ou juste pour dire bonjour",

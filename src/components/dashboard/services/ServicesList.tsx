@@ -1,38 +1,21 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DataTable } from "@/components/ui/data-table";
 import { ServicesListHeader } from "./services-list-header";
 import { getServicesColumns, Service } from "./services-columns";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { toast } from "sonner";
+import { useMultilingualData } from "@/hooks/useMultilingualData";
 
 export function ServicesList() {
-  const [services, setServices] = useState<Service[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [serviceToDelete, setServiceToDelete] = useState<string | null>(null);
   
-  const fetchServices = async () => {
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from("services")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setServices(data || []);
-    } catch (error) {
-      toast.error("Failed to fetch services");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchServices();
-  }, []);
+  const { data: services = [], isLoading, refetch } = useMultilingualData<Service>({
+    table: 'services',
+    orderBy: { column: 'created_at', ascending: false }
+  });
 
   const handleDeleteService = async () => {
     if (!serviceToDelete) return;
@@ -45,9 +28,7 @@ export function ServicesList() {
         
       if (error) throw error;
       
-      setServices(prevServices => 
-        prevServices.filter(service => service.id !== serviceToDelete)
-      );
+      await refetch();
       toast.success("Service deleted successfully");
     } catch (error) {
       toast.error("Failed to delete service");

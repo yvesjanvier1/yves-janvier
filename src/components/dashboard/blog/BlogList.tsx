@@ -1,39 +1,21 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { DataTable } from "@/components/ui/data-table";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { BlogListHeader } from "./blog-list/BlogListHeader";
 import { getBlogListColumns, BlogPost } from "./blog-list/BlogListColumns";
+import { useMultilingualData } from "@/hooks/useMultilingualData";
 
 export function BlogList() {
-  const [posts, setPosts] = useState<BlogPost[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [postToDelete, setPostToDelete] = useState<string | null>(null);
   
-  const fetchPosts = async () => {
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from("blog_posts")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setPosts(data || []);
-    } catch (error) {
-      console.error("Error fetching blog posts:", error);
-      toast.error("Failed to fetch blog posts");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchPosts();
-  }, []);
+  const { data: posts = [], isLoading, refetch } = useMultilingualData<BlogPost>({
+    table: 'blog_posts',
+    orderBy: { column: 'created_at', ascending: false }
+  });
 
   const handleDeletePost = async () => {
     if (!postToDelete) return;
@@ -46,7 +28,7 @@ export function BlogList() {
         
       if (error) throw error;
       
-      setPosts(prevPosts => prevPosts.filter(post => post.id !== postToDelete));
+      await refetch();
       toast.success("Post deleted successfully");
     } catch (error) {
       console.error("Error deleting post:", error);

@@ -1,38 +1,21 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DataTable } from "@/components/ui/data-table";
 import { TestimonialsListHeader } from "./testimonials-list-header";
 import { getTestimonialsColumns, Testimonial } from "./testimonials-columns";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { toast } from "sonner";
+import { useMultilingualData } from "@/hooks/useMultilingualData";
 
 export function TestimonialsList() {
-  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [testimonialToDelete, setTestimonialToDelete] = useState<string | null>(null);
   
-  const fetchTestimonials = async () => {
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from("testimonials")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setTestimonials(data || []);
-    } catch (error) {
-      toast.error("Failed to fetch testimonials");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchTestimonials();
-  }, []);
+  const { data: testimonials = [], isLoading, refetch } = useMultilingualData<Testimonial>({
+    table: 'testimonials',
+    orderBy: { column: 'created_at', ascending: false }
+  });
 
   const handleDeleteTestimonial = async () => {
     if (!testimonialToDelete) return;
@@ -45,9 +28,7 @@ export function TestimonialsList() {
         
       if (error) throw error;
       
-      setTestimonials(prevTestimonials => 
-        prevTestimonials.filter(testimonial => testimonial.id !== testimonialToDelete)
-      );
+      await refetch();
       toast.success("Testimonial deleted successfully");
     } catch (error) {
       toast.error("Failed to delete testimonial");

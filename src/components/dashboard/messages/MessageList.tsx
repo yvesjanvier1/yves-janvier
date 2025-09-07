@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
 interface ContactMessage {
   id: string;
@@ -27,34 +28,25 @@ interface ContactMessage {
 }
 
 export function MessageList() {
-  const [messages, setMessages] = useState<ContactMessage[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedMessage, setSelectedMessage] = useState<ContactMessage | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [messageToDelete, setMessageToDelete] = useState<string | null>(null);
 
-  const fetchMessages = async () => {
-    setIsLoading(true);
-    try {
+  const { data: messages = [], isLoading, refetch } = useQuery({
+    queryKey: ['contact_messages'],
+    queryFn: async () => {
       const { data, error } = await supabase
-        .from("contact_messages")
-        .select("*")
-        .order("created_at", { ascending: false });
+        .from('contact_messages')
+        .select('*')
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setMessages(data || []);
-    } catch (error) {
-      console.error("Error fetching contact messages:", error);
-      toast.error("Failed to fetch contact messages");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchMessages();
-  }, []);
+      return data as ContactMessage[];
+    },
+    retry: 1,
+    staleTime: 5 * 60 * 1000,
+  });
 
   const handleDeleteMessage = async () => {
     if (!messageToDelete) return;
@@ -67,7 +59,7 @@ export function MessageList() {
         
       if (error) throw error;
       
-      setMessages(prevMessages => prevMessages.filter(message => message.id !== messageToDelete));
+      await refetch();
       toast.success("Message deleted successfully");
       
       if (selectedMessage?.id === messageToDelete) {
@@ -91,11 +83,7 @@ export function MessageList() {
         
       if (error) throw error;
       
-      setMessages(prevMessages => 
-        prevMessages.map(message => 
-          message.id === id ? { ...message, read: !currentReadStatus } : message
-        )
-      );
+      await refetch();
       
       if (selectedMessage?.id === id) {
         setSelectedMessage({ ...selectedMessage, read: !currentReadStatus });

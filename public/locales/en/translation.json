@@ -43,6 +43,8 @@
   "blog.noPostsFound": "No posts found",
   "blog.noPostsMessage": "Try adjusting your search or filter to find what you're looking for.",
   "blog.searchPlaceholder": "Search posts...",
+  "blog.postNotFound": "Post not found",
+  "blog.errorFetchingPost": "Error loading the post",
   
   "contact.title": "Contact Me",
   "contact.subtitle": "Get in touch for collaborations, consultations, or just to say hello",

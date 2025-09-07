@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Edit, Trash2, Plus, Search, Star } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useMultilingualData } from "@/hooks/useMultilingualData";
 
 interface PortfolioProject {
   id: string;
@@ -21,32 +22,13 @@ interface PortfolioProject {
 }
 
 export function ProjectList() {
-  const [projects, setProjects] = useState<PortfolioProject[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
   
-  const fetchProjects = async () => {
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from("portfolio_projects")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setProjects(data || []);
-    } catch (error) {
-      console.error("Error fetching portfolio projects:", error);
-      toast.error("Failed to fetch portfolio projects");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchProjects();
-  }, []);
+  const { data: projects = [], isLoading, refetch } = useMultilingualData<PortfolioProject>({
+    table: 'portfolio_projects',
+    orderBy: { column: 'created_at', ascending: false }
+  });
 
   const handleDeleteProject = async () => {
     if (!projectToDelete) return;
@@ -59,7 +41,7 @@ export function ProjectList() {
         
       if (error) throw error;
       
-      setProjects(prevProjects => prevProjects.filter(project => project.id !== projectToDelete));
+      await refetch();
       toast.success("Project deleted successfully");
     } catch (error) {
       console.error("Error deleting project:", error);
@@ -78,12 +60,7 @@ export function ProjectList() {
         
       if (error) throw error;
       
-      setProjects(prevProjects => 
-        prevProjects.map(project => 
-          project.id === id ? { ...project, featured: !currentValue } : project
-        )
-      );
-      
+      await refetch();
       toast.success(`Project ${!currentValue ? "featured" : "unfeatured"} successfully`);
     } catch (error) {
       console.error("Error updating project:", error);
