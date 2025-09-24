@@ -1,0 +1,24 @@
+{
+  "home": "Akèy",
+  "portfolio": "Portfolio",
+  "blog": "Blog",
+  "about": "Sou mwen",
+  "contact": "Kontak",
+  "work": "Travay",
+  "content": "Kontni",
+  "resources": "Resous",
+  "projects": "Pwojè",
+  "journal": "Jounal",
+  "now": "Kounye a",
+  "resume": "CV",
+  "descriptions": {
+    "aboutMe": "Aprann plis sou mwen",
+    "resume": "Gade CV mwen",
+    "getInTouch": "Pran kontak",
+    "portfolio": "Gade portfolio konplè mwen",
+    "projects": "Pwojè ak etid ka",
+    "blog": "Dènye atik ak insights",
+    "journal": "Dènye aktivite pwojè",
+    "now": "Sa m ap travay sou kounye a"
+  }
+}

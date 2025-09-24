@@ -1,0 +1,24 @@
+{
+  "home": "Accueil",
+  "portfolio": "Portfolio",
+  "blog": "Blog",
+  "about": "À propos",
+  "contact": "Contact",
+  "work": "Travail",
+  "content": "Contenu",
+  "resources": "Ressources",
+  "projects": "Projets",
+  "journal": "Journal",
+  "now": "Maintenant",
+  "resume": "CV",
+  "descriptions": {
+    "aboutMe": "En savoir plus sur moi",
+    "resume": "Voir mon CV",
+    "getInTouch": "Prenons contact",
+    "portfolio": "Voir mon portfolio complet",
+    "projects": "Projets et études de cas",
+    "blog": "Derniers articles et insights",
+    "journal": "Mises à jour de projets et activités",
+    "now": "Ce sur quoi je travaille actuellement"
+  }
+}

@@ -1,4 +1,3 @@
-
 import { Outlet } from "react-router-dom";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
@@ -20,18 +19,66 @@ export const Layout = () => {
         <SecurityProvider>
           <SEOInternational />
           <SkipNavigation />
+
           <div className="min-h-screen flex flex-col bg-background text-foreground">
-            <Navbar />
-            <main className="flex-1" id="main-content">
+            <header role="banner" aria-label="Main navigation">
+              <Navbar />
+            </header>
+
+            <main
+              className="flex-1"
+              id="main-content"
+              aria-label="Page content"
+            >
               <Outlet />
             </main>
-            <Footer />
+
+            <footer role="contentinfo" aria-label="Site footer">
+              <Footer />
+            </footer>
           </div>
-          <Toaster />
-          <CookieConsentBanner onConsent={() => {}} />
-          <ExitIntentModal isOpen={false} onClose={() => {}} />
-          <PageViewTracker />
-          <PerformanceTracker />
+
+          {/* Announcements */}
+          <div role="status" aria-live="polite">
+            <Toaster />
+          </div>
+
+          {/* Consent Banner */}
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="cookieConsentTitle"
+            aria-describedby="cookieConsentDesc"
+          >
+            <CookieConsentBanner onConsent={() => {}} />
+          </div>
+          <h2 id="cookieConsentTitle" className="sr-only">
+            Cookie Consent
+          </h2>
+          <p id="cookieConsentDesc" className="sr-only">
+            This website uses cookies to improve your experience. Accept or
+            manage preferences.
+          </p>
+
+          {/* Exit Intent Modal */}
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="exitIntentTitle"
+            aria-describedby="exitIntentDesc"
+          >
+            <ExitIntentModal isOpen={false} onClose={() => {}} />
+          </div>
+          <h2 id="exitIntentTitle" className="sr-only">
+            Before you leave
+          </h2>
+          <p id="exitIntentDesc" className="sr-only">
+            Are you sure you want to exit? You might miss important updates.
+          </p>
+
+          {/* Invisible tracking/analytics */}
+          <PageViewTracker aria-hidden="true" />
+          <PerformanceTracker aria-hidden="true" />
         </SecurityProvider>
       </LanguageProvider>
     </ThemeProvider>
