@@ -52,7 +52,7 @@ export default function AppRouter() {
         <Route path="work">
           <Route index element={<Portfolio />} />
           <Route path="portfolio" element={<Portfolio />} />
-          <Route path="projects" element={<Navigate to="../" replace />} />
+          <Route path="portfolio/:slug" element={<ProjectDetail />} />
         </Route>
         
         {/* Content Routes */}
@@ -71,18 +71,13 @@ export default function AppRouter() {
           <Route path="downloads" element={<Resources />} />
         </Route>
         
-        {/* Work Routes - Project Details */}
-        <Route path="work/portfolio/:slug" element={<ProjectDetail />} />
-        
-        {/* Legacy routes for backward compatibility */}
+        {/* Canonical routes for direct navigation */}
         <Route path="portfolio" element={<Portfolio />} />
         <Route path="portfolio/:slug" element={<ProjectDetail />} />
         <Route path="blog" element={<Blog />} />
         <Route path="blog/:slug" element={<BlogPost />} />
         <Route path="journal" element={<Journal />} />
         <Route path="now" element={<Now />} />
-        
-        <Route path="coming-soon" element={<Navigate to="../" replace />} />
       </Route>
       
       {/* Non-localized routes */}

@@ -57,7 +57,7 @@ const BlogPostPage = () => {
         }
         
         // Normalize slug for consistent querying
-        const normalizedSlug = decodeURIComponent(slug.trim());
+        const normalizedSlug = decodeURIComponent(slug.trim().toLowerCase());
         
         // First try to fetch by slug with language preference
         let { data, error } = await supabase

@@ -36,12 +36,16 @@ export function MessageList() {
   const { data: messages = [], isLoading, refetch } = useQuery({
     queryKey: ['contact_messages'],
     queryFn: async () => {
+      // Dashboard shows all messages for admin management
       const { data, error } = await supabase
         .from('contact_messages')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching contact messages:', error);
+        throw error;
+      }
       return data as ContactMessage[];
     },
     retry: 1,

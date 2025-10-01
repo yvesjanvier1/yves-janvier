@@ -15,12 +15,16 @@ export function TestimonialsList() {
   const { data: testimonials = [], isLoading, refetch } = useQuery({
     queryKey: ['admin_testimonials'],
     queryFn: async () => {
+      // Dashboard shows all testimonials regardless of locale for admin management
       const { data, error } = await supabase
         .from('testimonials')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching testimonials:', error);
+        throw error;
+      }
       return data as Testimonial[];
     },
     retry: 1,

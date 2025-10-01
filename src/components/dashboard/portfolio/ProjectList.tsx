@@ -28,12 +28,16 @@ export function ProjectList() {
   const { data: projects = [], isLoading, refetch } = useQuery({
     queryKey: ['admin_portfolio_projects'],
     queryFn: async () => {
+      // Dashboard shows all projects regardless of locale for admin management
       const { data, error } = await supabase
         .from('portfolio_projects')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching portfolio projects:', error);
+        throw error;
+      }
       return data as PortfolioProject[];
     },
     retry: 1,

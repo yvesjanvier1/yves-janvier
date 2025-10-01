@@ -15,12 +15,16 @@ export function BlogList() {
   const { data: posts = [], isLoading, refetch } = useQuery({
     queryKey: ['admin_blog_posts'],
     queryFn: async () => {
+      // Dashboard shows all posts regardless of locale for admin management
       const { data, error } = await supabase
         .from('blog_posts')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching blog posts:', error);
+        throw error;
+      }
       return data as BlogPost[];
     },
     retry: 1,

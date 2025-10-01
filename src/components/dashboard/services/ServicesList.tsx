@@ -15,12 +15,16 @@ export function ServicesList() {
   const { data: services = [], isLoading, refetch } = useQuery({
     queryKey: ['admin_services'],
     queryFn: async () => {
+      // Dashboard shows all services regardless of locale for admin management
       const { data, error } = await supabase
         .from('services')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching services:', error);
+        throw error;
+      }
       return data as Service[];
     },
     retry: 1,
