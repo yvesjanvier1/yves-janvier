@@ -20,20 +20,8 @@ import {
 import { cn } from "@/lib/utils";
 import { appRoutes } from "@/router/routes";
 
-interface NavSectionItem {
-  path: string;
-  nameKey: string;
-  descriptionKey: string;
-  comingSoon?: boolean;
-}
-
-interface NavSection {
-  title: string;
-  items: NavSectionItem[];
-}
-
 interface NavItemProps {
-  item: NavSectionItem;
+  item: any;
   closeMenu: () => void;
   isActiveItem: (path: string) => boolean;
   t: (key: string) => string;
@@ -41,6 +29,8 @@ interface NavItemProps {
 }
 
 const NavItem = ({ item, closeMenu, isActiveItem, t, isMobile = false }: NavItemProps) => {
+  const hasDescription = !!item.descriptionKey;
+
   if (item.comingSoon) {
     return (
       <button
@@ -58,7 +48,9 @@ const NavItem = ({ item, closeMenu, isActiveItem, t, isMobile = false }: NavItem
         <div className="font-medium">
           {t(item.nameKey)} <span className="text-xs text-muted-foreground">(Coming Soon)</span>
         </div>
-        <div className="text-sm text-muted-foreground">{t(item.descriptionKey)}</div>
+        {hasDescription && (
+          <div className="text-sm text-muted-foreground">{t(item.descriptionKey)}</div>
+        )}
       </button>
     );
   }
@@ -75,7 +67,9 @@ const NavItem = ({ item, closeMenu, isActiveItem, t, isMobile = false }: NavItem
       }
     >
       <div className="font-medium">{t(item.nameKey)}</div>
-      <div className="text-sm text-muted-foreground">{t(item.descriptionKey)}</div>
+      {hasDescription && (
+        <div className="text-sm text-muted-foreground">{t(item.descriptionKey)}</div>
+      )}
     </NavLink>
   ) : (
     <Link
@@ -86,7 +80,9 @@ const NavItem = ({ item, closeMenu, isActiveItem, t, isMobile = false }: NavItem
       )}
     >
       <div className="font-medium">{t(item.nameKey)}</div>
-      <div className="text-sm text-muted-foreground">{t(item.descriptionKey)}</div>
+      {hasDescription && (
+        <div className="text-sm text-muted-foreground">{t(item.descriptionKey)}</div>
+      )}
     </Link>
   );
 };
@@ -97,24 +93,13 @@ const Navbar = () => {
   const { language: lang, t } = useLanguage();
   const { isMobile } = useResponsive();
 
-  const allSections = {
-    work: appRoutes.work,
-    content: appRoutes.content,
-    resources: appRoutes.resources,
-    about: appRoutes.about,
-  };
-
-  const navigationItems: Record<string, NavSection> = Object.fromEntries(
-    Object.entries(allSections).map(([key, section]) => {
-      const items: NavSectionItem[] = section.items
-        .filter((item) => item.path)
-        .map((item) => ({
-          ...item,
-          path: item.path(lang),
-        }));
-      return [key, { title: t(`nav.${key}`), items }];
-    })
-  ) as Record<string, NavSection>;
+  const navigationSections = Object.entries(appRoutes)
+    .filter(([key, section]) => typeof section !== "string" && "items" in section)
+    .map(([key, section]: [string, any]) => ({
+      key,
+      ...section,
+      items: section.items.map((item: any) => ({ ...item, path: item.path(lang) })),
+    }));
 
   const toggleMenu = () => setIsOpen(!isOpen);
   const closeMenu = () => setIsOpen(false);
@@ -168,12 +153,12 @@ const Navbar = () => {
 
             <NavigationMenu>
               <NavigationMenuList>
-                {Object.entries(navigationItems).map(([key, section]) => (
-                  <NavigationMenuItem key={key}>
+                {navigationSections.map((section) => (
+                  <NavigationMenuItem key={section.key}>
                     <NavigationMenuTrigger
-                      className={cn(isActiveSection(`/${key}`) ? "text-primary font-semibold bg-primary/10" : "text-foreground/80")}
+                      className={cn(isActiveSection(`/${section.key}`) ? "text-primary font-semibold bg-primary/10" : "text-foreground/80")}
                     >
-                      {section.title}
+                      {t(section.titleKey)}
                     </NavigationMenuTrigger>
 
                     <NavigationMenuContent>
@@ -183,7 +168,7 @@ const Navbar = () => {
                           section.items.length > 3 ? "grid grid-cols-2 gap-4 w-96" : "w-64"
                         )}
                       >
-                        {section.items.map((item) => (
+                        {section.items.map((item: any) => (
                           <NavItem key={item.path} item={item} closeMenu={closeMenu} isActiveItem={isActiveItem} t={t} />
                         ))}
                       </div>
@@ -239,12 +224,12 @@ const Navbar = () => {
                 {t("nav.home")}
               </NavLink>
 
-              {Object.entries(navigationItems).map(([key, section]) => (
-                <div key={key} className="space-y-2">
+              {navigationSections.map((section) => (
+                <div key={section.key} className="space-y-2">
                   <div className="px-4 py-2 text-sm font-medium text-muted-foreground uppercase tracking-wider">
-                    {section.title}
+                    {t(section.titleKey)}
                   </div>
-                  {section.items.map((item) => (
+                  {section.items.map((item: any) => (
                     <NavItem key={item.path} item={item} closeMenu={closeMenu} isActiveItem={isActiveItem} t={t} isMobile />
                   ))}
                 </div>

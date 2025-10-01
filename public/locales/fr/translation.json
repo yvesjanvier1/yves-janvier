@@ -11,19 +11,20 @@
     "resources": "Ressources",
     "about": "À propos",
     "resume": "CV",
-    "contact": "Contact"
+    "contact": "Contact",
+    "comingSoon": "Bientôt disponible !"
   },
 
   "navDescriptions": {
-    "aboutMe": "En savoir plus sur moi",
-    "resume": "Voir mon CV",
-    "getInTouch": "Prendre contact",
     "portfolio": "Voir mon portfolio complet",
     "projects": "Projets en vedette et études de cas",
     "blog": "Derniers articles et insights",
     "journal": "Mises à jour de projets et activités",
     "now": "Ce sur quoi je travaille actuellement",
-    "resources": "Outils, guides et téléchargements utiles"
+    "resources": "Outils, guides et téléchargements utiles",
+    "aboutMe": "En savoir plus sur moi",
+    "resume": "Voir mon CV",
+    "getInTouch": "Prendre contact"
   },
 
   "hero": {
@@ -33,12 +34,6 @@
     "cta": {
       "portfolio": "Voir mon travail",
       "contact": "Prenons contact"
-    },
-    "stats": {
-      "projectsCompleted": "Projets Réalisés",
-      "yearsExperience": "Années d'Expérience",
-      "clientSatisfaction": "Satisfaction Client",
-      "scrollDown": "Faire défiler"
     }
   },
 
@@ -51,135 +46,26 @@
     "title": "Portfolio",
     "subtitle": "Présentation de mes derniers travaux et projets",
     "featuredProjects": "Projets en vedette",
-    "featuredProjectsSubtitle": "Découvrez mes derniers projets et réalisations",
     "viewProject": "Voir le projet",
-    "readMore": "Lire la suite",
-    "viewAll": "Voir tous les projets",
-    "noProjectsFound": "Aucun projet trouvé",
-    "noProjectsMessage": "Essayez d'ajuster votre recherche ou filtre pour trouver ce que vous cherchez.",
-    "searchPlaceholder": "Rechercher des projets...",
-    "category": "Catégorie",
-    "allCategories": "Toutes catégories",
-    "allTech": "Toutes technologies",
-    "featuredFirst": "En vedette d'abord",
-    "byDate": "Par date",
-    "byTitle": "Par titre",
-    "viewCaseStudy": "Voir l'étude de cas"
+    "viewAll": "Voir tous les projets"
   },
 
   "blog": {
     "title": "Blog",
     "subtitle": "Insights sur les données, la technologie et l'innovation",
     "readMore": "Lire la suite",
-    "viewAll": "Voir tous les articles",
-    "latestPosts": "Derniers articles du blog",
-    "latestPostsSubtitle": "Insights, tutoriels et réflexions sur les données et la tech",
-    "noPostsFound": "Aucun article trouvé",
-    "noPostsMessage": "Essayez d'ajuster votre recherche ou filtre pour trouver ce que vous cherchez.",
-    "searchPlaceholder": "Rechercher des articles...",
-    "postNotFound": "Article introuvable",
-    "errorFetchingPost": "Erreur lors du chargement de l'article"
+    "viewAll": "Voir tous les articles"
   },
 
   "contact": {
     "title": "Me contacter",
     "subtitle": "Contactez-moi pour des collaborations, consultations, ou juste pour dire bonjour",
-    "letsConnect": "Connectons-nous",
-    "description": "Que vous cherchiez une expertise en données et technologie, ayez une question sur mon travail, ou vouliez simplement vous connecter, j'aimerais vous entendre.",
-    "form": {
-      "name": "Nom",
-      "email": "Email",
-      "subject": "Sujet",
-      "message": "Message",
-      "send": "Envoyer le message",
-      "sending": "Envoi en cours...",
-      "namePlaceholder": "Votre nom",
-      "emailPlaceholder": "votre.email@exemple.com",
-      "subjectPlaceholder": "À quel sujet ?",
-      "messagePlaceholder": "Votre message..."
-    },
-    "success": {
-      "title": "Message envoyé",
-      "description": "Merci pour votre message. Je vous répondrai bientôt !"
-    },
-    "error": {
-      "title": "Erreur",
-      "description": "Il y a eu un problème lors de l'envoi de votre message. Veuillez réessayer."
-    }
-  },
-
-  "footer": {
-    "quickLinks": "Liens rapides",
-    "connect": "Se connecter",
-    "socialMedia": "Réseaux sociaux",
-    "copyright": "Tous droits réservés."
+    "letsConnect": "Connectons-nous"
   },
 
   "common": {
-    "loading": "Chargement...",
-    "error": "Erreur",
-    "retry": "Réessayer",
-    "backTo": "Retour à",
-    "publishedOn": "Publié le",
-    "updated": "Mis à jour",
-    "all": "Tout",
-    "search": "Rechercher",
-    "filter": "Filtrer",
-    "previous": "Précédent",
-    "next": "Suivant",
-    "page": "Page",
-    "of": "de",
-    "sort": "Trier",
-    "comingSoon": "Bientôt disponible !",
     "comingSoonDescription": "Cette fonctionnalité est en cours de développement.",
     "changeLanguage": "Changer de langue"
-  },
-
-  "auth": {
-    "loadingAuthentication": "Chargement de l'authentification...",
-    "signOut": "Se déconnecter",
-    "signedOutSuccessfully": "Déconnexion réussie",
-    "sessionExpired": "Session expirée en raison d'inactivité",
-    "signedInSuccessfully": "Connexion réussie"
-  },
-
-  "404": {
-    "title": "Page non trouvée",
-    "description": "La page que vous recherchez n'existe pas ou a été déplacée.",
-    "backHome": "Retour à l'accueil",
-    "searchPlaceholder": "Rechercher..."
-  },
-
-  "testimonials": {
-    "title": "Témoignages",
-    "subtitle": "Ce que disent mes clients et partenaires"
-  },
-
-  "dashboard": {
-    "title": "Tableau de bord",
-    "blog": "Articles de blog",
-    "portfolio": "Portfolio",
-    "journal": "Journal",
-    "now": "Page Maintenant",
-    "testimonials": "Témoignages",
-    "services": "Services",
-    "resources": "Ressources",
-    "about": "Page À propos",
-    "messages": "Messages",
-    "analytics": "Analyses"
-  },
-
-  "about": {
-    "title": "À Propos",
-    "subtitle": "Découvrez mon parcours, mes compétences et mon expertise",
-    "loading": "Chargement des données du profil...",
-    "notAvailable": "Les données de la page À propos ne sont pas disponibles.",
-    "skillsTitle": "Compétences Techniques & Expertise",
-    "journeyTitle": "Parcours Professionnel",
-    "downloadResume": "Télécharger CV",
-    "linkedin": "LinkedIn",
-    "github": "GitHub",
-    "emailMe": "M'envoyer un email"
   },
 
   "resources": {
@@ -195,11 +81,5 @@
       "title": "Téléchargements",
       "description": "Ressources et téléchargements gratuits"
     }
-  },
-
-  "language": {
-    "english": "English",
-    "french": "Français",
-    "haitian": "Kreyòl Ayisyen"
   }
 }
