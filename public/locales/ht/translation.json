@@ -1,194 +1,205 @@
-
 {
-  "nav.home": "Lakay",
-  "nav.portfolio": "Travay yo",
-  "nav.blog": "Blog",
-  "nav.about": "Konsènan",
-  "nav.contact": "Kontak",
-  "nav.work": "Travay",
-  
-  "hero.greeting": "Bonjou, mwen se",
-  "hero.title": "Ekspè nan Done ak Teknoloji",
-  "hero.subtitle": "Mwen spesyaliste nan transfòme done konplèks yo nan ensèt ki ka itilize ak kreye solisyon teknolojik inovatè yo.",
-  "hero.cta.portfolio": "Gade travay mwen",
-  "hero.cta.contact": "Kontakte mwen",
-  
-  "services.title": "Sèvis yo",
-  "services.subtitle": "Solisyon done ak teknoloji konplè",
-  
-  "portfolio.title": "Travay yo",
-  "portfolio.subtitle": "Montre dènye travay ak pwojè mwen yo",
-  "portfolio.featuredProjects": "Pwojè yo ki nan tèt la",
-  "portfolio.featuredProjectsSubtitle": "Dekouvri dènye pwojè ak reyalizasyon mwen yo",
-  "portfolio.viewProject": "Gade pwojè a",
-  "portfolio.readMore": "Li plis",
-  "portfolio.viewAll": "Gade tout pwojè yo",
-  "portfolio.noProjectsFound": "Pa gen pwojè yo jwenn",
-  "portfolio.noProjectsMessage": "Eseye ajiste rechèch ou a oswa filtè a pou jwenn sa w ap chèche a.",
-  "portfolio.searchPlaceholder": "Chèche pwojè yo...",
-  "portfolio.category": "Kategori",
-  "portfolio.allCategories": "Tout kategori yo",
-  "portfolio.allTech": "Tout teknoloji yo",
-  "portfolio.featuredFirst": "Ki nan tèt la an premye",
-  "portfolio.byDate": "Selon dat",
-  "portfolio.byTitle": "Selon tit",
-  "portfolio.viewCaseStudy": "Gade etid ka a",
-  
-  "blog.title": "Blog",
-  "blog.subtitle": "Konesans sou done, teknoloji, ak inovasyon",
-  "blog.readMore": "Li plis",
-  "blog.viewAll": "Gade tout atik yo",
-  "blog.latestPosts": "Dènye atik yo nan Blog la",
-  "blog.latestPostsSubtitle": "Konesans, tutorial, ak reflexyon sou done ak teknoloji",
-  "blog.noPostsFound": "Pa gen atik yo jwenn",
-  "blog.noPostsMessage": "Eseye ajiste rechèch ou a oswa filtè a pou jwenn sa w ap chèche a.",
-  "blog.searchPlaceholder": "Chèche atik yo...",
-  "blog.postNotFound": "Atik pa jwenn",
-  "blog.errorFetchingPost": "Erè nan chajman atik la",
-  
-  "contact.title": "Kontakte mwen",
-  "contact.subtitle": "Kontakte mwen pou kolaborasyon, konsèy, oswa jis pou di bonjou",
-  "contact.letsConnect": "Ann konekte",
-  "contact.description": "Kit ou ap chèche ekspètiz nan done ak teknoloji, gen yon kesyon sou travay mwen, oswa ou jis vle konekte, mwen ta renmen tande nan men ou.",
-  "contact.form.name": "Non",
-  "contact.form.email": "Imel",
-  "contact.form.subject": "Sijè",
-  "contact.form.message": "Mesaj",
-  "contact.form.send": "Voye mesaj",
-  "contact.form.sending": "Ap voye...",
-  "contact.form.namePlaceholder": "Non ou",
-  "contact.form.emailPlaceholder": "imel.ou@egzanp.com",
-  "contact.form.subjectPlaceholder": "Sa ki konsènen?",
-  "contact.form.messagePlaceholder": "Mesaj ou...",
-  "contact.success.title": "Mesaj voye",
-  "contact.success.description": "Mèsi pou mesaj ou. Mwen pral reponn ou byento!",
-  "contact.error.title": "Erè",
-  "contact.error.description": "Te gen yon pwoblèm nan voye mesaj ou. Tanpri eseye ankò.",
-  
-  "footer.quickLinks": "Lyen rapid yo",
-  "footer.connect": "Konekte",
-  "footer.socialMedia": "Rezo sosyal yo",
-  "footer.copyright": "Tout dwa rezève.",
-  
-  "common.loading": "Ap chaje...",
-  "common.error": "Erè",
-  "common.retry": "Eseye ankò",
-  "common.backTo": "Retounen nan",
-  "common.publishedOn": "Pibliye nan",
-  "common.updated": "Mizajou",
-  "common.all": "Tout",
-  "common.search": "Chèche",
-  "common.filter": "Filtè",
-  "common.previous": "Anvan",
-  "common.next": "Pwochen",
-  "common.page": "Paj",
-  "common.of": "sou",
-  "common.sort": "Klase",
-  "common.comingSoon": "Bientò ap vini!",
-  "common.comingSoonDescription": "Fonksyon sa a nan devlopman.",
-  "common.changeLanguage": "Chanje lang lan",
-  
-  "auth": {
-    "loadingAuthentication": "K ap chaje otantifikasyon...",
-    "signOut": "Dekonèkte",
-    "signedOutSuccessfully": "Ou dekonèkte ak siksè",
-    "sessionExpired": "Sesyon an fini pou koz inaktivite",
-    "signedInSuccessfully": "Ou konèkte ak siksè"
+  "nav": {
+    "home": "Akèy",
+    "work": "Travay",
+    "portfolio": "Portfolio",
+    "projects": "Pwojè",
+    "content": "Kontni",
+    "blog": "Blog",
+    "journal": "Jounal",
+    "now": "Kounye a",
+    "resources": "Resous",
+    "about": "Sou mwen",
+    "resume": "CV",
+    "contact": "Kontakte"
   },
-  
-  "404.title": "Paj la pa jwenn",
-  "404.description": "Paj w ap chèche a pa egziste oswa yo deplase li.",
-  "404.backHome": "Retounen lakay",
-  "404.searchPlaceholder": "Chèche...",
-  
-  "testimonials.title": "Temwayaj yo",
-  "testimonials.subtitle": "Sa kliyan ak patnè mwen yo di",
-  
-  "dashboard.title": "Tablo jesyon",
-  "dashboard.blog": "Atik blog yo",
-  "dashboard.portfolio": "Travay yo",
-  "dashboard.journal": "Jounal",
-  "dashboard.now": "Paj Kounye a",
-  "dashboard.testimonials": "Temwayaj yo",
-  "dashboard.services": "Sèvis yo",
-  "dashboard.resources": "Resous yo",
-  "dashboard.about": "Paj Konsènan",
-  "dashboard.messages": "Mesaj yo",
-  "dashboard.analytics": "Analitik",
-  
+
+  "navDescriptions": {
+    "aboutMe": "Aprann plis sou mwen",
+    "resume": "Gade CV mwen",
+    "getInTouch": "Pran kontak",
+    "portfolio": "Gade tout pwojè mwen yo",
+    "projects": "Pwojè espesyal ak etid ka",
+    "blog": "Dènye atik ak insight",
+    "journal": "Mizajou pwojè ak aktivite",
+    "now": "Sa m ap travay sou kounye a",
+    "resources": "Zouti, gid ak telechajman itil"
+  },
+
+  "hero": {
+    "greeting": "Bonjou, mwen se",
+    "title": "Ekspè Done & Teknoloji",
+    "subtitle": "Espesyalize nan transfòme done konplèks an insight aksyonab ak kreye solisyon teknoloji inovatè.",
+    "cta": {
+      "portfolio": "Gade travay mwen",
+      "contact": "Ann konekte"
+    },
+    "stats": {
+      "projectsCompleted": "Pwojè Fini",
+      "yearsExperience": "Ane Eksperyans",
+      "clientSatisfaction": "Satisfaksyon Kliyan",
+      "scrollDown": "Woule desann"
+    }
+  },
+
+  "services": {
+    "title": "Sèvis",
+    "subtitle": "Solisyon konplè nan done ak teknoloji"
+  },
+
+  "portfolio": {
+    "title": "Portfolio",
+    "subtitle": "Prezante dènye travay ak pwojè mwen yo",
+    "featuredProjects": "Pwojè Espesyal",
+    "featuredProjectsSubtitle": "Dekouvri dènye pwojè ak realizasyon mwen yo",
+    "viewProject": "Gade pwojè a",
+    "readMore": "Li plis",
+    "viewAll": "Gade tout pwojè yo",
+    "noProjectsFound": "Pa gen pwojè jwenn",
+    "noProjectsMessage": "Eseye ajiste rechèch ou oswa filtè pou jwenn sa w ap chèche a.",
+    "searchPlaceholder": "Chèche pwojè...",
+    "category": "Kategori",
+    "allCategories": "Tout kategori",
+    "allTech": "Tout teknoloji",
+    "featuredFirst": "Espesyal an premye",
+    "byDate": "Pa dat",
+    "byTitle": "Pa tit",
+    "viewCaseStudy": "Gade etid ka"
+  },
+
+  "blog": {
+    "title": "Blog",
+    "subtitle": "Insight sou done, teknoloji ak inovasyon",
+    "readMore": "Li plis",
+    "viewAll": "Gade tout atik yo",
+    "latestPosts": "Dènye atik blog yo",
+    "latestPostsSubtitle": "Insight, tutoriel ak refleksyon sou done ak teknoloji",
+    "noPostsFound": "Pa gen atik jwenn",
+    "noPostsMessage": "Eseye ajiste rechèch ou oswa filtè pou jwenn sa w ap chèche a.",
+    "searchPlaceholder": "Chèche atik...",
+    "postNotFound": "Atik pa jwenn",
+    "errorFetchingPost": "Erè pandan chajman atik la"
+  },
+
+  "contact": {
+    "title": "Kontakte Mwen",
+    "subtitle": "Konekte pou kolaborasyon, konsiltasyon, oswa jis pou di bonjou",
+    "letsConnect": "Ann konekte",
+    "description": "Si w ap chèche ekspètiz nan done ak teknoloji, gen yon kesyon sou travay mwen, oswa jis vle konekte, mwen ta renmen tande w.",
+    "form": {
+      "name": "Non",
+      "email": "Imèl",
+      "subject": "Sijè",
+      "message": "Mesaj",
+      "send": "Voye mesaj la",
+      "sending": "Ap voye...",
+      "namePlaceholder": "Non ou",
+      "emailPlaceholder": "imel.ou@egzanp.com",
+      "subjectPlaceholder": "Sijè a?",
+      "messagePlaceholder": "Mesaj ou..."
+    },
+    "success": {
+      "title": "Mesaj Voye",
+      "description": "Mèsi pou mesaj ou. M ap reponn ou byento!"
+    },
+    "error": {
+      "title": "Erè",
+      "description": "Te gen yon pwoblèm pandan voye mesaj la. Tanpri eseye ankò."
+    }
+  },
+
+  "footer": {
+    "quickLinks": "Lyens rapid",
+    "connect": "Konekte",
+    "socialMedia": "Rezo sosyal",
+    "copyright": "Tout dwa rezève."
+  },
+
+  "common": {
+    "loading": "Chaje...",
+    "error": "Erè",
+    "retry": "Reeseye",
+    "backTo": "Retounen nan",
+    "publishedOn": "Pibliye sou",
+    "updated": "Mizajou",
+    "all": "Tout",
+    "search": "Chèche",
+    "filter": "Filtre",
+    "previous": "Anvan",
+    "next": "Pwochen",
+    "page": "Paj",
+    "of": "nan",
+    "sort": "Triye",
+    "comingSoon": "Byento disponib!",
+    "comingSoonDescription": "Fonksyon sa a anba devlopman.",
+    "changeLanguage": "Chanje Lang"
+  },
+
+  "auth": {
+    "loadingAuthentication": "Ap chaje otantifikasyon...",
+    "signOut": "Dekonekte",
+    "signedOutSuccessfully": "Dekoneksyon reyisi",
+    "sessionExpired": "Sesyon ekspire akoz inaktivite",
+    "signedInSuccessfully": "Koneksyon reyisi"
+  },
+
+  "404": {
+    "title": "Paj Pa Jwenn",
+    "description": "Paj ou ap chèche a pa egziste oswa li te deplase.",
+    "backHome": "Retounen nan Akèy",
+    "searchPlaceholder": "Chèche..."
+  },
+
+  "testimonials": {
+    "title": "Temwayaj",
+    "subtitle": "Sa kliyan ak patnè mwen yo di"
+  },
+
+  "dashboard": {
+    "title": "Tablo Kontwòl",
+    "blog": "Atik blog",
+    "portfolio": "Portfolio",
+    "journal": "Jounal",
+    "now": "Paj Kounye a",
+    "testimonials": "Temwayaj",
+    "services": "Sèvis",
+    "resources": "Resous",
+    "about": "Paj Sou Mwen",
+    "messages": "Mesaj",
+    "analytics": "Analiz"
+  },
+
   "about": {
     "title": "Sou Mwen",
-    "subtitle": "Aprann plis sou antesèdan mwen, kapasite mwen ak ekspètiz mwen",
-    "loading": "K ap chaje done pwofil la...",
-    "notAvailable": "Done paj Sou Mwen an pa disponib.",
-    "skillsTitle": "Kapasite Teknik ak Ekspètiz",
-    "journeyTitle": "Chemen Pwofesyonèl",
+    "subtitle": "Dekouvri eksperyans mwen, konpetans mwen ak ekspètiz mwen",
+    "loading": "Ap chaje done pwofil la...",
+    "notAvailable": "Done paj Sou Mwen yo pa disponib.",
+    "skillsTitle": "Konpetans Teknik & Ekspètiz",
+    "journeyTitle": "Vwayaj Pwofesyonèl",
     "downloadResume": "Telechaje CV",
     "linkedin": "LinkedIn",
     "github": "GitHub",
-    "emailMe": "Voye yon imèl"
+    "emailMe": "Voye m yon imèl"
   },
-  
-  "hero": {
-    "greeting": "Bonjou, mwen se",
-    "title": "Ekspè nan Done ak Teknoloji",
-    "subtitle": "Mwen spesyaliste nan transfòme done konplèks yo nan ensèt ki ka itilize ak kreye solisyon teknolojik inovatè yo.",
-    "cta": {
-      "portfolio": "Gade travay mwen",
-      "contact": "Kontakte mwen"
-    },
-    "stats": {
-      "projectsCompleted": "Pwojè Ki Fini",
-      "yearsExperience": "Ane Ekspèyans", 
-      "clientSatisfaction": "Satisfaksyon Klyan",
-      "scrollDown": "Desann"
-    }
-  },
-  
+
   "resources": {
     "tools": {
       "title": "Zouti",
-      "description": "Zouti devlopman itil yo"
+      "description": "Zouti devlopman itil"
     },
     "guides": {
-      "title": "Gid", 
-      "description": "Gid teknik ak tutorial yo"
+      "title": "Gid",
+      "description": "Gid teknik ak tutoriel"
     },
     "downloads": {
       "title": "Telechajman",
-      "description": "Resous ak telechajman gratis yo"
-    }
-  },
-  
-  "nav": {
-    "home": "Lakay",
-    "portfolio": "Travay yo",
-    "blog": "Blog",
-    "about": "Konsènan",
-    "contact": "Kontak",
-    "work": "Travay",
-    "content": "Kontni",
-    "resources": "Resous",
-    "projects": "Pwojè",
-    "journal": "Jounal",
-    "now": "Koulye a",
-    "resume": "CV",
-    "descriptions": {
-      "aboutMe": "Aprann pi plis sou mwen",
-      "resume": "Gade CV mwen",
-      "getInTouch": "Rete nan kontak",
-      "portfolio": "Gade portfolio konplè mwen",
-      "projects": "Pwojè yo ak etid ka yo",
-      "blog": "Dènye atik ak konsèy",
-      "journal": "Mizajou pwojè ak aktivite",
-      "now": "Sa map travay sou koulye a",
-      "resources": "Zouti, gid ak telechajman itil"
+      "description": "Resous ak telechajman gratis"
     }
   },
 
   "language": {
-    "english": "English",
-    "french": "Français", 
+    "english": "Anglè",
+    "french": "Franse",
     "haitian": "Kreyòl Ayisyen"
   }
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
@@ -13,7 +13,6 @@ import {
   NavigationMenu,
   NavigationMenuContent,
   NavigationMenuItem,
-  NavigationMenuLink,
   NavigationMenuList,
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
@@ -21,8 +20,20 @@ import {
 import { cn } from "@/lib/utils";
 import { appRoutes } from "@/router/routes";
 
+interface NavSectionItem {
+  path: string;
+  nameKey: string;
+  descriptionKey: string;
+  comingSoon?: boolean;
+}
+
+interface NavSection {
+  title: string;
+  items: NavSectionItem[];
+}
+
 interface NavItemProps {
-  item: any;
+  item: NavSectionItem;
   closeMenu: () => void;
   isActiveItem: (path: string) => boolean;
   t: (key: string) => string;
@@ -83,41 +94,27 @@ const NavItem = ({ item, closeMenu, isActiveItem, t, isMobile = false }: NavItem
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
   const { language: lang, t } = useLanguage();
   const { isMobile } = useResponsive();
 
-  // Auto-generate navigation items from routes config
-  const navigationItems = {
-    work: {
-      titleKey: appRoutes.work.titleKey,
-      items: appRoutes.work.items.map((item) => ({
-        ...item,
-        path: item.path(lang),
-      })),
-    },
-    content: {
-      titleKey: appRoutes.content.titleKey,
-      items: appRoutes.content.items.map((item) => ({
-        ...item,
-        path: item.path(lang),
-      })),
-    },
-    resources: {
-      titleKey: appRoutes.resources.titleKey,
-      items: appRoutes.resources.items.map((item) => ({
-        ...item,
-        path: item.path(lang),
-      })),
-    },
-    about: {
-      titleKey: appRoutes.about.titleKey,
-      items: appRoutes.about.items.map((item) => ({
-        ...item,
-        path: item.path(lang),
-      })),
-    },
+  const allSections = {
+    work: appRoutes.work,
+    content: appRoutes.content,
+    resources: appRoutes.resources,
+    about: appRoutes.about,
   };
+
+  const navigationItems: Record<string, NavSection> = Object.fromEntries(
+    Object.entries(allSections).map(([key, section]) => {
+      const items: NavSectionItem[] = section.items
+        .filter((item) => item.path)
+        .map((item) => ({
+          ...item,
+          path: item.path(lang),
+        }));
+      return [key, { title: t(`nav.${key}`), items }];
+    })
+  ) as Record<string, NavSection>;
 
   const toggleMenu = () => setIsOpen(!isOpen);
   const closeMenu = () => setIsOpen(false);
@@ -176,7 +173,7 @@ const Navbar = () => {
                     <NavigationMenuTrigger
                       className={cn(isActiveSection(`/${key}`) ? "text-primary font-semibold bg-primary/10" : "text-foreground/80")}
                     >
-                      {t(section.titleKey)}
+                      {section.title}
                     </NavigationMenuTrigger>
 
                     <NavigationMenuContent>
@@ -245,7 +242,7 @@ const Navbar = () => {
               {Object.entries(navigationItems).map(([key, section]) => (
                 <div key={key} className="space-y-2">
                   <div className="px-4 py-2 text-sm font-medium text-muted-foreground uppercase tracking-wider">
-                    {t(section.titleKey)}
+                    {section.title}
                   </div>
                   {section.items.map((item) => (
                     <NavItem key={item.path} item={item} closeMenu={closeMenu} isActiveItem={isActiveItem} t={t} isMobile />

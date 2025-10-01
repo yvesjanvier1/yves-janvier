@@ -1,93 +1,140 @@
-
 {
-  "nav.home": "Accueil",
-  "nav.portfolio": "Portfolio", 
-  "nav.blog": "Blog",
-  "nav.about": "À propos",
-  "nav.contact": "Contact",
-  "nav.work": "Travail",
-  
-  "hero.greeting": "Bonjour, je suis",
-  "hero.title": "Expert Data & Tech",
-  "hero.subtitle": "Spécialisé dans la transformation de données complexes en insights actionnables et la création de solutions technologiques innovantes.",
-  "hero.cta.portfolio": "Voir mon travail",
-  "hero.cta.contact": "Prenons contact",
-  
-  "services.title": "Services",
-  "services.subtitle": "Solutions complètes en données et technologie",
-  
-  "portfolio.title": "Portfolio",
-  "portfolio.subtitle": "Présentation de mes derniers travaux et projets",
-  "portfolio.featuredProjects": "Projets en vedette",
-  "portfolio.featuredProjectsSubtitle": "Découvrez mes derniers projets et réalisations",
-  "portfolio.viewProject": "Voir le projet",
-  "portfolio.readMore": "Lire la suite",
-  "portfolio.viewAll": "Voir tous les projets",
-  "portfolio.noProjectsFound": "Aucun projet trouvé",
-  "portfolio.noProjectsMessage": "Essayez d'ajuster votre recherche ou filtre pour trouver ce que vous cherchez.",
-  "portfolio.searchPlaceholder": "Rechercher des projets...",
-  "portfolio.category": "Catégorie",
-  "portfolio.allCategories": "Toutes catégories",
-  "portfolio.allTech": "Toutes technologies",
-  "portfolio.featuredFirst": "En vedette d'abord",
-  "portfolio.byDate": "Par date",
-  "portfolio.byTitle": "Par titre",
-  "portfolio.viewCaseStudy": "Voir l'étude de cas",
-  
-  "blog.title": "Blog",
-  "blog.subtitle": "Insights sur les données, la technologie et l'innovation",
-  "blog.readMore": "Lire la suite",
-  "blog.viewAll": "Voir tous les articles",
-  "blog.latestPosts": "Derniers articles du blog",
-  "blog.latestPostsSubtitle": "Insights, tutoriels et réflexions sur les données et la tech",
-  "blog.noPostsFound": "Aucun article trouvé",
-  "blog.noPostsMessage": "Essayez d'ajuster votre recherche ou filtre pour trouver ce que vous cherchez.",
-  "blog.searchPlaceholder": "Rechercher des articles...",
-  "blog.postNotFound": "Article introuvable",
-  "blog.errorFetchingPost": "Erreur lors du chargement de l'article",
-  
-  "contact.title": "Me contacter",
-  "contact.subtitle": "Contactez-moi pour des collaborations, consultations, ou juste pour dire bonjour",
-  "contact.letsConnect": "Connectons-nous",
-  "contact.description": "Que vous cherchiez une expertise en données et technologie, ayez une question sur mon travail, ou vouliez simplement vous connecter, j'aimerais vous entendre.",
-  "contact.form.name": "Nom",
-  "contact.form.email": "Email",
-  "contact.form.subject": "Sujet",
-  "contact.form.message": "Message",
-  "contact.form.send": "Envoyer le message",
-  "contact.form.sending": "Envoi en cours...",
-  "contact.form.namePlaceholder": "Votre nom",
-  "contact.form.emailPlaceholder": "votre.email@exemple.com",
-  "contact.form.subjectPlaceholder": "À quel sujet ?",
-  "contact.form.messagePlaceholder": "Votre message...",
-  "contact.success.title": "Message envoyé",
-  "contact.success.description": "Merci pour votre message. Je vous répondrai bientôt !",
-  "contact.error.title": "Erreur",
-  "contact.error.description": "Il y a eu un problème lors de l'envoi de votre message. Veuillez réessayer.",
-  
-  "footer.quickLinks": "Liens rapides",
-  "footer.connect": "Se connecter",
-  "footer.socialMedia": "Réseaux sociaux",
-  "footer.copyright": "Tous droits réservés.",
-  
-  "common.loading": "Chargement...",
-  "common.error": "Erreur",
-  "common.retry": "Réessayer",
-  "common.backTo": "Retour à",
-  "common.publishedOn": "Publié le",
-  "common.updated": "Mis à jour",
-  "common.all": "Tout",
-  "common.search": "Rechercher",
-  "common.filter": "Filtrer",
-  "common.previous": "Précédent",
-  "common.next": "Suivant",
-  "common.page": "Page",
-  "common.of": "de",
-  "common.sort": "Trier",
-  "common.comingSoon": "Bientôt disponible !",
-  "common.comingSoonDescription": "Cette fonctionnalité est en cours de développement.",
-  "common.changeLanguage": "Changer de langue",
-  
+  "nav": {
+    "home": "Accueil",
+    "work": "Travail",
+    "portfolio": "Portfolio",
+    "projects": "Projets",
+    "content": "Contenu",
+    "blog": "Blog",
+    "journal": "Journal",
+    "now": "Maintenant",
+    "resources": "Ressources",
+    "about": "À propos",
+    "resume": "CV",
+    "contact": "Contact"
+  },
+
+  "navDescriptions": {
+    "aboutMe": "En savoir plus sur moi",
+    "resume": "Voir mon CV",
+    "getInTouch": "Prendre contact",
+    "portfolio": "Voir mon portfolio complet",
+    "projects": "Projets en vedette et études de cas",
+    "blog": "Derniers articles et insights",
+    "journal": "Mises à jour de projets et activités",
+    "now": "Ce sur quoi je travaille actuellement",
+    "resources": "Outils, guides et téléchargements utiles"
+  },
+
+  "hero": {
+    "greeting": "Bonjour, je suis",
+    "title": "Expert Data & Tech",
+    "subtitle": "Spécialisé dans la transformation de données complexes en insights actionnables et la création de solutions technologiques innovantes.",
+    "cta": {
+      "portfolio": "Voir mon travail",
+      "contact": "Prenons contact"
+    },
+    "stats": {
+      "projectsCompleted": "Projets Réalisés",
+      "yearsExperience": "Années d'Expérience",
+      "clientSatisfaction": "Satisfaction Client",
+      "scrollDown": "Faire défiler"
+    }
+  },
+
+  "services": {
+    "title": "Services",
+    "subtitle": "Solutions complètes en données et technologie"
+  },
+
+  "portfolio": {
+    "title": "Portfolio",
+    "subtitle": "Présentation de mes derniers travaux et projets",
+    "featuredProjects": "Projets en vedette",
+    "featuredProjectsSubtitle": "Découvrez mes derniers projets et réalisations",
+    "viewProject": "Voir le projet",
+    "readMore": "Lire la suite",
+    "viewAll": "Voir tous les projets",
+    "noProjectsFound": "Aucun projet trouvé",
+    "noProjectsMessage": "Essayez d'ajuster votre recherche ou filtre pour trouver ce que vous cherchez.",
+    "searchPlaceholder": "Rechercher des projets...",
+    "category": "Catégorie",
+    "allCategories": "Toutes catégories",
+    "allTech": "Toutes technologies",
+    "featuredFirst": "En vedette d'abord",
+    "byDate": "Par date",
+    "byTitle": "Par titre",
+    "viewCaseStudy": "Voir l'étude de cas"
+  },
+
+  "blog": {
+    "title": "Blog",
+    "subtitle": "Insights sur les données, la technologie et l'innovation",
+    "readMore": "Lire la suite",
+    "viewAll": "Voir tous les articles",
+    "latestPosts": "Derniers articles du blog",
+    "latestPostsSubtitle": "Insights, tutoriels et réflexions sur les données et la tech",
+    "noPostsFound": "Aucun article trouvé",
+    "noPostsMessage": "Essayez d'ajuster votre recherche ou filtre pour trouver ce que vous cherchez.",
+    "searchPlaceholder": "Rechercher des articles...",
+    "postNotFound": "Article introuvable",
+    "errorFetchingPost": "Erreur lors du chargement de l'article"
+  },
+
+  "contact": {
+    "title": "Me contacter",
+    "subtitle": "Contactez-moi pour des collaborations, consultations, ou juste pour dire bonjour",
+    "letsConnect": "Connectons-nous",
+    "description": "Que vous cherchiez une expertise en données et technologie, ayez une question sur mon travail, ou vouliez simplement vous connecter, j'aimerais vous entendre.",
+    "form": {
+      "name": "Nom",
+      "email": "Email",
+      "subject": "Sujet",
+      "message": "Message",
+      "send": "Envoyer le message",
+      "sending": "Envoi en cours...",
+      "namePlaceholder": "Votre nom",
+      "emailPlaceholder": "votre.email@exemple.com",
+      "subjectPlaceholder": "À quel sujet ?",
+      "messagePlaceholder": "Votre message..."
+    },
+    "success": {
+      "title": "Message envoyé",
+      "description": "Merci pour votre message. Je vous répondrai bientôt !"
+    },
+    "error": {
+      "title": "Erreur",
+      "description": "Il y a eu un problème lors de l'envoi de votre message. Veuillez réessayer."
+    }
+  },
+
+  "footer": {
+    "quickLinks": "Liens rapides",
+    "connect": "Se connecter",
+    "socialMedia": "Réseaux sociaux",
+    "copyright": "Tous droits réservés."
+  },
+
+  "common": {
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "retry": "Réessayer",
+    "backTo": "Retour à",
+    "publishedOn": "Publié le",
+    "updated": "Mis à jour",
+    "all": "Tout",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "previous": "Précédent",
+    "next": "Suivant",
+    "page": "Page",
+    "of": "de",
+    "sort": "Trier",
+    "comingSoon": "Bientôt disponible !",
+    "comingSoonDescription": "Cette fonctionnalité est en cours de développement.",
+    "changeLanguage": "Changer de langue"
+  },
+
   "auth": {
     "loadingAuthentication": "Chargement de l'authentification...",
     "signOut": "Se déconnecter",
@@ -95,27 +142,33 @@
     "sessionExpired": "Session expirée en raison d'inactivité",
     "signedInSuccessfully": "Connexion réussie"
   },
-  
-  "404.title": "Page non trouvée",
-  "404.description": "La page que vous recherchez n'existe pas ou a été déplacée.",
-  "404.backHome": "Retour à l'accueil",
-  "404.searchPlaceholder": "Rechercher...",
-  
-  "testimonials.title": "Témoignages",
-  "testimonials.subtitle": "Ce que disent mes clients et partenaires",
-  
-  "dashboard.title": "Tableau de bord",
-  "dashboard.blog": "Articles de blog",
-  "dashboard.portfolio": "Portfolio",
-  "dashboard.journal": "Journal",
-  "dashboard.now": "Page Maintenant",
-  "dashboard.testimonials": "Témoignages",
-  "dashboard.services": "Services",
-  "dashboard.resources": "Ressources",
-  "dashboard.about": "Page À propos",
-  "dashboard.messages": "Messages",
-  "dashboard.analytics": "Analyses",
-  
+
+  "404": {
+    "title": "Page non trouvée",
+    "description": "La page que vous recherchez n'existe pas ou a été déplacée.",
+    "backHome": "Retour à l'accueil",
+    "searchPlaceholder": "Rechercher..."
+  },
+
+  "testimonials": {
+    "title": "Témoignages",
+    "subtitle": "Ce que disent mes clients et partenaires"
+  },
+
+  "dashboard": {
+    "title": "Tableau de bord",
+    "blog": "Articles de blog",
+    "portfolio": "Portfolio",
+    "journal": "Journal",
+    "now": "Page Maintenant",
+    "testimonials": "Témoignages",
+    "services": "Services",
+    "resources": "Ressources",
+    "about": "Page À propos",
+    "messages": "Messages",
+    "analytics": "Analyses"
+  },
+
   "about": {
     "title": "À Propos",
     "subtitle": "Découvrez mon parcours, mes compétences et mon expertise",
@@ -128,61 +181,19 @@
     "github": "GitHub",
     "emailMe": "M'envoyer un email"
   },
-  
-  "hero": {
-    "greeting": "Bonjour, je suis",
-    "title": "Expert Data & Tech",
-    "subtitle": "Spécialisé dans la transformation de données complexes en insights actionnables et la création de solutions technologiques innovantes.",
-    "cta": {
-      "portfolio": "Voir mon travail",
-      "contact": "Prenons contact"
-    },
-    "stats": {
-      "projectsCompleted": "Projets Réalisés",
-      "yearsExperience": "Années d'Expérience", 
-      "clientSatisfaction": "Satisfaction Client",
-      "scrollDown": "Faire défiler"
-    }
-  },
-  
+
   "resources": {
     "tools": {
       "title": "Outils",
       "description": "Outils de développement utiles"
     },
     "guides": {
-      "title": "Guides", 
+      "title": "Guides",
       "description": "Guides techniques et tutoriels"
     },
     "downloads": {
       "title": "Téléchargements",
       "description": "Ressources et téléchargements gratuits"
-    }
-  },
-  
-  "nav": {
-    "home": "Accueil",
-    "portfolio": "Portfolio", 
-    "blog": "Blog",
-    "about": "À propos",
-    "contact": "Contact",
-    "work": "Travail",
-    "content": "Contenu",
-    "resources": "Ressources",
-    "projects": "Projets",
-    "journal": "Journal",
-    "now": "Maintenant",
-    "resume": "CV",
-    "descriptions": {
-      "aboutMe": "En savoir plus sur moi",
-      "resume": "Voir mon CV",
-      "getInTouch": "Prendre contact",
-      "portfolio": "Voir mon portfolio complet",
-      "projects": "Projets en vedette et études de cas",
-      "blog": "Derniers articles et insights",
-      "journal": "Mises à jour de projets et activités",
-      "now": "Ce sur quoi je travaille actuellement",
-      "resources": "Outils, guides et téléchargements utiles"
     }
   },
 
