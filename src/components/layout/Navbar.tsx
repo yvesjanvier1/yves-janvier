@@ -19,6 +19,7 @@ import {
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
+import { appRoutes } from "@/router/routes";
 
 interface NavItemProps {
   item: any;
@@ -86,37 +87,35 @@ const Navbar = () => {
   const { language: lang, t } = useLanguage();
   const { isMobile } = useResponsive();
 
+  // Auto-generate navigation items from routes config
   const navigationItems = {
     work: {
-      titleKey: "nav.work",
-      items: [
-        { nameKey: "nav.portfolio", descriptionKey: "nav.descriptions.portfolio", path: `/${lang}/work/portfolio` },
-        { nameKey: "nav.projects", descriptionKey: "nav.descriptions.projects", path: `/${lang}/work/projects`, comingSoon: true },
-      ],
+      titleKey: appRoutes.work.titleKey,
+      items: appRoutes.work.items.map((item) => ({
+        ...item,
+        path: item.path(lang),
+      })),
     },
     content: {
-      titleKey: "nav.content",
-      items: [
-        { nameKey: "nav.blog", descriptionKey: "nav.descriptions.blog", path: `/${lang}/content/blog` },
-        { nameKey: "nav.journal", descriptionKey: "nav.descriptions.journal", path: `/${lang}/content/journal` },
-        { nameKey: "nav.now", descriptionKey: "nav.descriptions.now", path: `/${lang}/content/now` },
-      ],
+      titleKey: appRoutes.content.titleKey,
+      items: appRoutes.content.items.map((item) => ({
+        ...item,
+        path: item.path(lang),
+      })),
     },
     resources: {
-      titleKey: "nav.resources",
-      items: [
-        { nameKey: "resources.tools.title", descriptionKey: "resources.tools.description", path: `/${lang}/resources/tools` },
-        { nameKey: "resources.guides.title", descriptionKey: "resources.guides.description", path: `/${lang}/resources/guides` },
-        { nameKey: "resources.downloads.title", descriptionKey: "resources.downloads.description", path: `/${lang}/resources/downloads` },
-      ],
+      titleKey: appRoutes.resources.titleKey,
+      items: appRoutes.resources.items.map((item) => ({
+        ...item,
+        path: item.path(lang),
+      })),
     },
     about: {
-      titleKey: "nav.about",
-      items: [
-        { nameKey: "nav.about", descriptionKey: "nav.descriptions.aboutMe", path: `/${lang}/about` },
-        { nameKey: "nav.resume", descriptionKey: "nav.descriptions.resume", path: `/${lang}/about#resume` },
-        { nameKey: "nav.contact", descriptionKey: "nav.descriptions.getInTouch", path: `/${lang}/contact` },
-      ],
+      titleKey: appRoutes.about.titleKey,
+      items: appRoutes.about.items.map((item) => ({
+        ...item,
+        path: item.path(lang),
+      })),
     },
   };
 
