@@ -1,0 +1,12 @@
+{
+  "title": "About Me",
+  "subtitle": "Learn more about my background, skills, and expertise",
+  "loading": "Loading profile data...",
+  "notAvailable": "About page data not available.",
+  "skillsTitle": "Technical Skills & Expertise",
+  "journeyTitle": "Professional Journey",
+  "downloadResume": "Download Resume",
+  "linkedin": "LinkedIn",
+  "github": "GitHub",
+  "emailMe": "Email Me"
+}

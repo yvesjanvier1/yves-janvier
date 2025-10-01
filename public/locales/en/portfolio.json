@@ -1,0 +1,19 @@
+{
+  "title": "Portfolio",
+  "subtitle": "Showcasing my latest work and projects",
+  "featuredProjects": "Featured Projects",
+  "featuredProjectsSubtitle": "Discover my latest projects and achievements",
+  "viewProject": "View Project",
+  "readMore": "Read More",
+  "viewAll": "View All Projects",
+  "noProjectsFound": "No projects found",
+  "noProjectsMessage": "Try adjusting your search or filter to find what you're looking for.",
+  "searchPlaceholder": "Search projects...",
+  "category": "Category",
+  "allCategories": "All Categories",
+  "allTech": "All Tech",
+  "featuredFirst": "Featured First",
+  "byDate": "By Date",
+  "byTitle": "By Title",
+  "viewCaseStudy": "View Case Study"
+}

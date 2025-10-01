@@ -1,0 +1,29 @@
+{
+  "title": "Contact Me",
+  "subtitle": "Get in touch for collaborations, consultations, or just to say hello",
+  "letsConnect": "Let's Connect",
+  "description": "Whether you're looking for data and technology expertise, have a question about my work, or just want to connect, I'd love to hear from you.",
+  
+  "form": {
+    "name": "Name",
+    "email": "Email",
+    "subject": "Subject",
+    "message": "Message",
+    "send": "Send Message",
+    "sending": "Sending...",
+    "namePlaceholder": "Your name",
+    "emailPlaceholder": "your.email@example.com",
+    "subjectPlaceholder": "What is this regarding?",
+    "messagePlaceholder": "Your message..."
+  },
+  
+  "success": {
+    "title": "Message Sent",
+    "description": "Thank you for your message. I'll get back to you soon!"
+  },
+  
+  "error": {
+    "title": "Error",
+    "description": "There was a problem sending your message. Please try again."
+  }
+}

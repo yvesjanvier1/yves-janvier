@@ -1,24 +1,39 @@
-
 import { useAuth } from '@/components/dashboard/AuthProvider';
-import { useQuery, UseQueryOptions } from '@tanstack/react-query';
+import {
+  useQuery,
+  UseQueryOptions,
+  UseQueryResult,
+  QueryKey,
+} from '@tanstack/react-query';
 
-interface AuthenticatedQueryOptions<T> extends Omit<UseQueryOptions<T>, 'queryFn'> {
-  queryFn: () => Promise<T>;
-  requireAuth?: boolean;
+interface AuthenticatedQueryOptions<
+  TData = unknown,
+  TError = unknown
+> extends Omit<UseQueryOptions<TData, TError, TData, QueryKey>, 'queryFn'> {
+  queryKey: QueryKey;                      // required
+  queryFn: () => Promise<TData>;           // required
+  requireAuth?: boolean;                   // optional
+  enabled?: boolean;                       // explicitly re-add enabled
 }
 
-export function useAuthenticatedQuery<T>({
+export function useAuthenticatedQuery<
+  TData = unknown,
+  TError = unknown
+>({
   queryKey,
   queryFn,
   requireAuth = false,
+  enabled = true,
   ...options
-}: AuthenticatedQueryOptions<T>) {
+}: AuthenticatedQueryOptions<TData, TError>): UseQueryResult<TData, TError> {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
 
-  return useQuery({
+  return useQuery<TData, TError>({
     queryKey,
     queryFn,
-    enabled: requireAuth ? isAuthenticated && !authLoading : (options.enabled ?? true),
+    enabled: requireAuth
+      ? isAuthenticated && !authLoading && enabled
+      : enabled,
     ...options,
   });
 }

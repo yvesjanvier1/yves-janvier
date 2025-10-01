@@ -1,0 +1,19 @@
+{
+  "loading": "Loading...",
+  "error": "Error",
+  "retry": "Retry",
+  "backTo": "Back to",
+  "publishedOn": "Published on",
+  "updated": "Updated",
+  "all": "All",
+  "search": "Search",
+  "filter": "Filter",
+  "previous": "Previous",
+  "next": "Next",
+  "page": "Page",
+  "of": "of",
+  "sort": "Sort",
+  "comingSoon": "Coming Soon!",
+  "comingSoonDescription": "This feature is under development.",
+  "changeLanguage": "Change language"
+}

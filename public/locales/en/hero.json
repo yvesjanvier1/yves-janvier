@@ -1,0 +1,15 @@
+{
+  "greeting": "Hello, I'm",
+  "title": "Data & Tech Expert",
+  "subtitle": "Specializing in transforming complex data into actionable insights and building innovative tech solutions.",
+  "cta": {
+    "portfolio": "View My Work",
+    "contact": "Get In Touch"
+  },
+  "stats": {
+    "projectsCompleted": "Projects Completed",
+    "yearsExperience": "Years Experience",
+    "clientSatisfaction": "Client Satisfaction",
+    "scrollDown": "Scroll Down"
+  }
+}

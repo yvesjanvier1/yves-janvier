@@ -1,0 +1,14 @@
+{
+  "tools": {
+    "title": "Tools",
+    "description": "Useful development tools"
+  },
+  "guides": {
+    "title": "Guides",
+    "description": "Technical guides and tutorials"
+  },
+  "downloads": {
+    "title": "Downloads",
+    "description": "Free resources and downloads"
+  }
+}
