@@ -26,12 +26,12 @@ export const appRoutes = {
       {
         path: (lang: string) => `/${lang}/portfolio`,
         nameKey: "nav.portfolio",
-        descriptionKey: "nav.descriptions.portfolio",
+        descriptionKey: "navDescriptions.portfolio",
       },
       {
         path: (lang: string) => `/${lang}/projects`,
         nameKey: "nav.projects",
-        descriptionKey: "nav.descriptions.projects",
+        descriptionKey: "navDescriptions.projects",
         comingSoon: true,
       },
     ],
@@ -42,17 +42,17 @@ export const appRoutes = {
       {
         path: (lang: string) => `/${lang}/blog`,
         nameKey: "nav.blog",
-        descriptionKey: "nav.descriptions.blog",
+        descriptionKey: "navDescriptions.blog",
       },
       {
         path: (lang: string) => `/${lang}/journal`,
         nameKey: "nav.journal",
-        descriptionKey: "nav.descriptions.journal",
+        descriptionKey: "navDescriptions.journal",
       },
       {
         path: (lang: string) => `/${lang}/now`,
         nameKey: "nav.now",
-        descriptionKey: "nav.descriptions.now",
+        descriptionKey: "navDescriptions.now",
       },
     ],
   },
@@ -62,7 +62,7 @@ export const appRoutes = {
       {
         path: (lang: string) => `/${lang}/resources`,
         nameKey: "nav.resources",
-        descriptionKey: "nav.descriptions.resources",
+        descriptionKey: "navDescriptions.resources",
       },
       {
         path: (lang: string) => `/${lang}/resources/tools`,
@@ -87,17 +87,17 @@ export const appRoutes = {
       {
         path: (lang: string) => `/${lang}/about`,
         nameKey: "nav.about",
-        descriptionKey: "nav.descriptions.aboutMe",
+        descriptionKey: "navDescriptions.aboutMe",
       },
       {
         path: (lang: string) => `/${lang}/about#resume`,
         nameKey: "nav.resume",
-        descriptionKey: "nav.descriptions.resume",
+        descriptionKey: "navDescriptions.resume",
       },
       {
         path: (lang: string) => `/${lang}/contact`,
         nameKey: "nav.contact",
-        descriptionKey: "nav.descriptions.getInTouch",
+        descriptionKey: "navDescriptions.getInTouch",
       },
     ],
   },
