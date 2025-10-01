@@ -1,4 +1,3 @@
-
 import { Routes, Route, Navigate } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import Home from "@/pages/HomePage";
@@ -13,7 +12,6 @@ import Journal from "@/pages/JournalPage";
 import Now from "@/pages/NowPage";
 import Resources from "@/pages/ResourcesPage";
 import ErrorPage from "@/pages/NotFound";
-import ComingSoon from "@/pages/ComingSoonPage";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import ProtectedRoute from "@/components/dashboard/ProtectedRoute";
 import Dashboard from "@/pages/dashboard/DashboardHomePage";
@@ -93,8 +91,11 @@ export default function AppRouter() {
         <Route path="blog" element={<Blog />} />
         <Route path="journal" element={<Journal />} />
         <Route path="now" element={<Now />} />
+
+        {/* ✅ Add these fallbacks so /blog/:slug and /portfolio/:slug work without language */}
+        <Route path="blog/:slug" element={<BlogPost />} />
+        <Route path="portfolio/:slug" element={<ProjectDetail />} />
       </Route>
-      
       
       {/* Dashboard Routes - Protected */}
       <Route path="/dashboard/login" element={<Login />} />
@@ -127,7 +128,6 @@ export default function AppRouter() {
         <Route path="messages" element={<DashboardMessages />} />
         <Route path="analytics" element={<DashboardAnalytics />} />
       </Route>
-      
       
       <Route path="*" element={<ErrorPage />} />
     </Routes>
