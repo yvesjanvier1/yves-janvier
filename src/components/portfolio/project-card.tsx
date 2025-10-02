@@ -28,7 +28,7 @@ interface ProjectCardProps {
 }
 
 const ProjectCard = ({ project }: ProjectCardProps) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   
   // Extract categories from either project.categories array or single project.category
   const categories = project.categories || (project.category ? [project.category] : []);
@@ -52,7 +52,7 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
         />
         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
           <Link 
-            to={`/portfolio/${project.id}`}
+            to={`/${language}/portfolio/${project.id}`}
             className="bg-primary text-primary-foreground px-4 py-2 rounded-md font-medium"
           >
             {t('portfolio.viewProject')}
@@ -73,7 +73,7 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
         <h3 className="font-semibold text-xl mb-2">{project.title}</h3>
         <p className="text-muted-foreground flex-grow mb-4">{summary}</p>
         <Link 
-          to={`/portfolio/${project.id}`}
+          to={`/${language}/portfolio/${project.id}`}
           className="text-primary font-medium hover:underline"
         >
           {t('portfolio.viewCaseStudy')}

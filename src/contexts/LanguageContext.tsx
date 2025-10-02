@@ -116,7 +116,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
 
     loadTranslations();
 
-    // Sync language with URL
+    // Sync language with URL - only redirect if missing valid language
     if (isValidLang && urlLang !== language) {
       setLanguage(urlLang);
       document.documentElement.lang = urlLang;
@@ -127,14 +127,19 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
       } catch (error) {
         console.warn('Failed to set locale:', error);
       }
-    } else if (!isValidLang) {
-      // Detect and set browser language if URL doesn't have valid language
+    } else if (!isValidLang && location.pathname !== '/') {
+      // Only redirect if on a path without valid language
       const browserLang = detectBrowserLanguage();
       const savedLang = localStorage.getItem('language') as Language;
       const initialLang = validateLanguage(savedLang) || browserLang;
       
       setLanguage(initialLang);
       document.documentElement.lang = initialLang;
+      
+      // Redirect to add language prefix
+      const newPath = `/${initialLang}${location.pathname}`;
+      navigate(newPath, { replace: true });
+      
       // Set locale in Supabase for RLS filtering  
       try {
         supabase.rpc('set_current_locale', { _locale: initialLang });
@@ -142,7 +147,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
         console.warn('Failed to set locale:', error);
       }
     }
-  }, [location.pathname, urlLang, isValidLang, language]);
+  }, [location.pathname, urlLang, isValidLang, language, navigate]);
 
   const handleSetLanguage = (newLanguage: Language) => {
     setLanguage(newLanguage);
@@ -158,19 +163,17 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
       console.warn('Failed to set locale:', error);
     }
     
-    // Update URL to reflect new language
-    const currentPath = location.pathname;
-    const pathSegments = currentPath.split('/');
+    // Preserve the full path after the language prefix
+    const pathSegments = location.pathname.split('/').filter(Boolean);
     
-    if (isValidLang) {
-      // Replace current language
-      pathSegments[1] = newLanguage;
-    } else {
-      // Add language prefix
-      pathSegments.splice(1, 0, newLanguage);
+    // Remove current language if present
+    if (pathSegments.length > 0 && ['en', 'fr', 'ht'].includes(pathSegments[0])) {
+      pathSegments.shift();
     }
     
-    navigate(pathSegments.join('/'), { replace: true });
+    // Build new path with new language
+    const newPath = `/${newLanguage}${pathSegments.length > 0 ? '/' + pathSegments.join('/') : ''}`;
+    navigate(newPath, { replace: true });
   };
 
   const t = (key: string): string => {

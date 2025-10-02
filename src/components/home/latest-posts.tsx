@@ -10,7 +10,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useResponsive } from "@/hooks/useResponsive";
 
 const LatestPosts = () => {
-  const { t, formatDate } = useLanguage();
+  const { t, formatDate, language } = useLanguage();
   const { isMobile } = useResponsive();
   const { data: posts = [], isLoading, error } = useMultilingualData<any>({
     table: 'blog_posts',
@@ -96,7 +96,7 @@ const LatestPosts = () => {
                   </h3>
                   <p className="text-muted-foreground line-clamp-2 mb-4">{post.excerpt || ""}</p>
                   <Link 
-                    to={`/content/blog/${post.slug}`}
+                    to={`/${language}/blog/${post.slug}`}
                     className="text-primary font-medium inline-flex items-center hover:underline"
                   >
                     {t('blog.readMore')}
@@ -115,7 +115,7 @@ const LatestPosts = () => {
 
         <div className="mt-12 text-center">
           <Button asChild variant="outline" size="lg">
-            <Link to="/content/blog">{t('blog.viewAll')}</Link>
+            <Link to={`/${language}/blog`}>{t('blog.viewAll')}</Link>
           </Button>
         </div>
       </div>
