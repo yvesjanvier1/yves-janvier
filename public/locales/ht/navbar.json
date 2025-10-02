@@ -1,24 +1,41 @@
 {
   "home": "Akèy",
-  "portfolio": "Portfolio",
-  "blog": "Blog",
-  "about": "Sou mwen",
-  "contact": "Kontak",
   "work": "Travay",
+  "portfolio": {
+    "label": "Pòtfèy",
+    "description": "Eksibisyon pwojè kreyatif ak teknik mwen yo"
+  },
+  "projects": {
+    "label": "Pwojè (Byento)",
+    "description": "Rete branche pou pwojè k ap vini yo"
+  },
   "content": "Kontni",
-  "resources": "Resous",
-  "projects": "Pwojè",
-  "journal": "Jounal",
-  "now": "Kounye a",
-  "resume": "CV",
-  "descriptions": {
-    "aboutMe": "Aprann plis sou mwen",
-    "resume": "Gade CV mwen",
-    "getInTouch": "Pran kontak",
-    "portfolio": "Gade portfolio konplè mwen",
-    "projects": "Pwojè ak etid ka",
-    "blog": "Dènye atik ak insights",
-    "journal": "Dènye aktivite pwojè",
-    "now": "Sa m ap travay sou kounye a"
+  "blog": {
+    "label": "Blog",
+    "description": "Atik, leson ak panse"
+  },
+  "journal": {
+    "label": "Jounal",
+    "description": "Refleksyon pèsonèl ak eksperyans mwen yo"
+  },
+  "now": {
+    "label": "Kounye a",
+    "description": "Sa m ap travay sou li kounye a"
+  },
+  "resources": {
+    "label": "Resous",
+    "description": "Zouti, gid ak telechajman itil"
+  },
+  "about": {
+    "label": "Sou mwen",
+    "description": "Aprann plis sou mwen"
+  },
+  "resume": {
+    "label": "Rezime",
+    "description": "Gade eksperyans pwofesyonèl mwen"
+  },
+  "contact": {
+    "label": "Kontak",
+    "description": "Antre an kontak avè m'"
   }
 }

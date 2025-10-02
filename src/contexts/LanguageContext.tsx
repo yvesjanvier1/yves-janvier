@@ -52,19 +52,60 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
   const [translations, setTranslations] = useState<Record<string, Record<string, string>>>({});
 
   useEffect(() => {
-    // Load translations
+    // Load translations from all namespace files
     const loadTranslations = async () => {
       try {
-        const [enTranslations, frTranslations, htTranslations] = await Promise.all([
-          fetch('/locales/en/translation.json').then(r => r.json()).catch(() => ({})),
-          fetch('/locales/fr/translation.json').then(r => r.json()).catch(() => ({})),
-          fetch('/locales/ht/translation.json').then(r => r.json()).catch(() => ({}))
-        ]);
+        const namespaces = ['navbar', 'hero', 'portfolio', 'blog', 'footer', 'resources', 'services', 'about', 'contact', 'common'];
+        const languages = ['en', 'fr', 'ht'];
+        
+        const translationPromises = languages.map(async (lang) => {
+          const langTranslations: Record<string, any> = {};
+          
+          // Load each namespace file
+          await Promise.all(
+            namespaces.map(async (ns) => {
+              try {
+                const data = await fetch(`/locales/${lang}/${ns}.json`).then(r => r.json());
+                // Prefix all keys with namespace
+                Object.keys(data).forEach(key => {
+                  const prefixedKey = `${ns}.${key}`;
+                  langTranslations[prefixedKey] = data[key];
+                  
+                  // Also handle nested objects for descriptions
+                  if (typeof data[key] === 'object' && data[key] !== null) {
+                    if ('label' in data[key]) {
+                      langTranslations[prefixedKey] = data[key].label;
+                    }
+                    if ('description' in data[key]) {
+                      langTranslations[`${prefixedKey}.description`] = data[key].description;
+                    }
+                    // Handle nested structures like resources.tools.title
+                    Object.keys(data[key]).forEach(subKey => {
+                      if (typeof data[key][subKey] === 'object') {
+                        Object.keys(data[key][subKey]).forEach(deepKey => {
+                          langTranslations[`${prefixedKey}.${subKey}.${deepKey}`] = data[key][subKey][deepKey];
+                        });
+                      } else {
+                        langTranslations[`${prefixedKey}.${subKey}`] = data[key][subKey];
+                      }
+                    });
+                  }
+                });
+              } catch (error) {
+                console.warn(`Failed to load ${lang}/${ns}.json:`, error);
+              }
+            })
+          );
+          
+          return langTranslations;
+        });
 
+        const [enTrans, frTrans, htTrans] = await Promise.all(translationPromises);
+        
         setTranslations({
-          en: enTranslations,
-          fr: frTranslations,
-          ht: htTranslations
+          en: enTrans,
+          fr: frTrans,
+          ht: htTrans
         });
       } catch (error) {
         console.warn('Failed to load translations:', error);
@@ -133,15 +174,25 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
   };
 
   const t = (key: string): string => {
-    // First try current language, then fallback to French, then English, then return key
+    // Handle both dot notation (nav.home) and direct keys (home)
     const currentTranslations = translations[language] || embeddedTranslations[language] || {};
     const frenchTranslations = translations.fr || embeddedTranslations.fr || {};
     const englishTranslations = translations.en || embeddedTranslations.en || {};
     
-    const translation = currentTranslations[key] || 
-                       frenchTranslations[key] || 
-                       englishTranslations[key] || 
-                       key;
+    let translation = currentTranslations[key] || 
+                     frenchTranslations[key] || 
+                     englishTranslations[key];
+    
+    // If not found, try without namespace prefix (for backward compatibility)
+    if (!translation && key.includes('.')) {
+      const withoutNamespace = key.split('.').slice(1).join('.');
+      translation = currentTranslations[withoutNamespace] || 
+                   frenchTranslations[withoutNamespace] || 
+                   englishTranslations[withoutNamespace];
+    }
+    
+    // Return translation or key as fallback
+    translation = translation || key;
     
     // Log missing translations in development
     if (process.env.NODE_ENV === 'development' && !currentTranslations[key]) {

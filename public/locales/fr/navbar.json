@@ -1,24 +1,41 @@
 {
   "home": "Accueil",
-  "portfolio": "Portfolio",
-  "blog": "Blog",
-  "about": "À propos",
-  "contact": "Contact",
-  "work": "Travail",
+  "work": "Travaux",
+  "portfolio": {
+    "label": "Portfolio",
+    "description": "Présentation de mes projets créatifs et techniques"
+  },
+  "projects": {
+    "label": "Projets (Bientôt)",
+    "description": "Restez à l'écoute pour les projets à venir"
+  },
   "content": "Contenu",
-  "resources": "Ressources",
-  "projects": "Projets",
-  "journal": "Journal",
-  "now": "Maintenant",
-  "resume": "CV",
-  "descriptions": {
-    "aboutMe": "En savoir plus sur moi",
-    "resume": "Voir mon CV",
-    "getInTouch": "Prenons contact",
-    "portfolio": "Voir mon portfolio complet",
-    "projects": "Projets et études de cas",
-    "blog": "Derniers articles et insights",
-    "journal": "Mises à jour de projets et activités",
-    "now": "Ce sur quoi je travaille actuellement"
+  "blog": {
+    "label": "Blog",
+    "description": "Articles, tutoriels et réflexions"
+  },
+  "journal": {
+    "label": "Journal",
+    "description": "Pensées et réflexions personnelles"
+  },
+  "now": {
+    "label": "Maintenant",
+    "description": "Ce sur quoi je travaille actuellement"
+  },
+  "resources": {
+    "label": "Ressources",
+    "description": "Outils, guides et téléchargements utiles"
+  },
+  "about": {
+    "label": "À propos",
+    "description": "En savoir plus sur moi"
+  },
+  "resume": {
+    "label": "CV",
+    "description": "Consultez mon parcours professionnel"
+  },
+  "contact": {
+    "label": "Contact",
+    "description": "Entrez en contact avec moi"
   }
 }

@@ -1,24 +1,41 @@
 {
   "home": "Home",
-  "portfolio": "Portfolio",
-  "blog": "Blog",
-  "about": "About",
-  "contact": "Contact",
   "work": "Work",
+  "portfolio": {
+    "label": "Portfolio",
+    "description": "Showcasing my creative and technical projects"
+  },
+  "projects": {
+    "label": "Projects (Coming Soon)",
+    "description": "Stay tuned for upcoming projects"
+  },
   "content": "Content",
-  "resources": "Resources",
-  "projects": "Projects",
-  "journal": "Journal",
-  "now": "Now",
-  "resume": "Resume",
-  "descriptions": {
-    "aboutMe": "Learn more about me",
-    "resume": "View my resume",
-    "getInTouch": "Get in touch",
-    "portfolio": "View my complete portfolio",
-    "projects": "Featured projects and case studies",
-    "blog": "Latest articles and insights",
-    "journal": "Project updates and activities",
-    "now": "What I'm currently working on"
+  "blog": {
+    "label": "Blog",
+    "description": "Articles, tutorials, and insights"
+  },
+  "journal": {
+    "label": "Journal",
+    "description": "Personal thoughts and reflections"
+  },
+  "now": {
+    "label": "Now",
+    "description": "What I'm working on currently"
+  },
+  "resources": {
+    "label": "Resources",
+    "description": "Useful tools, guides, and downloads"
+  },
+  "about": {
+    "label": "About",
+    "description": "Learn more about me"
+  },
+  "resume": {
+    "label": "Resume",
+    "description": "View my professional experience"
+  },
+  "contact": {
+    "label": "Contact",
+    "description": "Get in touch with me"
   }
 }
