@@ -1,5 +1,5 @@
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useSearchParams, useLocation } from "react-router-dom";
 import { SectionHeader } from "@/components/ui/section-header";
 import { ResponsiveContainer } from "@/components/ui/responsive-container";
@@ -7,17 +7,20 @@ import { AnimatedSection } from "@/components/ui/animated-section";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download, ExternalLink, BookOpen, Wrench } from "lucide-react";
+import { Download, ExternalLink, BookOpen, Wrench, FileText } from "lucide-react";
+import { useResources } from "@/hooks/useMultilingualData";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const ResourcesPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
+  const { data: resources, isLoading } = useResources();
   
   // Determine active tab from URL path or search params
   const getActiveTab = () => {
-    if (location.pathname === "/resources/tools") return "tools";
-    if (location.pathname === "/resources/guides") return "guides";
-    if (location.pathname === "/resources/downloads") return "downloads";
+    if (location.pathname.includes("/tools")) return "tools";
+    if (location.pathname.includes("/guides")) return "guides";
+    if (location.pathname.includes("/downloads")) return "downloads";
     return searchParams.get("category") || "downloads";
   };
 
@@ -25,11 +28,10 @@ const ResourcesPage = () => {
 
   useEffect(() => {
     // Update search params when tab changes via URL
-    if (location.pathname !== "/resources") {
-      const category = location.pathname.split("/resources/")[1];
-      if (category && ["tools", "guides", "downloads"].includes(category)) {
-        setSearchParams({ category });
-      }
+    const pathParts = location.pathname.split("/");
+    const category = pathParts[pathParts.length - 1];
+    if (category && ["tools", "guides", "downloads"].includes(category)) {
+      setSearchParams({ category });
     }
   }, [location.pathname, setSearchParams]);
 
@@ -37,98 +39,125 @@ const ResourcesPage = () => {
     setSearchParams({ category: value });
   };
 
-  const resourcesData = {
-    downloads: [
-      {
-        title: "React Component Library",
-        description: "A collection of reusable React components built with TypeScript and Tailwind CSS.",
-        type: "ZIP File",
-        size: "2.3 MB",
-        icon: Download,
-        downloadUrl: "#"
-      },
-      {
-        title: "Project Templates",
-        description: "Starter templates for various types of web applications.",
-        type: "ZIP File",
-        size: "5.1 MB",
-        icon: Download,
-        downloadUrl: "#"
-      }
-    ],
-    guides: [
-      {
-        title: "Full-Stack Development Guide",
-        description: "Complete guide to building modern web applications with React and Node.js.",
-        type: "PDF Guide",
-        pages: "45 pages",
-        icon: BookOpen,
-        downloadUrl: "#"
-      },
-      {
-        title: "API Design Best Practices",
-        description: "Learn how to design scalable and maintainable REST APIs.",
-        type: "Online Guide",
-        readTime: "15 min read",
-        icon: ExternalLink,
-        downloadUrl: "#"
-      }
-    ],
-    tools: [
-      {
-        title: "Development Environment Setup",
-        description: "Automated scripts to set up a complete development environment.",
-        type: "Shell Scripts",
-        compatibility: "macOS, Linux",
-        icon: Wrench,
-        downloadUrl: "#"
-      },
-      {
-        title: "Code Quality Tools",
-        description: "ESLint, Prettier, and TypeScript configurations for consistent code quality.",
-        type: "Config Files",
-        compatibility: "All platforms",
-        icon: Wrench,
-        downloadUrl: "#"
-      }
-    ]
+  // Helper to get icon based on file type
+  const getIcon = (fileType: string) => {
+    switch (fileType?.toUpperCase()) {
+      case 'ZIP':
+      case 'RAR':
+      case 'TAR':
+        return Download;
+      case 'PDF':
+        return FileText;
+      case 'ONLINE':
+        return ExternalLink;
+      case 'SCRIPT':
+      case 'CONFIG':
+      case 'APP':
+        return Wrench;
+      default:
+        return BookOpen;
+    }
   };
 
-  const renderResourceCard = (resource: any, index: number) => (
-    <AnimatedSection key={resource.title} delay={index * 0.1}>
-      <Card className="h-full hover:shadow-lg transition-shadow">
-        <CardHeader>
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <resource.icon className="h-5 w-5 text-primary" />
+  // Format file size
+  const formatFileSize = (bytes: number) => {
+    if (!bytes || bytes === 0) return "";
+    const mb = bytes / (1024 * 1024);
+    if (mb >= 1) return `${mb.toFixed(1)} MB`;
+    const kb = bytes / 1024;
+    return `${kb.toFixed(0)} KB`;
+  };
+
+  // Group resources by category
+  const resourcesByCategory = useMemo(() => {
+    if (!resources) return { downloads: [], guides: [], tools: [] };
+    
+    return {
+      downloads: resources.filter((r: any) => r.category === 'downloads'),
+      guides: resources.filter((r: any) => r.category === 'guides'),
+      tools: resources.filter((r: any) => r.category === 'tools'),
+    };
+  }, [resources]);
+
+  const renderResourceCard = (resource: any, index: number) => {
+    const Icon = getIcon(resource.file_type);
+    const sizeInfo = formatFileSize(resource.file_size);
+    
+    return (
+      <AnimatedSection key={resource.id} delay={index * 0.1}>
+        <Card className="h-full hover:shadow-lg transition-shadow">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Icon className="h-5 w-5 text-primary" />
+              </div>
+              <div className="flex-1">
+                <CardTitle className="text-lg">{resource.title}</CardTitle>
+                <CardDescription className="text-sm">
+                  {resource.file_type}{sizeInfo ? ` • ${sizeInfo}` : ''}
+                </CardDescription>
+              </div>
             </div>
-            <div>
-              <CardTitle className="text-lg">{resource.title}</CardTitle>
-              <CardDescription className="text-sm">
-                {resource.type} • {resource.size || resource.pages || resource.readTime || resource.compatibility}
-              </CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground mb-4">{resource.description}</p>
-          <Button className="w-full" onClick={() => window.open(resource.downloadUrl, '_blank')}>
-            {resource.type === "Online Guide" ? (
-              <>
-                <ExternalLink className="h-4 w-4 mr-2" />
-                View Guide
-              </>
-            ) : (
-              <>
-                <Download className="h-4 w-4 mr-2" />
-                Download
-              </>
-            )}
-          </Button>
-        </CardContent>
-      </Card>
-    </AnimatedSection>
-  );
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground mb-4">{resource.description}</p>
+            <Button 
+              className="w-full" 
+              onClick={() => window.open(resource.file_url, '_blank')}
+            >
+              {resource.file_type === 'ONLINE' ? (
+                <>
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  View Guide
+                </>
+              ) : (
+                <>
+                  <Download className="h-4 w-4 mr-2" />
+                  Download
+                </>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+      </AnimatedSection>
+    );
+  };
+
+  const renderResourceGrid = (categoryResources: any[]) => {
+    if (isLoading) {
+      return (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3].map((i) => (
+            <Card key={i} className="h-full">
+              <CardHeader>
+                <Skeleton className="h-12 w-12 rounded-lg" />
+                <Skeleton className="h-6 w-3/4 mt-2" />
+                <Skeleton className="h-4 w-1/2" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-16 w-full mb-4" />
+                <Skeleton className="h-10 w-full" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      );
+    }
+
+    if (!categoryResources || categoryResources.length === 0) {
+      return (
+        <div className="text-center py-12 text-muted-foreground">
+          No resources available in this category yet.
+        </div>
+      );
+    }
+
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {categoryResources.map((resource, index) => renderResourceCard(resource, index))}
+      </div>
+    );
+  };
 
   return (
     <ResponsiveContainer className="py-16 md:py-24">
@@ -149,21 +178,15 @@ const ResourcesPage = () => {
           </TabsList>
 
           <TabsContent value="downloads" className="mt-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {resourcesData.downloads.map((resource, index) => renderResourceCard(resource, index))}
-            </div>
+            {renderResourceGrid(resourcesByCategory.downloads)}
           </TabsContent>
 
           <TabsContent value="guides" className="mt-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {resourcesData.guides.map((resource, index) => renderResourceCard(resource, index))}
-            </div>
+            {renderResourceGrid(resourcesByCategory.guides)}
           </TabsContent>
 
           <TabsContent value="tools" className="mt-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {resourcesData.tools.map((resource, index) => renderResourceCard(resource, index))}
-            </div>
+            {renderResourceGrid(resourcesByCategory.tools)}
           </TabsContent>
         </Tabs>
       </AnimatedSection>

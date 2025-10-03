@@ -134,3 +134,16 @@ export const useDashboardTestimonials = () =>
 
 export const useDashboardMessages = () =>
   useMultilingualData<any>({ table: "contact_messages", orderBy: { column: "created_at", ascending: false }, scope: "dashboard" });
+
+// 🔗 Resources hooks
+export const useResources = (filters: Record<string, any> = {}) => {
+  return useMultilingualData<any>({
+    table: "resources",
+    filters,
+    orderBy: { column: "featured", ascending: false },
+    scope: "public",
+  });
+};
+
+export const useDashboardResources = () =>
+  useMultilingualData<any>({ table: "resources", orderBy: { column: "created_at", ascending: false }, scope: "dashboard" });
