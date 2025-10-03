@@ -1,30 +1,51 @@
 {
-  "home": "Accueil",
-  "work": "Travaux",
+  "home": {
+    "label": "Accueil",
+    "description": "Retour à la page d’accueil"
+  },
+  "work": {
+    "label": "Travaux",
+    "description": "Mes réalisations et contributions professionnelles"
+  },
   "portfolio": {
     "label": "Portfolio",
     "description": "Présentation de mes projets créatifs et techniques"
   },
   "projects": {
-    "label": "Projets (Bientôt)",
-    "description": "Restez à l'écoute pour les projets à venir"
+    "label": "Projets (Bientôt disponible)",
+    "description": "Restez à l’écoute pour découvrir les prochains projets"
   },
-  "content": "Contenu",
+  "content": {
+    "label": "Contenu",
+    "description": "Explorez les articles, journaux et mises à jour"
+  },
   "blog": {
     "label": "Blog",
     "description": "Articles, tutoriels et réflexions"
   },
   "journal": {
     "label": "Journal",
-    "description": "Pensées et réflexions personnelles"
+    "description": "Pensées personnelles et réflexions"
   },
   "now": {
-    "label": "Maintenant",
-    "description": "Ce sur quoi je travaille actuellement"
+    "label": "En ce moment",
+    "description": "Ce sur quoi je me concentre actuellement"
   },
   "resources": {
     "label": "Ressources",
     "description": "Outils, guides et téléchargements utiles"
+  },
+  "tools": {
+    "label": "Outils",
+    "description": "Outils de développement utiles"
+  },
+  "guides": {
+    "label": "Guides",
+    "description": "Guides techniques et tutoriels"
+  },
+  "downloads": {
+    "label": "Téléchargements",
+    "description": "Ressources et fichiers gratuits à télécharger"
   },
   "about": {
     "label": "À propos",
@@ -32,10 +53,10 @@
   },
   "resume": {
     "label": "CV",
-    "description": "Consultez mon parcours professionnel"
+    "description": "Voir mon parcours professionnel"
   },
   "contact": {
     "label": "Contact",
-    "description": "Entrez en contact avec moi"
+    "description": "Entrer en contact avec moi"
   }
 }

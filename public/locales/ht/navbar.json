@@ -1,30 +1,51 @@
 {
-  "home": "Akèy",
-  "work": "Travay",
+  "home": {
+    "label": "Akèy",
+    "description": "Retounen sou paj prensipal la"
+  },
+  "work": {
+    "label": "Travay",
+    "description": "Travay pwofesyonèl mwen ak kontribisyon mwen"
+  },
   "portfolio": {
     "label": "Pòtfèy",
-    "description": "Eksibisyon pwojè kreyatif ak teknik mwen yo"
+    "description": "Montre pwojè kreyatif ak teknik mwen yo"
   },
   "projects": {
     "label": "Pwojè (Byento)",
     "description": "Rete branche pou pwojè k ap vini yo"
   },
-  "content": "Kontni",
+  "content": {
+    "label": "Kontni",
+    "description": "Eksplore atik, jounal, ak mizajou yo"
+  },
   "blog": {
     "label": "Blog",
-    "description": "Atik, leson ak panse"
+    "description": "Atik, leson, ak analiz"
   },
   "journal": {
     "label": "Jounal",
-    "description": "Refleksyon pèsonèl ak eksperyans mwen yo"
+    "description": "Panse pèsonèl ak refleksyon"
   },
   "now": {
     "label": "Kounye a",
-    "description": "Sa m ap travay sou li kounye a"
+    "description": "Sa m konsantre sou li kounye a"
   },
   "resources": {
     "label": "Resous",
-    "description": "Zouti, gid ak telechajman itil"
+    "description": "Zouti itil, gid, ak telechajman"
+  },
+  "tools": {
+    "label": "Zouti",
+    "description": "Zouti itil pou devlopman"
+  },
+  "guides": {
+    "label": "Gid",
+    "description": "Gid teknik ak leson pratik"
+  },
+  "downloads": {
+    "label": "Telechajman",
+    "description": "Resous gratis ak fichye pou telechaje"
   },
   "about": {
     "label": "Sou mwen",
@@ -36,6 +57,6 @@
   },
   "contact": {
     "label": "Kontak",
-    "description": "Antre an kontak avè m'"
+    "description": "Antre an kontak avè m"
   }
 }

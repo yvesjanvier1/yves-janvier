@@ -1,6 +1,12 @@
 {
-  "home": "Home",
-  "work": "Work",
+  "home": {
+    "label": "Home",
+    "description": "Back to the homepage"
+  },
+  "work": {
+    "label": "Work",
+    "description": "My professional work and contributions"
+  },
   "portfolio": {
     "label": "Portfolio",
     "description": "Showcasing my creative and technical projects"
@@ -9,7 +15,10 @@
     "label": "Projects (Coming Soon)",
     "description": "Stay tuned for upcoming projects"
   },
-  "content": "Content",
+  "content": {
+    "label": "Content",
+    "description": "Explore articles, journals, and updates"
+  },
   "blog": {
     "label": "Blog",
     "description": "Articles, tutorials, and insights"
@@ -20,11 +29,23 @@
   },
   "now": {
     "label": "Now",
-    "description": "What I'm working on currently"
+    "description": "What I'm currently focused on"
   },
   "resources": {
     "label": "Resources",
     "description": "Useful tools, guides, and downloads"
+  },
+  "tools": {
+    "label": "Tools",
+    "description": "Useful development tools"
+  },
+  "guides": {
+    "label": "Guides",
+    "description": "Technical guides and tutorials"
+  },
+  "downloads": {
+    "label": "Downloads",
+    "description": "Free resources and downloads"
   },
   "about": {
     "label": "About",
