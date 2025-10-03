@@ -1,10 +1,16 @@
 {
-  "loading": "Loading...",
-  "error": "Error",
-  "retry": "Retry",
+  "comingSoon": "Coming Soon!",
+  "comingSoonDescription": "This feature or section is under development and will be available soon.",
+  "back": "Back",
   "backTo": "Back to",
+  "readMore": "Read More",
+  "loading": "Loading...",
+  "error": "An error occurred",
+  "errorOccurred": "An error occurred",
+  "success": "Success",
+  "retry": "Retry",
   "publishedOn": "Published on",
-  "updated": "Updated",
+  "updated": "Updated on",
   "all": "All",
   "search": "Search",
   "filter": "Filter",
@@ -13,7 +19,5 @@
   "page": "Page",
   "of": "of",
   "sort": "Sort",
-  "comingSoon": "Coming Soon!",
-  "comingSoonDescription": "This feature is under development.",
   "changeLanguage": "Change language"
 }

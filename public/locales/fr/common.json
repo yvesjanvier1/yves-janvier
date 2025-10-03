@@ -1,0 +1,23 @@
+{
+  "comingSoon": "Bientôt disponible !",
+  "comingSoonDescription": "Cette fonctionnalité ou section est en cours de développement et sera bientôt disponible.",
+  "back": "Retour",
+  "backTo": "Retour à",
+  "readMore": "En savoir plus",
+  "loading": "Chargement...",
+  "error": "Une erreur est survenue",
+  "errorOccurred": "Une erreur est survenue",
+  "success": "Succès",
+  "retry": "Réessayer",
+  "publishedOn": "Publié le",
+  "updated": "Mis à jour le",
+  "all": "Tous",
+  "search": "Recherche",
+  "filter": "Filtrer",
+  "previous": "Précédent",
+  "next": "Suivant",
+  "page": "Page",
+  "of": "de",
+  "sort": "Trier",
+  "changeLanguage": "Changer de langue"
+}
