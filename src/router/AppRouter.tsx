@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
+import { LocalizedLayout } from "@/components/layout/LocalizedLayout";
 import Home from "@/pages/HomePage";
 import About from "@/pages/AboutPage";
 import Contact from "@/pages/ContactPage";
@@ -40,7 +41,7 @@ export default function AppRouter() {
       <Route path="/" element={<Navigate to="/fr" replace />} />
       
       {/* Localized routes */}
-      <Route path="/:lang" element={<Layout />}>
+      <Route path="/:lang" element={<LocalizedLayout />}>
         <Route index element={<Home />} />
         <Route path="about" element={<About />} />
         <Route path="contact" element={<Contact />} />

@@ -5,6 +5,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 
 export interface BlogPost {
   id: string;
+  slug: string;
   title: string;
   excerpt: string;
   content: string;
@@ -26,7 +27,7 @@ const BlogCard = ({ post }: BlogCardProps) => {
 
   return (
     <div className="group bg-card rounded-lg overflow-hidden border shadow-sm hover:shadow-md transition-all h-full flex flex-col">
-      <Link to={`/${language}/blog/${post.id}`} className="aspect-video relative overflow-hidden">
+      <Link to={`/${language}/blog/${post.slug}`} className="aspect-video relative overflow-hidden">
         <img
           src={post.coverImage}
           alt={post.title}
@@ -47,12 +48,12 @@ const BlogCard = ({ post }: BlogCardProps) => {
         <time className="text-sm text-muted-foreground block mb-2">
           {formatDate(post.date)}
         </time>
-        <Link to={`/${language}/blog/${post.id}`} className="group-hover:text-primary transition-colors">
+        <Link to={`/${language}/blog/${post.slug}`} className="group-hover:text-primary transition-colors">
           <h3 className="font-semibold text-xl mb-2">{post.title}</h3>
         </Link>
         <p className="text-muted-foreground flex-grow mb-4">{post.excerpt}</p>
         <Link 
-          to={`/${language}/blog/${post.id}`}
+          to={`/${language}/blog/${post.slug}`}
           className="text-primary font-medium hover:underline"
         >
           {t('blog.readMore')}

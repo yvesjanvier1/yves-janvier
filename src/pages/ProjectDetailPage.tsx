@@ -12,9 +12,9 @@ import { SEOInternational } from "@/components/seo/SEOInternational";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const ProjectDetailPage = () => {
-  const { id } = useParams<{ id: string }>();
+  const { slug } = useParams<{ slug: string }>();
   const { t } = useLanguage();
-  const { project, isLoading, error } = useProjectData(id);
+  const { project, isLoading, error } = useProjectData(slug);
 
   if (isLoading) {
     return (

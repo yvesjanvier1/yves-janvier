@@ -9,6 +9,7 @@ interface ProjectLink {
 
 export interface Project {
   id: string;
+  slug: string;
   title: string;
   summary?: string;
   description: string;
@@ -52,7 +53,7 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
         />
         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
           <Link 
-            to={`/${language}/portfolio/${project.id}`}
+            to={`/${language}/portfolio/${project.slug}`}
             className="bg-primary text-primary-foreground px-4 py-2 rounded-md font-medium"
           >
             {t('portfolio.viewProject')}
@@ -73,7 +74,7 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
         <h3 className="font-semibold text-xl mb-2">{project.title}</h3>
         <p className="text-muted-foreground flex-grow mb-4">{summary}</p>
         <Link 
-          to={`/${language}/portfolio/${project.id}`}
+          to={`/${language}/portfolio/${project.slug}`}
           className="text-primary font-medium hover:underline"
         >
           {t('portfolio.viewCaseStudy')}

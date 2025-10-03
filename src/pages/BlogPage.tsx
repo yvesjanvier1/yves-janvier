@@ -129,7 +129,8 @@ const BlogPage = () => {
               <AnimatedSection key={post.id} delay={index * 0.1}>
                 <BlogCard 
                   post={{
-                    id: post.slug || post.id,
+                    id: post.id,
+                    slug: post.slug || post.id,
                     title: post.title,
                     excerpt: post.excerpt || post.content.substring(0, 150) + "...",
                     content: post.content,
@@ -140,7 +141,7 @@ const BlogPage = () => {
                       name: "Yves Janvier",
                       avatar: "/placeholder.svg"
                     }
-                  }} 
+                  }}
                 />
               </AnimatedSection>
             ))}

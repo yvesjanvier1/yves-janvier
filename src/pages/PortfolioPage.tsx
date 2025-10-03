@@ -245,7 +245,8 @@ const PortfolioPage = () => {
             >
               <ProjectCard 
                 project={{
-                  id: project.slug || project.id,
+                  id: project.id,
+                  slug: project.slug || project.id,
                   title: project.title,
                   description: project.description,
                   image: project.images && project.images.length > 0 
