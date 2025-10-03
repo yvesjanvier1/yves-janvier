@@ -5,13 +5,13 @@
 
 export interface RouteItem {
   path: (lang: string) => string;
-  nameKey: string;
-  descriptionKey?: string;
-  comingSoon?: boolean;
+  nameKey: string;            // key for label in i18n
+  descriptionKey?: string;    // optional description key
+  comingSoon?: boolean;       // mark items as "coming soon"
 }
 
 export interface RouteSection {
-  titleKey: string;
+  titleKey: string;           // section header key
   items: RouteItem[];
 }
 

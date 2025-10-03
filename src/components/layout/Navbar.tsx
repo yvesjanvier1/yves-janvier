@@ -138,7 +138,7 @@ const Navbar = () => {
   const isActiveSection = (section: any) => {
     if (!section.items || !section.items.length) return false;
     return section.items.some((item: any) =>
-      location.pathname.startsWith(item.path.replace(/\/$/, "")) // normalize trailing slash
+      location.pathname.startsWith(item.path.replace(/\/$/, ""))
     );
   };
 
@@ -170,7 +170,7 @@ const Navbar = () => {
                 )
               }
             >
-              {t("nav.home")}
+              {t("home")}
             </NavLink>
 
             <NavigationMenu>
@@ -258,7 +258,7 @@ const Navbar = () => {
                   )
                 }
               >
-                {t("nav.home")}
+                {t("home")}
               </NavLink>
 
               {navigationSections.map((section) => (
