@@ -1,12 +1,15 @@
-import { Link, useParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Github, Linkedin, Mail } from "lucide-react";
 import { NewsletterSubscription } from "@/components/newsletter/NewsletterSubscription";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { appRoutes } from "@/router/routes";
 
-const Footer = () => {
-  const { lang = 'fr' } = useParams();
-  const { t } = useLanguage();
+interface FooterProps {
+  translations?: Record<string, any>;
+}
+
+const Footer = ({ translations }: FooterProps) => {
+  const { language: lang, t } = useLanguage();
 
   return (
     <footer className="bg-background border-t">
@@ -16,7 +19,8 @@ const Footer = () => {
           <div className="lg:col-span-1">
             <h3 className="text-lg font-semibold mb-4">Yves Janvier</h3>
             <p className="text-muted-foreground text-sm mb-4">
-              {t('footer.description') || "Full Stack Developer & Data Engineer creating innovative digital solutions."}
+              {t("footer.description") ||
+                "Full Stack Developer & Data Engineer creating innovative digital solutions."}
             </p>
             <div className="flex space-x-4">
               <a
@@ -46,58 +50,75 @@ const Footer = () => {
 
           {/* Quick Links */}
           <div>
-            <h4 className="font-semibold mb-4">{t('footer.quickLinks') || "Quick Links"}</h4>
+            <h4 className="font-semibold mb-4">{t("footer.quickLinks") || "Quick Links"}</h4>
             <ul className="space-y-2 text-sm">
-              <li>
-                <Link to={appRoutes.about.items[0].path(lang)} className="text-muted-foreground hover:text-foreground transition-colors">
-                  {t(appRoutes.about.items[0].nameKey) || "About"}
-                </Link>
-              </li>
-              <li>
-                <Link to={appRoutes.work.items[0].path(lang)} className="text-muted-foreground hover:text-foreground transition-colors">
-                  {t(appRoutes.work.items[0].nameKey) || "Portfolio"}
-                </Link>
-              </li>
-              <li>
-                <Link to={appRoutes.content.items[0].path(lang)} className="text-muted-foreground hover:text-foreground transition-colors">
-                  {t(appRoutes.content.items[0].nameKey) || "Blog"}
-                </Link>
-              </li>
-              <li>
-                <Link to={appRoutes.content.items[2].path(lang)} className="text-muted-foreground hover:text-foreground transition-colors">
-                  {t(appRoutes.content.items[2].nameKey) || "Now"}
-                </Link>
-              </li>
-              <li>
-                <Link to={appRoutes.about.items[2].path(lang)} className="text-muted-foreground hover:text-foreground transition-colors">
-                  {t(appRoutes.about.items[2].nameKey) || "Contact"}
-                </Link>
-              </li>
+              {appRoutes.about.items.slice(0, 1).map((item) => (
+                <li key={item.nameKey}>
+                  <Link
+                    to={item.path(lang)}
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {t(item.nameKey)}
+                  </Link>
+                </li>
+              ))}
+              {appRoutes.work.items.slice(0, 1).map((item) => (
+                <li key={item.nameKey}>
+                  <Link
+                    to={item.path(lang)}
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {t(item.nameKey)}
+                  </Link>
+                </li>
+              ))}
+              {appRoutes.content.items.filter((_, i) => i === 0 || i === 2).map((item) => (
+                <li key={item.nameKey}>
+                  <Link
+                    to={item.path(lang)}
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {t(item.nameKey)}
+                  </Link>
+                </li>
+              ))}
+              {appRoutes.about.items.slice(2, 3).map((item) => (
+                <li key={item.nameKey}>
+                  <Link
+                    to={item.path(lang)}
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {t(item.nameKey)}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
           {/* Resources */}
           <div>
-            <h4 className="font-semibold mb-4">{t(appRoutes.resources.titleKey) || "Resources"}</h4>
+            <h4 className="font-semibold mb-4">{t(appRoutes.resources.titleKey)}</h4>
             <ul className="space-y-2 text-sm">
+              {[3, 2, 1].map((i) => {
+                const item = appRoutes.resources.items[i];
+                return (
+                  <li key={item.nameKey}>
+                    <Link
+                      to={item.path(lang)}
+                      className="text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {t(item.nameKey)}
+                    </Link>
+                  </li>
+                );
+              })}
+              {/* Include journal link */}
               <li>
-                <Link to={appRoutes.resources.items[3].path(lang)} className="text-muted-foreground hover:text-foreground transition-colors">
-                  {t(appRoutes.resources.items[3].nameKey) || "Downloads"}
-                </Link>
-              </li>
-              <li>
-                <Link to={appRoutes.content.items[1].path(lang)} className="text-muted-foreground hover:text-foreground transition-colors">
-                  {t(appRoutes.content.items[1].nameKey) || "Journal"}
-                </Link>
-              </li>
-              <li>
-                <Link to={appRoutes.resources.items[2].path(lang)} className="text-muted-foreground hover:text-foreground transition-colors">
-                  {t(appRoutes.resources.items[2].nameKey) || "Guides"}
-                </Link>
-              </li>
-              <li>
-                <Link to={appRoutes.resources.items[1].path(lang)} className="text-muted-foreground hover:text-foreground transition-colors">
-                  {t(appRoutes.resources.items[1].nameKey) || "Tools"}
+                <Link
+                  to={appRoutes.content.items[1].path(lang)}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {t(appRoutes.content.items[1].nameKey)}
                 </Link>
               </li>
             </ul>
@@ -105,7 +126,7 @@ const Footer = () => {
 
           {/* Newsletter */}
           <div>
-            <h4 className="font-semibold mb-4">{t('footer.stayUpdated') || "Stay Updated"}</h4>
+            <h4 className="font-semibold mb-4">{t("footer.stayUpdated") || "Stay Updated"}</h4>
             <NewsletterSubscription variant="footer" />
           </div>
         </div>
@@ -113,7 +134,7 @@ const Footer = () => {
         <div className="border-t mt-8 pt-8 text-center text-sm text-muted-foreground">
           <p>
             &copy; {new Date().getFullYear()} Yves Janvier.{" "}
-            {t('footer.allRightsReserved') || "All rights reserved."}
+            {t("footer.allRightsReserved") || "All rights reserved."}
           </p>
         </div>
       </div>

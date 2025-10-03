@@ -1,5 +1,4 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import { Layout } from "@/components/layout/Layout";
 import { LocalizedLayout } from "@/components/layout/LocalizedLayout";
 import Home from "@/pages/HomePage";
 import About from "@/pages/AboutPage";
@@ -13,9 +12,10 @@ import Journal from "@/pages/JournalPage";
 import Now from "@/pages/NowPage";
 import Resources from "@/pages/ResourcesPage";
 import ErrorPage from "@/pages/NotFound";
+
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import ProtectedRoute from "@/components/dashboard/ProtectedRoute";
-import Dashboard from "@/pages/dashboard/DashboardHomePage";
+import DashboardHomePage from "@/pages/dashboard/DashboardHomePage";
 import DashboardBlog from "@/pages/dashboard/BlogManagePage";
 import BlogFormPage from "@/pages/dashboard/BlogFormPage";
 import DashboardPortfolio from "@/pages/dashboard/PortfolioManagePage";
@@ -37,99 +37,73 @@ import Login from "@/pages/DashboardLoginPage";
 export default function AppRouter() {
   return (
     <Routes>
-      {/* Root redirect to default language */}
+      {/* Root redirect */}
       <Route path="/" element={<Navigate to="/fr" replace />} />
-      
+
       {/* Localized routes */}
-      <Route path="/:lang" element={<LocalizedLayout />}>
+      <Route path="/:lang(fr|en|ht)" element={<LocalizedLayout />}>
         <Route index element={<Home />} />
         <Route path="about" element={<About />} />
         <Route path="contact" element={<Contact />} />
         <Route path="services" element={<Services />} />
-        
-        {/* Work Routes */}
-        <Route path="work">
-          <Route index element={<Portfolio />} />
-          <Route path="portfolio" element={<Portfolio />} />
-          <Route path="portfolio/:slug" element={<ProjectDetail />} />
-        </Route>
-        
-        {/* Content Routes */}
-        <Route path="content">
-          <Route path="blog" element={<Blog />} />
-          <Route path="blog/:slug" element={<BlogPost />} />
-          <Route path="journal" element={<Journal />} />
-          <Route path="now" element={<Now />} />
-        </Route>
-        
-        {/* Resources Routes */}
-        <Route path="resources">
-          <Route index element={<Resources />} />
-          <Route path="tools" element={<Resources />} />
-          <Route path="guides" element={<Resources />} />
-          <Route path="downloads" element={<Resources />} />
-        </Route>
-        
-        {/* Canonical routes for direct navigation */}
+
+        {/* Portfolio */}
         <Route path="portfolio" element={<Portfolio />} />
         <Route path="portfolio/:slug" element={<ProjectDetail />} />
+
+        {/* Blog & Content */}
         <Route path="blog" element={<Blog />} />
         <Route path="blog/:slug" element={<BlogPost />} />
-        <Route path="journal" element={<Journal />} />
-        <Route path="now" element={<Now />} />
-      </Route>
-      
-      {/* Non-localized routes */}
-      <Route path="/legacy" element={<Layout />}>
-        <Route path="about" element={<About />} />
-        <Route path="contact" element={<Contact />} />
-        <Route path="services" element={<Services />} />
-        <Route path="work/portfolio" element={<Portfolio />} />
-        <Route path="content/blog" element={<Blog />} />
-        <Route path="content/journal" element={<Journal />} />
-        <Route path="content/now" element={<Now />} />
-        <Route path="portfolio" element={<Portfolio />} />
-        <Route path="blog" element={<Blog />} />
         <Route path="journal" element={<Journal />} />
         <Route path="now" element={<Now />} />
 
-        {/* ✅ Add these fallbacks so /blog/:slug and /portfolio/:slug work without language */}
-        <Route path="blog/:slug" element={<BlogPost />} />
-        <Route path="portfolio/:slug" element={<ProjectDetail />} />
+        {/* Resources */}
+        <Route path="resources" element={<Resources />} />
       </Route>
-      
-      {/* Dashboard Routes - Protected */}
+
+      {/* Dashboard routes */}
       <Route path="/dashboard/login" element={<Login />} />
-      <Route path="/dashboard" element={
-        <ProtectedRoute>
-          <DashboardLayout />
-        </ProtectedRoute>
-      }>
-        <Route index element={<Dashboard />} />
+      <Route
+        path="/dashboard/*"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<DashboardHomePage />} />
         <Route path="blog" element={<DashboardBlog />} />
         <Route path="blog/new" element={<BlogFormPage />} />
         <Route path="blog/edit/:id" element={<BlogFormPage />} />
+
         <Route path="portfolio" element={<DashboardPortfolio />} />
         <Route path="portfolio/new" element={<PortfolioFormPage />} />
         <Route path="portfolio/edit/:id" element={<PortfolioFormPage />} />
+
         <Route path="journal" element={<DashboardJournal />} />
         <Route path="journal/new" element={<JournalFormPage />} />
         <Route path="journal/edit/:id" element={<JournalFormPage />} />
+
         <Route path="now" element={<DashboardNow />} />
+
         <Route path="testimonials" element={<DashboardTestimonials />} />
         <Route path="testimonials/new" element={<TestimonialsFormPage />} />
         <Route path="testimonials/edit/:id" element={<TestimonialsFormPage />} />
+
         <Route path="services" element={<DashboardServices />} />
         <Route path="services/new" element={<ServiceFormPage />} />
         <Route path="services/edit/:id" element={<ServiceFormPage />} />
+
         <Route path="resources" element={<DashboardResources />} />
         <Route path="resources/new" element={<ResourceFormPage />} />
         <Route path="resources/edit/:id" element={<ResourceFormPage />} />
+
         <Route path="about" element={<DashboardAbout />} />
         <Route path="messages" element={<DashboardMessages />} />
         <Route path="analytics" element={<DashboardAnalytics />} />
       </Route>
-      
+
+      {/* Fallback */}
       <Route path="*" element={<ErrorPage />} />
     </Routes>
   );

@@ -18,10 +18,15 @@ import {
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
-import { appRoutes } from "@/router/routes";
 
+// Type for individual navigation item
 interface NavItemProps {
-  item: any;
+  item: {
+    path: string;
+    nameKey: string;
+    descriptionKey?: string;
+    comingSoon?: boolean;
+  };
   closeMenu: () => void;
   isActiveItem: (path: string) => boolean;
   t: (key: string) => string;
@@ -50,7 +55,7 @@ const NavItem = ({ item, closeMenu, isActiveItem, t, isMobile = false }: NavItem
           <span className="text-xs text-muted-foreground">({t("common.comingSoon")})</span>
         </div>
         {hasDescription && (
-          <div className="text-sm text-muted-foreground">{t(item.descriptionKey)}</div>
+          <div className="text-sm text-muted-foreground">{t(item.descriptionKey!)}</div>
         )}
       </button>
     );
@@ -70,9 +75,7 @@ const NavItem = ({ item, closeMenu, isActiveItem, t, isMobile = false }: NavItem
       }
     >
       <div className="font-medium">{t(item.nameKey)}</div>
-      {hasDescription && (
-        <div className="text-sm text-muted-foreground">{t(item.descriptionKey)}</div>
-      )}
+      {hasDescription && <div className="text-sm text-muted-foreground">{t(item.descriptionKey!)}</div>}
     </NavLink>
   ) : (
     <Link
@@ -85,29 +88,56 @@ const NavItem = ({ item, closeMenu, isActiveItem, t, isMobile = false }: NavItem
       )}
     >
       <div className="font-medium">{t(item.nameKey)}</div>
-      {hasDescription && (
-        <div className="text-sm text-muted-foreground">{t(item.descriptionKey)}</div>
-      )}
+      {hasDescription && <div className="text-sm text-muted-foreground">{t(item.descriptionKey!)}</div>}
     </Link>
   );
 };
 
-const Navbar = () => {
+interface NavigationSection {
+  key: string;
+  titleKey: string;
+  items: NavItemProps["item"][];
+}
+
+interface NavbarProps {
+  translations?: Record<string, any>;
+}
+
+const Navbar = ({ translations }: NavbarProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   const { language: lang, t } = useLanguage();
   const { isMobile } = useResponsive();
 
-  const navigationSections = Object.entries(appRoutes)
-    .filter(([_, section]) => "items" in section)
-    .map(([key, section]: [string, any]) => ({
-      key,
-      ...section,
-      items: section.items.map((item: any) => ({
-        ...item,
-        path: item.path(lang),
-      })),
-    }));
+  // Define your app routes here or import from routes.ts
+  const navigationSections: NavigationSection[] = [
+    {
+      key: "work",
+      titleKey: "nav.work",
+      items: [
+        { path: `/${lang}/work/portfolio`, nameKey: "nav.portfolio" },
+        { path: `/${lang}/work/projects`, nameKey: "nav.projects", comingSoon: true },
+      ],
+    },
+    {
+      key: "content",
+      titleKey: "nav.content",
+      items: [
+        { path: `/${lang}/content/blog`, nameKey: "nav.blog" },
+        { path: `/${lang}/content/journal`, nameKey: "nav.journal" },
+        { path: `/${lang}/content/now`, nameKey: "nav.now" },
+      ],
+    },
+    {
+      key: "resources",
+      titleKey: "nav.resources",
+      items: [
+        { path: `/${lang}/resources/tools`, nameKey: "nav.tools" },
+        { path: `/${lang}/resources/guides`, nameKey: "nav.guides" },
+        { path: `/${lang}/resources/downloads`, nameKey: "nav.downloads" },
+      ],
+    },
+  ];
 
   const toggleMenu = () => setIsOpen(!isOpen);
   const closeMenu = () => setIsOpen(false);
@@ -116,38 +146,12 @@ const Navbar = () => {
     closeMenu();
   }, [location.pathname]);
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Element;
-      if (isOpen && !target.closest("#navigation")) closeMenu();
-    };
-
-    if (isOpen) {
-      document.addEventListener("click", handleClickOutside);
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
-    }
-
-    return () => {
-      document.removeEventListener("click", handleClickOutside);
-      document.body.style.overflow = "unset";
-    };
-  }, [isOpen]);
-
-  const isActiveSection = (section: any) => {
-    if (!section.items || !section.items.length) return false;
-    return section.items.some((item: any) =>
-      location.pathname.startsWith(item.path.replace(/\/$/, ""))
-    );
+  const isActiveItem = (itemPath: string) => {
+    return location.pathname === itemPath || location.pathname.startsWith(itemPath + "/");
   };
 
-  const isActiveItem = (itemPath: string) => {
-    if (itemPath.includes("#")) {
-      const [path, hash] = itemPath.split("#");
-      return location.pathname === path && location.hash === `#${hash}`;
-    }
-    return location.pathname === itemPath || location.pathname.startsWith(itemPath + "/");
+  const isActiveSection = (section: NavigationSection) => {
+    return section.items.some((item) => isActiveItem(item.path));
   };
 
   return (
@@ -156,7 +160,7 @@ const Navbar = () => {
         <div className="flex h-16 items-center justify-between">
           <Logo />
 
-          {/* Desktop */}
+          {/* Desktop Menu */}
           <div className="hidden lg:flex items-center space-x-2">
             <NavLink
               to={`/${lang}`}
@@ -164,9 +168,7 @@ const Navbar = () => {
                 cn(
                   navigationMenuTriggerStyle(),
                   "text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
-                  isActive
-                    ? "text-primary font-semibold bg-primary/10"
-                    : "text-foreground/80 hover:text-foreground hover:bg-muted/50"
+                  isActive ? "text-primary font-semibold bg-primary/10" : "text-foreground/80 hover:text-foreground hover:bg-muted/50"
                 )
               }
             >
@@ -178,25 +180,18 @@ const Navbar = () => {
                 {navigationSections.map((section) => (
                   <NavigationMenuItem key={section.key}>
                     <NavigationMenuTrigger
-                      className={cn(
-                        isActiveSection(section)
-                          ? "text-primary font-semibold bg-primary/10"
-                          : "text-foreground/80"
-                      )}
+                      className={cn(isActiveSection(section) ? "text-primary font-semibold bg-primary/10" : "text-foreground/80")}
                     >
                       {t(section.titleKey)}
                     </NavigationMenuTrigger>
-
                     <NavigationMenuContent>
                       <div
                         className={cn(
                           "p-4 bg-background/95 backdrop-blur-md border border-border/50 rounded-lg shadow-lg z-50",
-                          section.items.length > 3
-                            ? "grid grid-cols-2 gap-4 w-96"
-                            : "w-64"
+                          section.items.length > 3 ? "grid grid-cols-2 gap-4 w-96" : "w-64"
                         )}
                       >
-                        {section.items.map((item: any) => (
+                        {section.items.map((item) => (
                           <NavItem
                             key={item.path}
                             item={item}
@@ -218,7 +213,7 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Mobile */}
+          {/* Mobile Menu Button */}
           <div className="flex items-center space-x-2 lg:hidden">
             <LanguageToggle />
             <ThemeToggle />
@@ -252,9 +247,7 @@ const Navbar = () => {
                 className={({ isActive }) =>
                   cn(
                     "block px-4 py-3 rounded-lg text-base font-medium transition-colors min-h-[48px] flex items-center",
-                    isActive
-                      ? "text-primary font-semibold bg-primary/10"
-                      : "text-foreground/80 hover:text-foreground hover:bg-muted/50"
+                    isActive ? "text-primary font-semibold bg-primary/10" : "text-foreground/80 hover:text-foreground hover:bg-muted/50"
                   )
                 }
               >
@@ -266,7 +259,7 @@ const Navbar = () => {
                   <div className="px-4 py-2 text-sm font-medium text-muted-foreground uppercase tracking-wider">
                     {t(section.titleKey)}
                   </div>
-                  {section.items.map((item: any) => (
+                  {section.items.map((item) => (
                     <NavItem
                       key={item.path}
                       item={item}
