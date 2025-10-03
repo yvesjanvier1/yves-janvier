@@ -12,14 +12,8 @@ import { PerformanceTracker } from "@/components/analytics/PerformanceTracker";
 import SkipNavigation from "@/components/accessibility/SkipNavigation";
 import { SEOInternational } from "@/components/seo/SEOInternational";
 
-type TranslationFiles = {
-  navbar?: Record<string, any>;
-  footer?: Record<string, any>;
-  [key: string]: Record<string, any> | undefined;
-};
-
 type LayoutProps = {
-  translations?: TranslationFiles;
+  translations?: Record<string, any>;
 };
 
 export const Layout = ({ translations = {} }: LayoutProps) => {
@@ -31,47 +25,64 @@ export const Layout = ({ translations = {} }: LayoutProps) => {
           <SkipNavigation />
 
           <div className="min-h-screen flex flex-col bg-background text-foreground">
-            {/* Navbar with translations */}
             <header role="banner" aria-label="Main navigation">
+              {/* Pass translations to Navbar */}
               <Navbar translations={translations.navbar} />
             </header>
 
-            {/* Main content */}
-            <main className="flex-1" id="main-content" aria-label="Page content">
-              {/* Pass translations to all nested pages via Outlet context */}
+            <main
+              className="flex-1"
+              id="main-content"
+              aria-label="Page content"
+            >
               <Outlet context={{ translations }} />
             </main>
 
-            {/* Footer with translations */}
             <footer role="contentinfo" aria-label="Site footer">
+              {/* Pass translations to Footer */}
               <Footer translations={translations.footer} />
             </footer>
           </div>
 
-          {/* Global notifications */}
+          {/* Announcements */}
           <div role="status" aria-live="polite">
             <Toaster />
           </div>
 
-          {/* Cookie consent banner */}
-          <div role="dialog" aria-modal="true" aria-labelledby="cookieConsentTitle" aria-describedby="cookieConsentDesc">
+          {/* Consent Banner */}
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="cookieConsentTitle"
+            aria-describedby="cookieConsentDesc"
+          >
             <CookieConsentBanner onConsent={() => {}} />
           </div>
-          <h2 id="cookieConsentTitle" className="sr-only">Cookie Consent</h2>
+          <h2 id="cookieConsentTitle" className="sr-only">
+            Cookie Consent
+          </h2>
           <p id="cookieConsentDesc" className="sr-only">
-            This website uses cookies to improve your experience. Accept or manage preferences.
+            This website uses cookies to improve your experience. Accept or
+            manage preferences.
           </p>
 
-          {/* Exit intent modal */}
-          <div role="dialog" aria-modal="true" aria-labelledby="exitIntentTitle" aria-describedby="exitIntentDesc">
+          {/* Exit Intent Modal */}
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="exitIntentTitle"
+            aria-describedby="exitIntentDesc"
+          >
             <ExitIntentModal isOpen={false} onClose={() => {}} />
           </div>
-          <h2 id="exitIntentTitle" className="sr-only">Before you leave</h2>
+          <h2 id="exitIntentTitle" className="sr-only">
+            Before you leave
+          </h2>
           <p id="exitIntentDesc" className="sr-only">
             Are you sure you want to exit? You might miss important updates.
           </p>
 
-          {/* Tracking & performance */}
+          {/* Invisible tracking/analytics */}
           <PageViewTracker aria-hidden="true" />
           <PerformanceTracker aria-hidden="true" />
         </SecurityProvider>
