@@ -85,7 +85,6 @@ export const LocalizedLayout = () => {
     loadTranslations();
   }, [currentLang]);
 
-  // Loading fallback
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -94,6 +93,6 @@ export const LocalizedLayout = () => {
     );
   }
 
-  // Render the Layout with translations (Layout already renders <Outlet />)
+  // Layout internally renders <Outlet />, so we just pass translations
   return <Layout translations={translations} />;
 };
