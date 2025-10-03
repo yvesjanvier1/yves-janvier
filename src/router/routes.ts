@@ -18,89 +18,93 @@ export interface RouteSection {
 export const appRoutes = {
   home: {
     path: (lang: string) => `/${lang}`,
-    nameKey: "nav.home",
+    nameKey: "home"
   },
+
   work: {
-    titleKey: "nav.work",
+    titleKey: "work",
     items: [
       {
         path: (lang: string) => `/${lang}/portfolio`,
-        nameKey: "nav.portfolio",
-        descriptionKey: "navDescriptions.portfolio",
+        nameKey: "portfolio",
+        descriptionKey: "portfolioDescription"
       },
       {
         path: (lang: string) => `/${lang}/projects`,
-        nameKey: "nav.projects",
-        descriptionKey: "navDescriptions.projects",
-        comingSoon: true,
-      },
-    ],
+        nameKey: "projects",
+        descriptionKey: "projectsDescription",
+        comingSoon: true
+      }
+    ]
   },
+
   content: {
-    titleKey: "nav.content",
+    titleKey: "content",
     items: [
       {
         path: (lang: string) => `/${lang}/blog`,
-        nameKey: "nav.blog",
-        descriptionKey: "navDescriptions.blog",
+        nameKey: "blog",
+        descriptionKey: "blogDescription"
       },
       {
         path: (lang: string) => `/${lang}/journal`,
-        nameKey: "nav.journal",
-        descriptionKey: "navDescriptions.journal",
+        nameKey: "journal",
+        descriptionKey: "journalDescription"
       },
       {
         path: (lang: string) => `/${lang}/now`,
-        nameKey: "nav.now",
-        descriptionKey: "navDescriptions.now",
-      },
-    ],
+        nameKey: "now",
+        descriptionKey: "nowDescription"
+      }
+    ]
   },
+
   resources: {
-    titleKey: "nav.resources",
+    titleKey: "resources",
     items: [
       {
         path: (lang: string) => `/${lang}/resources`,
-        nameKey: "nav.resources",
-        descriptionKey: "navDescriptions.resources",
+        nameKey: "resources",
+        descriptionKey: "resourcesDescription"
       },
       {
         path: (lang: string) => `/${lang}/resources/tools`,
-        nameKey: "resources.tools.title",
-        descriptionKey: "resources.tools.description",
+        nameKey: "tools",
+        descriptionKey: "toolsDescription"
       },
       {
         path: (lang: string) => `/${lang}/resources/guides`,
-        nameKey: "resources.guides.title",
-        descriptionKey: "resources.guides.description",
+        nameKey: "guides",
+        descriptionKey: "guidesDescription"
       },
       {
         path: (lang: string) => `/${lang}/resources/downloads`,
-        nameKey: "resources.downloads.title",
-        descriptionKey: "resources.downloads.description",
-      },
-    ],
+        nameKey: "downloads",
+        descriptionKey: "downloadsDescription"
+      }
+    ]
   },
+
   about: {
-    titleKey: "nav.about",
+    titleKey: "about",
     items: [
       {
         path: (lang: string) => `/${lang}/about`,
-        nameKey: "nav.about",
-        descriptionKey: "navDescriptions.aboutMe",
+        nameKey: "about",
+        descriptionKey: "aboutDescription"
       },
       {
         path: (lang: string) => `/${lang}/about#resume`,
-        nameKey: "nav.resume",
-        descriptionKey: "navDescriptions.resume",
+        nameKey: "resume",
+        descriptionKey: "resumeDescription"
       },
       {
         path: (lang: string) => `/${lang}/contact`,
-        nameKey: "nav.contact",
-        descriptionKey: "navDescriptions.getInTouch",
-      },
-    ],
-  },
+        nameKey: "contact",
+        descriptionKey: "contactDescription"
+      }
+    ]
+  }
 };
 
 export type AppRoutes = typeof appRoutes;
