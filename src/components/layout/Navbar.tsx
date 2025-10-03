@@ -46,7 +46,8 @@ const NavItem = ({ item, closeMenu, isActiveItem, t, isMobile = false }: NavItem
         )}
       >
         <div className="font-medium">
-          {t(item.nameKey)} <span className="text-xs text-muted-foreground">(Coming Soon)</span>
+          {t(item.nameKey)}{" "}
+          <span className="text-xs text-muted-foreground">({t("common.comingSoon")})</span>
         </div>
         {hasDescription && (
           <div className="text-sm text-muted-foreground">{t(item.descriptionKey)}</div>
@@ -62,7 +63,9 @@ const NavItem = ({ item, closeMenu, isActiveItem, t, isMobile = false }: NavItem
       className={({ isActive }) =>
         cn(
           "block px-6 py-3 rounded-lg text-base transition-colors min-h-[48px]",
-          isActive ? "text-primary font-medium bg-primary/10" : "text-foreground/80 hover:text-foreground hover:bg-muted/50"
+          isActive
+            ? "text-primary font-medium bg-primary/10"
+            : "text-foreground/80 hover:text-foreground hover:bg-muted/50"
         )
       }
     >
@@ -76,7 +79,9 @@ const NavItem = ({ item, closeMenu, isActiveItem, t, isMobile = false }: NavItem
       to={item.path}
       className={cn(
         "block p-3 rounded-md transition-colors hover:bg-muted/50",
-        isActiveItem(item.path) ? "text-primary font-medium bg-primary/10" : "text-foreground/80 hover:text-foreground"
+        isActiveItem(item.path)
+          ? "text-primary font-medium bg-primary/10"
+          : "text-foreground/80 hover:text-foreground"
       )}
     >
       <div className="font-medium">{t(item.nameKey)}</div>
@@ -94,11 +99,14 @@ const Navbar = () => {
   const { isMobile } = useResponsive();
 
   const navigationSections = Object.entries(appRoutes)
-    .filter(([key, section]) => typeof section !== "string" && "items" in section)
+    .filter(([_, section]) => "items" in section)
     .map(([key, section]: [string, any]) => ({
       key,
       ...section,
-      items: section.items.map((item: any) => ({ ...item, path: item.path(lang) })),
+      items: section.items.map((item: any) => ({
+        ...item,
+        path: item.path(lang),
+      })),
     }));
 
   const toggleMenu = () => setIsOpen(!isOpen);
@@ -113,15 +121,27 @@ const Navbar = () => {
       const target = event.target as Element;
       if (isOpen && !target.closest("#navigation")) closeMenu();
     };
-    if (isOpen) document.addEventListener("click", handleClickOutside), (document.body.style.overflow = "hidden");
-    else document.body.style.overflow = "unset";
+
+    if (isOpen) {
+      document.addEventListener("click", handleClickOutside);
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+
     return () => {
       document.removeEventListener("click", handleClickOutside);
       document.body.style.overflow = "unset";
     };
   }, [isOpen]);
 
-  const isActiveSection = (sectionPath: string) => location.pathname.startsWith(sectionPath);
+  const isActiveSection = (section: any) => {
+    if (!section.items || !section.items.length) return false;
+    return section.items.some((item: any) =>
+      location.pathname.startsWith(item.path.replace(/\/$/, "")) // normalize trailing slash
+    );
+  };
+
   const isActiveItem = (itemPath: string) => {
     if (itemPath.includes("#")) {
       const [path, hash] = itemPath.split("#");
@@ -144,7 +164,9 @@ const Navbar = () => {
                 cn(
                   navigationMenuTriggerStyle(),
                   "text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
-                  isActive ? "text-primary font-semibold bg-primary/10" : "text-foreground/80 hover:text-foreground hover:bg-muted/50"
+                  isActive
+                    ? "text-primary font-semibold bg-primary/10"
+                    : "text-foreground/80 hover:text-foreground hover:bg-muted/50"
                 )
               }
             >
@@ -156,7 +178,11 @@ const Navbar = () => {
                 {navigationSections.map((section) => (
                   <NavigationMenuItem key={section.key}>
                     <NavigationMenuTrigger
-                      className={cn(isActiveSection(`/${section.key}`) ? "text-primary font-semibold bg-primary/10" : "text-foreground/80")}
+                      className={cn(
+                        isActiveSection(section)
+                          ? "text-primary font-semibold bg-primary/10"
+                          : "text-foreground/80"
+                      )}
                     >
                       {t(section.titleKey)}
                     </NavigationMenuTrigger>
@@ -165,11 +191,19 @@ const Navbar = () => {
                       <div
                         className={cn(
                           "p-4 bg-background/95 backdrop-blur-md border border-border/50 rounded-lg shadow-lg z-50",
-                          section.items.length > 3 ? "grid grid-cols-2 gap-4 w-96" : "w-64"
+                          section.items.length > 3
+                            ? "grid grid-cols-2 gap-4 w-96"
+                            : "w-64"
                         )}
                       >
                         {section.items.map((item: any) => (
-                          <NavItem key={item.path} item={item} closeMenu={closeMenu} isActiveItem={isActiveItem} t={t} />
+                          <NavItem
+                            key={item.path}
+                            item={item}
+                            closeMenu={closeMenu}
+                            isActiveItem={isActiveItem}
+                            t={t}
+                          />
                         ))}
                       </div>
                     </NavigationMenuContent>
@@ -203,6 +237,7 @@ const Navbar = () => {
         </div>
       </ResponsiveContainer>
 
+      {/* Mobile Menu */}
       {isOpen && (
         <>
           <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 lg:hidden" />
@@ -217,7 +252,9 @@ const Navbar = () => {
                 className={({ isActive }) =>
                   cn(
                     "block px-4 py-3 rounded-lg text-base font-medium transition-colors min-h-[48px] flex items-center",
-                    isActive ? "text-primary font-semibold bg-primary/10" : "text-foreground/80 hover:text-foreground hover:bg-muted/50"
+                    isActive
+                      ? "text-primary font-semibold bg-primary/10"
+                      : "text-foreground/80 hover:text-foreground hover:bg-muted/50"
                   )
                 }
               >
@@ -230,7 +267,14 @@ const Navbar = () => {
                     {t(section.titleKey)}
                   </div>
                   {section.items.map((item: any) => (
-                    <NavItem key={item.path} item={item} closeMenu={closeMenu} isActiveItem={isActiveItem} t={t} isMobile />
+                    <NavItem
+                      key={item.path}
+                      item={item}
+                      closeMenu={closeMenu}
+                      isActiveItem={isActiveItem}
+                      t={t}
+                      isMobile
+                    />
                   ))}
                 </div>
               ))}

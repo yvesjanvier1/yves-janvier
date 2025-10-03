@@ -1,13 +1,13 @@
-
 import { Link, useParams } from "react-router-dom";
 import { Github, Linkedin, Mail } from "lucide-react";
 import { NewsletterSubscription } from "@/components/newsletter/NewsletterSubscription";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { appRoutes } from "@/router/routes";
 
 const Footer = () => {
   const { lang = 'fr' } = useParams();
   const { t } = useLanguage();
-  
+
   return (
     <footer className="bg-background border-t">
       <div className="container mx-auto px-4 py-12">
@@ -49,28 +49,28 @@ const Footer = () => {
             <h4 className="font-semibold mb-4">{t('footer.quickLinks') || "Quick Links"}</h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link to={`/${lang}/about`} className="text-muted-foreground hover:text-foreground transition-colors">
-                  {t('nav.about') || "About"}
+                <Link to={appRoutes.about.items[0].path(lang)} className="text-muted-foreground hover:text-foreground transition-colors">
+                  {t(appRoutes.about.items[0].nameKey) || "About"}
                 </Link>
               </li>
               <li>
-                <Link to={`/${lang}/work/portfolio`} className="text-muted-foreground hover:text-foreground transition-colors">
-                  {t('nav.portfolio') || "Portfolio"}
+                <Link to={appRoutes.work.items[0].path(lang)} className="text-muted-foreground hover:text-foreground transition-colors">
+                  {t(appRoutes.work.items[0].nameKey) || "Portfolio"}
                 </Link>
               </li>
               <li>
-                <Link to={`/${lang}/content/blog`} className="text-muted-foreground hover:text-foreground transition-colors">
-                  {t('nav.blog') || "Blog"}
+                <Link to={appRoutes.content.items[0].path(lang)} className="text-muted-foreground hover:text-foreground transition-colors">
+                  {t(appRoutes.content.items[0].nameKey) || "Blog"}
                 </Link>
               </li>
               <li>
-                <Link to={`/${lang}/content/now`} className="text-muted-foreground hover:text-foreground transition-colors">
-                  {t('nav.now') || "Now"}
+                <Link to={appRoutes.content.items[2].path(lang)} className="text-muted-foreground hover:text-foreground transition-colors">
+                  {t(appRoutes.content.items[2].nameKey) || "Now"}
                 </Link>
               </li>
               <li>
-                <Link to={`/${lang}/contact`} className="text-muted-foreground hover:text-foreground transition-colors">
-                  {t('nav.contact') || "Contact"}
+                <Link to={appRoutes.about.items[2].path(lang)} className="text-muted-foreground hover:text-foreground transition-colors">
+                  {t(appRoutes.about.items[2].nameKey) || "Contact"}
                 </Link>
               </li>
             </ul>
@@ -78,26 +78,26 @@ const Footer = () => {
 
           {/* Resources */}
           <div>
-            <h4 className="font-semibold mb-4">{t('nav.resources') || "Resources"}</h4>
+            <h4 className="font-semibold mb-4">{t(appRoutes.resources.titleKey) || "Resources"}</h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link to={`/${lang}/resources/downloads`} className="text-muted-foreground hover:text-foreground transition-colors">
-                  {t('resources.downloads.title') || "Downloads"}
+                <Link to={appRoutes.resources.items[3].path(lang)} className="text-muted-foreground hover:text-foreground transition-colors">
+                  {t(appRoutes.resources.items[3].nameKey) || "Downloads"}
                 </Link>
               </li>
               <li>
-                <Link to={`/${lang}/content/journal`} className="text-muted-foreground hover:text-foreground transition-colors">
-                  {t('nav.journal') || "Journal"}
+                <Link to={appRoutes.content.items[1].path(lang)} className="text-muted-foreground hover:text-foreground transition-colors">
+                  {t(appRoutes.content.items[1].nameKey) || "Journal"}
                 </Link>
               </li>
               <li>
-                <Link to={`/${lang}/resources/guides`} className="text-muted-foreground hover:text-foreground transition-colors">
-                  {t('resources.guides.title') || "Guides"}
+                <Link to={appRoutes.resources.items[2].path(lang)} className="text-muted-foreground hover:text-foreground transition-colors">
+                  {t(appRoutes.resources.items[2].nameKey) || "Guides"}
                 </Link>
               </li>
               <li>
-                <Link to={`/${lang}/resources/tools`} className="text-muted-foreground hover:text-foreground transition-colors">
-                  {t('resources.tools.title') || "Tools"}
+                <Link to={appRoutes.resources.items[1].path(lang)} className="text-muted-foreground hover:text-foreground transition-colors">
+                  {t(appRoutes.resources.items[1].nameKey) || "Tools"}
                 </Link>
               </li>
             </ul>
@@ -111,7 +111,10 @@ const Footer = () => {
         </div>
 
         <div className="border-t mt-8 pt-8 text-center text-sm text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} Yves Janvier. {t('footer.allRightsReserved') || "All rights reserved."}</p>
+          <p>
+            &copy; {new Date().getFullYear()} Yves Janvier.{" "}
+            {t('footer.allRightsReserved') || "All rights reserved."}
+          </p>
         </div>
       </div>
     </footer>
