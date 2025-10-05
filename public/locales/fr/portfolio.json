@@ -2,6 +2,7 @@
   "title": "Portfolio",
   "subtitle": "Découvrez mes projets et réalisations",
   "viewProject": "Voir le projet",
+  "viewCaseStudy": "Voir l'étude de cas",
   "liveDemo": "Démo en direct",
   "sourceCode": "Code source",
   "technologies": "Technologies",
@@ -14,5 +15,8 @@
   "results": "Résultats",
   "allProjects": "Tous les projets",
   "filterBy": "Filtrer par",
-  "noProjectsFound": "Aucun projet trouvé"
+  "noProjectsFound": "Aucun projet trouvé",
+  "featuredProjects": "Projets en vedette",
+  "featuredProjectsSubtitle": "Découvrez mes meilleurs projets",
+  "viewAll": "Voir tous les projets"
 }

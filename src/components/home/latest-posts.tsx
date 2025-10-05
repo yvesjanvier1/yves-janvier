@@ -96,7 +96,7 @@ const LatestPosts = () => {
                   </h3>
                   <p className="text-muted-foreground line-clamp-2 mb-4">{post.excerpt || ""}</p>
                   <Link 
-                    to={`/${language}/blog/${post.slug}`}
+                    to={`/blog/${post.slug}`}
                     className="text-primary font-medium inline-flex items-center hover:underline"
                   >
                     {t('blog.readMore')}
@@ -115,7 +115,7 @@ const LatestPosts = () => {
 
         <div className="mt-12 text-center">
           <Button asChild variant="outline" size="lg">
-            <Link to={`/${language}/blog`}>{t('blog.viewAll')}</Link>
+            <Link to="/blog">{t('blog.viewAll')}</Link>
           </Button>
         </div>
       </div>

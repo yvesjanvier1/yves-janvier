@@ -94,7 +94,7 @@ const HeroSection = () => {
                 size={buttonSize} 
                 className="group w-full sm:w-auto min-h-[44px] px-8 bg-gradient-primary hover:shadow-primary hover-lift"
               >
-                <Link to={`/${lang}/work/portfolio`}>
+                <Link to="/portfolio">
                   {t('hero.cta.portfolio')}
                   <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </Link>
@@ -106,7 +106,7 @@ const HeroSection = () => {
                 size={buttonSize} 
                 className="group w-full sm:w-auto min-h-[44px] px-8 glass-card hover-lift border-primary/20"
               >
-                <Link to={`/${lang}/contact`}>
+                <Link to="/contact">
                   {t('hero.cta.contact')}
                   <Download className="ml-2 h-4 w-4 group-hover:translate-y-1 transition-transform" />
                 </Link>

@@ -8,6 +8,9 @@
   "share": "Partager",
   "relatedPosts": "Articles connexes",
   "latestPosts": "Derniers articles",
+  "latestPostsSubtitle": "Découvrez mes derniers articles",
   "noPostsFound": "Aucun article trouvé",
-  "searchPlaceholder": "Rechercher des articles..."
+  "noPostsMessage": "Revenez plus tard pour de nouveaux articles",
+  "searchPlaceholder": "Rechercher des articles...",
+  "viewAll": "Voir tous les articles"
 }
