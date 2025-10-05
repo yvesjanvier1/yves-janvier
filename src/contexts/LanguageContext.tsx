@@ -42,9 +42,23 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
         const contact = await import(`../../public/locales/fr/contact.json`);
         const resources = await import(`../../public/locales/fr/resources.json`);
 
+        // Flatten navbar structure to extract label values
+        const flattenedNavbar: Record<string, any> = {};
+        Object.keys(navbar.default).forEach((key) => {
+          const value = navbar.default[key];
+          if (typeof value === "object" && value !== null && "label" in value) {
+            flattenedNavbar[key] = value.label;
+            if ("description" in value) {
+              flattenedNavbar[`${key}.description`] = value.description;
+            }
+          } else {
+            flattenedNavbar[key] = value;
+          }
+        });
+
         setTranslations({
           ...common.default,
-          ...navbar.default,
+          ...flattenedNavbar,
           ...footer.default,
           ...hero.default,
           ...about.default,
@@ -79,8 +93,15 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
     if (!key) return "";
 
     // Check loaded translations
-    if (translations[key]) {
-      return translations[key];
+    let translation = translations[key];
+    
+    // If it's an object with label, extract the label
+    if (translation && typeof translation === "object" && "label" in translation) {
+      return translation.label;
+    }
+    
+    if (typeof translation === "string") {
+      return translation;
     }
 
     // Check nested keys (e.g., "nav.home")
@@ -95,6 +116,11 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
       }
     }
 
+    // If nested value is an object with label, extract it
+    if (value && typeof value === "object" && "label" in value) {
+      return value.label;
+    }
+
     if (value && typeof value === "string") {
       return value;
     }
@@ -102,7 +128,13 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
     // Fallback to embedded French translations
     const embedded = embeddedTranslations.fr;
     if (embedded && embedded[key]) {
-      return embedded[key];
+      const embeddedVal = embedded[key];
+      if (typeof embeddedVal === "object" && "label" in embeddedVal) {
+        return embeddedVal.label;
+      }
+      if (typeof embeddedVal === "string") {
+        return embeddedVal;
+      }
     }
 
     // Check nested in embedded
@@ -114,6 +146,10 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
         embeddedValue = undefined;
         break;
       }
+    }
+
+    if (embeddedValue && typeof embeddedValue === "object" && "label" in embeddedValue) {
+      return embeddedValue.label;
     }
 
     if (embeddedValue && typeof embeddedValue === "string") {
