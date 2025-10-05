@@ -1,0 +1,15 @@
+{
+  "greeting": "Bonjour, je suis",
+  "title": "Expert Data & Tech",
+  "subtitle": "Spécialisé dans la transformation de données complexes en insights exploitables et la création de solutions technologiques innovantes.",
+  "cta": {
+    "portfolio": "Voir mon travail",
+    "contact": "Me contacter"
+  },
+  "stats": {
+    "projectsCompleted": "Projets Réalisés",
+    "yearsExperience": "Années d'Expérience",
+    "clientSatisfaction": "Satisfaction Client",
+    "scrollDown": "Défiler vers le bas"
+  }
+}

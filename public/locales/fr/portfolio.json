@@ -1,0 +1,18 @@
+{
+  "title": "Portfolio",
+  "subtitle": "Découvrez mes projets et réalisations",
+  "viewProject": "Voir le projet",
+  "liveDemo": "Démo en direct",
+  "sourceCode": "Code source",
+  "technologies": "Technologies",
+  "category": "Catégorie",
+  "role": "Rôle",
+  "duration": "Durée",
+  "client": "Client",
+  "challenge": "Défi",
+  "solution": "Solution",
+  "results": "Résultats",
+  "allProjects": "Tous les projets",
+  "filterBy": "Filtrer par",
+  "noProjectsFound": "Aucun projet trouvé"
+}

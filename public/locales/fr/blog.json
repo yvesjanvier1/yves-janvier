@@ -1,0 +1,13 @@
+{
+  "title": "Blog",
+  "subtitle": "Articles, tutoriels et réflexions sur la technologie et les données",
+  "readMore": "Lire la suite",
+  "publishedOn": "Publié le",
+  "categories": "Catégories",
+  "tags": "Tags",
+  "share": "Partager",
+  "relatedPosts": "Articles connexes",
+  "latestPosts": "Derniers articles",
+  "noPostsFound": "Aucun article trouvé",
+  "searchPlaceholder": "Rechercher des articles..."
+}
