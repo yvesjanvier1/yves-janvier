@@ -9,7 +9,7 @@ interface FooterProps {
 }
 
 const Footer = ({ translations }: FooterProps) => {
-  const { language: lang, t } = useLanguage();
+  const { t } = useLanguage();
 
   return (
     <footer className="bg-background border-t">
@@ -55,7 +55,7 @@ const Footer = ({ translations }: FooterProps) => {
               {appRoutes.about.items.slice(0, 1).map((item) => (
                 <li key={item.nameKey}>
                   <Link
-                    to={item.path(lang)}
+                    to={item.path}
                     className="text-muted-foreground hover:text-foreground transition-colors"
                   >
                     {t(item.nameKey)}
@@ -65,7 +65,7 @@ const Footer = ({ translations }: FooterProps) => {
               {appRoutes.work.items.slice(0, 1).map((item) => (
                 <li key={item.nameKey}>
                   <Link
-                    to={item.path(lang)}
+                    to={item.path}
                     className="text-muted-foreground hover:text-foreground transition-colors"
                   >
                     {t(item.nameKey)}
@@ -75,7 +75,7 @@ const Footer = ({ translations }: FooterProps) => {
               {appRoutes.content.items.filter((_, i) => i === 0 || i === 2).map((item) => (
                 <li key={item.nameKey}>
                   <Link
-                    to={item.path(lang)}
+                    to={item.path}
                     className="text-muted-foreground hover:text-foreground transition-colors"
                   >
                     {t(item.nameKey)}
@@ -85,7 +85,7 @@ const Footer = ({ translations }: FooterProps) => {
               {appRoutes.about.items.slice(2, 3).map((item) => (
                 <li key={item.nameKey}>
                   <Link
-                    to={item.path(lang)}
+                    to={item.path}
                     className="text-muted-foreground hover:text-foreground transition-colors"
                   >
                     {t(item.nameKey)}
@@ -104,7 +104,7 @@ const Footer = ({ translations }: FooterProps) => {
                 return (
                   <li key={item.nameKey}>
                     <Link
-                      to={item.path(lang)}
+                      to={item.path}
                       className="text-muted-foreground hover:text-foreground transition-colors"
                     >
                       {t(item.nameKey)}
@@ -115,7 +115,7 @@ const Footer = ({ translations }: FooterProps) => {
               {/* Include journal link */}
               <li>
                 <Link
-                  to={appRoutes.content.items[1].path(lang)}
+                  to={appRoutes.content.items[1].path}
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
                   {t(appRoutes.content.items[1].nameKey)}

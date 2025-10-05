@@ -14,9 +14,10 @@ import { SEOInternational } from "@/components/seo/SEOInternational";
 
 type LayoutProps = {
   translations?: Record<string, any>;
+  children?: React.ReactNode;
 };
 
-export const Layout = ({ translations = {} }: LayoutProps) => {
+export const Layout = ({ translations = {}, children }: LayoutProps) => {
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <LanguageProvider>
@@ -35,7 +36,7 @@ export const Layout = ({ translations = {} }: LayoutProps) => {
               id="main-content"
               aria-label="Page content"
             >
-              <Outlet context={{ translations }} />
+              {children || <Outlet context={{ translations }} />}
             </main>
 
             <footer role="contentinfo" aria-label="Site footer">

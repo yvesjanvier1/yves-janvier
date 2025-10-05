@@ -1,5 +1,5 @@
-import { Routes, Route, Navigate } from "react-router-dom";
-import { LocalizedLayout } from "@/components/layout/LocalizedLayout";
+import { Routes, Route } from "react-router-dom";
+import { Layout } from "@/components/layout/Layout";
 import Home from "@/pages/HomePage";
 import About from "@/pages/AboutPage";
 import Contact from "@/pages/ContactPage";
@@ -37,11 +37,8 @@ import Login from "@/pages/DashboardLoginPage";
 export default function AppRouter() {
   return (
     <Routes>
-      {/* Root redirect */}
-      <Route path="/" element={<Navigate to="/fr" replace />} />
-
-      {/* Localized routes */}
-      <Route path="/:lang(fr|en|ht)" element={<LocalizedLayout />}>
+      {/* Main routes with Layout wrapper */}
+      <Route element={<Layout />}>
         <Route index element={<Home />} />
         <Route path="about" element={<About />} />
         <Route path="contact" element={<Contact />} />
@@ -59,6 +56,9 @@ export default function AppRouter() {
 
         {/* Resources */}
         <Route path="resources" element={<Resources />} />
+        <Route path="resources/tools" element={<Resources />} />
+        <Route path="resources/guides" element={<Resources />} />
+        <Route path="resources/downloads" element={<Resources />} />
       </Route>
 
       {/* Dashboard routes */}

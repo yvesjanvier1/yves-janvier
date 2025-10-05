@@ -3,7 +3,6 @@ import { Link, NavLink, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
-import { LanguageToggle } from "@/components/ui/language-toggle";
 import { Logo } from "@/components/ui/logo";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useResponsive } from "@/hooks/useResponsive";
@@ -106,35 +105,35 @@ interface NavbarProps {
 const Navbar = ({ translations }: NavbarProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
-  const { language: lang, t } = useLanguage();
+  const { t } = useLanguage();
   const { isMobile } = useResponsive();
 
-  // Define your app routes here or import from routes.ts
+  // Define navigation sections
   const navigationSections: NavigationSection[] = [
     {
       key: "work",
       titleKey: "nav.work",
       items: [
-        { path: `/${lang}/work/portfolio`, nameKey: "nav.portfolio" },
-        { path: `/${lang}/work/projects`, nameKey: "nav.projects", comingSoon: true },
+        { path: "/portfolio", nameKey: "nav.portfolio" },
+        { path: "/projects", nameKey: "nav.projects", comingSoon: true },
       ],
     },
     {
       key: "content",
       titleKey: "nav.content",
       items: [
-        { path: `/${lang}/content/blog`, nameKey: "nav.blog" },
-        { path: `/${lang}/content/journal`, nameKey: "nav.journal" },
-        { path: `/${lang}/content/now`, nameKey: "nav.now" },
+        { path: "/blog", nameKey: "nav.blog" },
+        { path: "/journal", nameKey: "nav.journal" },
+        { path: "/now", nameKey: "nav.now" },
       ],
     },
     {
       key: "resources",
       titleKey: "nav.resources",
       items: [
-        { path: `/${lang}/resources/tools`, nameKey: "nav.tools" },
-        { path: `/${lang}/resources/guides`, nameKey: "nav.guides" },
-        { path: `/${lang}/resources/downloads`, nameKey: "nav.downloads" },
+        { path: "/resources/tools", nameKey: "nav.tools" },
+        { path: "/resources/guides", nameKey: "nav.guides" },
+        { path: "/resources/downloads", nameKey: "nav.downloads" },
       ],
     },
   ];
@@ -163,7 +162,7 @@ const Navbar = ({ translations }: NavbarProps) => {
           {/* Desktop Menu */}
           <div className="hidden lg:flex items-center space-x-2">
             <NavLink
-              to={`/${lang}`}
+              to="/"
               className={({ isActive }) =>
                 cn(
                   navigationMenuTriggerStyle(),
@@ -208,14 +207,12 @@ const Navbar = ({ translations }: NavbarProps) => {
             </NavigationMenu>
 
             <div className="flex items-center space-x-2 ml-4">
-              <LanguageToggle />
               <ThemeToggle />
             </div>
           </div>
 
           {/* Mobile Menu Button */}
           <div className="flex items-center space-x-2 lg:hidden">
-            <LanguageToggle />
             <ThemeToggle />
             <Button
               variant="ghost"
@@ -242,7 +239,7 @@ const Navbar = ({ translations }: NavbarProps) => {
           >
             <div className="px-4 py-6 space-y-4 max-h-[calc(100vh-4rem)] overflow-y-auto">
               <NavLink
-                to={`/${lang}`}
+                to="/"
                 onClick={closeMenu}
                 className={({ isActive }) =>
                   cn(

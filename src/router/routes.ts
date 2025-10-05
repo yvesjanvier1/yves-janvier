@@ -1,23 +1,23 @@
 /**
  * Centralized route configuration
- * Single source of truth for all application routes
+ * Single source of truth for all application routes (French only)
  */
 
 export interface RouteItem {
-  path: (lang: string) => string;
-  nameKey: string;            // key for label in i18n
-  descriptionKey?: string;    // optional description key
-  comingSoon?: boolean;       // mark items as "coming soon"
+  path: string;
+  nameKey: string;
+  descriptionKey?: string;
+  comingSoon?: boolean;
 }
 
 export interface RouteSection {
-  titleKey: string;           // section header key
+  titleKey: string;
   items: RouteItem[];
 }
 
 export const appRoutes = {
   home: {
-    path: (lang: string) => `/${lang}`,
+    path: "/",
     nameKey: "home"
   },
 
@@ -25,12 +25,12 @@ export const appRoutes = {
     titleKey: "work",
     items: [
       {
-        path: (lang: string) => `/${lang}/portfolio`,
+        path: "/portfolio",
         nameKey: "portfolio",
         descriptionKey: "portfolioDescription"
       },
       {
-        path: (lang: string) => `/${lang}/projects`,
+        path: "/projects",
         nameKey: "projects",
         descriptionKey: "projectsDescription",
         comingSoon: true
@@ -42,17 +42,17 @@ export const appRoutes = {
     titleKey: "content",
     items: [
       {
-        path: (lang: string) => `/${lang}/blog`,
+        path: "/blog",
         nameKey: "blog",
         descriptionKey: "blogDescription"
       },
       {
-        path: (lang: string) => `/${lang}/journal`,
+        path: "/journal",
         nameKey: "journal",
         descriptionKey: "journalDescription"
       },
       {
-        path: (lang: string) => `/${lang}/now`,
+        path: "/now",
         nameKey: "now",
         descriptionKey: "nowDescription"
       }
@@ -63,22 +63,22 @@ export const appRoutes = {
     titleKey: "resources",
     items: [
       {
-        path: (lang: string) => `/${lang}/resources`,
+        path: "/resources",
         nameKey: "resources",
         descriptionKey: "resourcesDescription"
       },
       {
-        path: (lang: string) => `/${lang}/resources/tools`,
+        path: "/resources/tools",
         nameKey: "tools",
         descriptionKey: "toolsDescription"
       },
       {
-        path: (lang: string) => `/${lang}/resources/guides`,
+        path: "/resources/guides",
         nameKey: "guides",
         descriptionKey: "guidesDescription"
       },
       {
-        path: (lang: string) => `/${lang}/resources/downloads`,
+        path: "/resources/downloads",
         nameKey: "downloads",
         descriptionKey: "downloadsDescription"
       }
@@ -89,21 +89,26 @@ export const appRoutes = {
     titleKey: "about",
     items: [
       {
-        path: (lang: string) => `/${lang}/about`,
+        path: "/about",
         nameKey: "about",
         descriptionKey: "aboutDescription"
       },
       {
-        path: (lang: string) => `/${lang}/about#resume`,
+        path: "/about#resume",
         nameKey: "resume",
         descriptionKey: "resumeDescription"
       },
       {
-        path: (lang: string) => `/${lang}/contact`,
+        path: "/contact",
         nameKey: "contact",
         descriptionKey: "contactDescription"
       }
     ]
+  },
+
+  services: {
+    path: "/services",
+    nameKey: "services"
   }
 };
 
