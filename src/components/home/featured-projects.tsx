@@ -7,8 +7,8 @@ import { ProjectCard } from "./project-card";
 import { ProjectSkeleton } from "./project-skeleton";
 
 export const FeaturedProjects = () => {
-  // 🧠 Use the "portfolio" namespace
-  const { t } = useTranslation("portfolio");
+  // 🧠 Use both "portfolio" and "common" namespaces
+  const { t } = useTranslation(["portfolio", "common"]);
   const { projects, isLoading, error, refetch } = useFeaturedProjects();
 
   if (error) {
@@ -54,8 +54,12 @@ export const FeaturedProjects = () => {
           </div>
         ) : (
           <div className="text-center py-16">
-            <p className="text-muted-foreground mb-4">{t("noProjectsFound")}</p>
-            <p className="text-sm text-muted-foreground">{t("checkBackLater")}</p>
+            <p className="text-muted-foreground mb-4">
+              {t("noProjectsFound")}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              {t("checkBackLater")}
+            </p>
           </div>
         )}
 

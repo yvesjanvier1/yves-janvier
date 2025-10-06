@@ -25,7 +25,8 @@ interface ProjectCardProps {
 }
 
 export const ProjectCard = ({ project }: ProjectCardProps) => {
-  const { t } = useTranslation();
+  // 🧠 Use the "portfolio" namespace for project-related translations
+  const { t } = useTranslation("portfolio");
 
   return (
     <div className="group bg-card rounded-lg overflow-hidden border shadow-sm hover:shadow-lg transition-all duration-300">
@@ -38,7 +39,7 @@ export const ProjectCard = ({ project }: ProjectCardProps) => {
         />
         {project.category && (
           <span className="absolute top-3 left-3 bg-primary/90 text-primary-foreground text-xs px-2 py-1 rounded-full">
-            {project.category}
+            {t(`portfolio.categories.${project.category}`, project.category)}
           </span>
         )}
       </div>
@@ -63,7 +64,7 @@ export const ProjectCard = ({ project }: ProjectCardProps) => {
             ))}
             {project.tech_stack.length > 3 && (
               <span className="text-xs px-2 py-1 bg-muted text-muted-foreground rounded-full">
-                +{project.tech_stack.length - 3} {t("portfolio.more")}
+                +{project.tech_stack.length - 3} {t("more")}
               </span>
             )}
           </div>
@@ -74,7 +75,7 @@ export const ProjectCard = ({ project }: ProjectCardProps) => {
             to={`/portfolio/${project.slug}`}
             className="text-primary font-medium inline-flex items-center hover:underline"
           >
-            {t("portfolio.viewProject")}
+            {t("viewProject")}
             <ArrowRight className="ml-1 h-4 w-4" />
           </Link>
 

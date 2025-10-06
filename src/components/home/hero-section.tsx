@@ -2,13 +2,11 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Download } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { useLanguage } from "@/contexts/LanguageContext";
 import { useResponsive } from "@/hooks/useResponsive";
 import { ResponsiveContainer } from "@/components/ui/responsive-container";
 import { useTranslation } from "react-i18next";
 
 const HeroSection = () => {
-  // 👇 Use hero namespace
   const { t } = useTranslation("hero");
   const { isMobile, isTablet } = useResponsive();
 
@@ -19,7 +17,7 @@ const HeroSection = () => {
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Animated background */}
+      {/* Background animations */}
       <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-primary/10">
         <div className="absolute inset-0 bg-gradient-accent opacity-5 animate-gradient bg-[length:200%_200%]" />
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-float" />
@@ -37,7 +35,7 @@ const HeroSection = () => {
             transition={{ duration: 0.8, ease: "easeOut" }}
             className="max-w-5xl mx-auto"
           >
-            {/* Greeting Badge */}
+            {/* Greeting badge */}
             <motion.div
               className="inline-flex items-center px-4 py-2 mb-8 glass-card"
               initial={{ opacity: 0, scale: 0.8 }}
@@ -45,9 +43,7 @@ const HeroSection = () => {
               transition={{ delay: 0.2, duration: 0.6 }}
             >
               <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse-glow" />
-              <span
-                className={`${isMobile ? "text-sm" : "text-base"} text-muted-foreground font-medium`}
-              >
+              <span className={`${isMobile ? "text-sm" : "text-base"} text-muted-foreground font-medium`}>
                 {t("greeting")}
               </span>
             </motion.div>

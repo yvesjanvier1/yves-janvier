@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Calendar, Tag, ExternalLink, Search } from "lucide-react";
@@ -94,22 +93,25 @@ const JournalPage = () => {
       if (data) {
         const typedData = data.map(entry => ({
           ...entry,
-          entry_type: entry.entry_type as 'activity' | 'project' | 'learning' | 'achievement' | 'milestone',
-          status: entry.status as 'draft' | 'published' | 'archived',
+          entry_type: entry.entry_type as JournalEntry['entry_type'],
+          status: entry.status as JournalEntry['status'],
           video_url: entry.video_url || null
         }));
         setEntries(typedData);
 
-        // Extract unique tags from all entries
-        const { data: allEntries } = await supabase
+        // Fetch all tags from published entries (with proper typing)
+        const { data: allEntries, error: tagsError } = await supabase
           .from("journal_entries")
-          .select("tags")
+          .select<{ tags: string[] | null }>("tags")
           .eq("status", "published")
           .or(`locale.eq.${language},locale.is.null`);
-        
+
+        if (tagsError) throw tagsError;
+
         if (allEntries) {
-          const tags = Array.from(new Set(allEntries.flatMap(entry => entry.tags || [])));
-          setAvailableTags(tags);
+          const allTags = allEntries.flatMap(entry => entry.tags || []);
+          const uniqueTags = Array.from(new Set(allTags)) as string[];
+          setAvailableTags(uniqueTags);
         }
       }
     } catch (error) {
@@ -161,20 +163,20 @@ const JournalPage = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">{t('common.all')}</SelectItem>
-                <SelectItem value="activity">Activity</SelectItem>
-                <SelectItem value="project">Project</SelectItem>
-                <SelectItem value="learning">Learning</SelectItem>
-                <SelectItem value="achievement">Achievement</SelectItem>
-                <SelectItem value="milestone">Milestone</SelectItem>
+                <SelectItem value="activity">{t('journal.types.activity')}</SelectItem>
+                <SelectItem value="project">{t('journal.types.project')}</SelectItem>
+                <SelectItem value="learning">{t('journal.types.learning')}</SelectItem>
+                <SelectItem value="achievement">{t('journal.types.achievement')}</SelectItem>
+                <SelectItem value="milestone">{t('journal.types.milestone')}</SelectItem>
               </SelectContent>
             </Select>
 
             <Select value={selectedTag} onValueChange={(value) => updateSearchParams("tag", value)}>
               <SelectTrigger className="w-32">
-                <SelectValue placeholder="Tag" />
+                <SelectValue placeholder={t('journal.tagFilter')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{t('common.all')} Tags</SelectItem>
+                <SelectItem value="all">{t('common.all')} {t('journal.tags')}</SelectItem>
                 {availableTags.map((tag) => (
                   <SelectItem key={tag} value={tag}>{tag}</SelectItem>
                 ))}
@@ -188,7 +190,7 @@ const JournalPage = () => {
               <SelectContent>
                 <SelectItem value="date">{t('portfolio.byDate')}</SelectItem>
                 <SelectItem value="title">{t('portfolio.byTitle')}</SelectItem>
-                <SelectItem value="created">By Created</SelectItem>
+                <SelectItem value="created">{t('journal.sort.created')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -223,7 +225,7 @@ const JournalPage = () => {
                 <CardContent className="p-6 flex flex-col h-full">
                   <div className="flex items-center gap-2 mb-3">
                     <Badge className={entryTypeColors[entry.entry_type]}>
-                      {entry.entry_type}
+                      {t(`journal.types.${entry.entry_type}`)}
                     </Badge>
                     <div className="flex items-center text-sm text-muted-foreground">
                       <Calendar className="h-4 w-4 mr-1" />

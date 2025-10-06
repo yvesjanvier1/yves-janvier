@@ -1,11 +1,9 @@
-
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
-import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import SocialShare from "@/components/blog/social-share";
 import SEOHead from "@/components/seo/SEOHead";
@@ -35,89 +33,57 @@ const BlogPostPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
+  const currentUrl = typeof window !== "undefined" ? window.location.href : "";
 
   useEffect(() => {
     const fetchPost = async () => {
       if (!slug) {
         setIsLoading(false);
+        setError(t("blog.noPostsFound"));
         return;
       }
 
       try {
         setIsLoading(true);
         setError(null);
-        console.log(`BlogPostPage: Fetching blog post with slug: ${slug}`);
-        
-        // Set locale before querying
-        try {
-          await supabase.rpc('set_current_locale', { _locale: language });
-        } catch (localeError) {
-          console.warn('Failed to set locale:', localeError);
-        }
-        
-        // Normalize slug for consistent querying
+
+        // Set Supabase locale
+        await supabase.rpc("set_current_locale", { _locale: language }).catch(() => {
+          console.warn("Locale could not be set.");
+        });
+
         const normalizedSlug = decodeURIComponent(slug.trim().toLowerCase());
-        
-        // First try to fetch by slug with language preference
+
+        // Query by slug with language preference
         let { data, error } = await supabase
           .from("blog_posts")
           .select("*")
           .eq("slug", normalizedSlug)
           .eq("published", true)
           .or(`locale.eq.${language},locale.is.null`)
-          .order('locale', { ascending: false }) // Prefer current language
+          .order("locale", { ascending: false })
           .maybeSingle();
 
         if (!data && !error) {
-          // If no post found by slug, try by id
           ({ data, error } = await supabase
             .from("blog_posts")
             .select("*")
             .eq("id", normalizedSlug)
             .eq("published", true)
             .or(`locale.eq.${language},locale.is.null`)
-            .order('locale', { ascending: false })
+            .order("locale", { ascending: false })
             .maybeSingle());
         }
 
-        if (error) {
-          console.error("BlogPostPage: Supabase error:", error);
-          throw error;
-        }
-
-        console.log("BlogPostPage: Blog post data:", data);
-
-        if (data) {
-          setPost(data);
+        if (error) throw error;
+        if (!data) {
+          setError(t("blog.noPostsFound"));
         } else {
-          // Retry once after a short delay in case of timing issues
-          setTimeout(async () => {
-            try {
-              const { data: retryData, error: retryError } = await supabase
-                .from("blog_posts")
-                .select("*")
-                .eq("slug", normalizedSlug)
-                .eq("published", true)
-                .or(`locale.eq.${language},locale.is.null`)
-                .maybeSingle();
-                
-              if (retryData) {
-                setPost(retryData);
-                console.log("BlogPostPage: Blog post loaded on retry");
-              } else {
-                console.error("BlogPostPage: No blog post found with this slug");
-                setError(t('blog.noPostsFound'));
-              }
-            } catch (retryErr) {
-              console.error("BlogPostPage: Retry failed:", retryErr);
-              setError(t('blog.noPostsFound'));
-            }
-          }, 500);
+          setPost(data);
         }
       } catch (err) {
-        console.error("BlogPostPage: Error fetching blog post:", err);
-        setError(t('common.error'));
+        console.error("BlogPostPage fetch error:", err);
+        setError(t("common.error"));
       } finally {
         setIsLoading(false);
       }
@@ -126,6 +92,7 @@ const BlogPostPage = () => {
     fetchPost();
   }, [slug, language, t]);
 
+  // Loading skeleton
   if (isLoading) {
     return (
       <>
@@ -135,14 +102,14 @@ const BlogPostPage = () => {
             <Button variant="ghost" asChild>
               <Link to="/blog">
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                {t('common.backTo')} {t('blog.title')}
+                {t("common.backTo")} {t("blog.title")}
               </Link>
             </Button>
           </div>
           <div className="space-y-6">
             <Skeleton className="h-12 w-3/4" />
             <div className="flex gap-2">
-              {[1, 2, 3].map(i => (
+              {[1, 2, 3].map((i) => (
                 <Skeleton key={i} className="h-6 w-20" />
               ))}
             </div>
@@ -160,67 +127,38 @@ const BlogPostPage = () => {
     );
   }
 
-  if (error) {
+  // Error / Not found
+  if (error || !post) {
     return (
       <>
-        <SEOHead 
-          title={`${t('blog.noPostsFound')} - Yves Janvier`}
-          description={t('blog.noPostsMessage')}
+        <SEOHead
+          title={`${t("blog.noPostsFound")} - Yves Janvier`}
+          description={t("blog.noPostsMessage")}
         />
         <SEOInternational />
-        <div className="container max-w-4xl px-4 py-16 mx-auto">
+        <div className="container max-w-4xl px-4 py-16 mx-auto text-center">
           <div className="mb-8">
             <Button variant="ghost" asChild>
               <Link to="/blog">
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                {t('common.backTo')} {t('blog.title')}
+                {t("common.backTo")} {t("blog.title")}
               </Link>
             </Button>
           </div>
-          <div className="text-center py-16">
-            <h2 className="text-2xl font-bold mb-2">{t('common.error')}</h2>
-            <p className="text-muted-foreground mb-6">{error}</p>
-            <Button onClick={() => navigate("/blog")}>
-              {t('common.backTo')} {t('blog.title')}
-            </Button>
-          </div>
+          <h2 className="text-2xl font-bold mb-2">{t("blog.noPostsFound")}</h2>
+          <p className="text-muted-foreground mb-6">{error || t("blog.noPostsMessage")}</p>
+          <Button onClick={() => navigate("/blog")}>
+            {t("common.backTo")} {t("blog.title")}
+          </Button>
         </div>
       </>
     );
   }
 
-  if (!post) {
-    return (
-      <>
-        <SEOHead 
-          title={`${t('blog.noPostsFound')} - Yves Janvier`}
-          description={t('blog.noPostsMessage')}
-        />
-        <SEOInternational />
-        <div className="container max-w-4xl px-4 py-16 mx-auto">
-          <div className="mb-8">
-            <Button variant="ghost" asChild>
-              <Link to="/blog">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                {t('common.backTo')} {t('blog.title')}
-              </Link>
-            </Button>
-          </div>
-          <div className="text-center py-16">
-            <h2 className="text-2xl font-bold mb-2">{t('blog.noPostsFound')}</h2>
-            <p className="text-muted-foreground mb-6">{t('blog.noPostsMessage')}</p>
-            <Button onClick={() => navigate("/blog")}>
-              {t('common.backTo')} {t('blog.title')}
-            </Button>
-          </div>
-        </div>
-      </>
-    );
-  }
-
+  // Render post
   return (
     <>
-      <SEOHead 
+      <SEOHead
         title={`${post.title} - Yves Janvier`}
         description={post.excerpt || post.content.substring(0, 160) + "..."}
         image={post.cover_image}
@@ -231,12 +169,13 @@ const BlogPostPage = () => {
         url={currentUrl}
       />
       <SEOInternational />
+
       <div className="container max-w-4xl px-4 py-16 mx-auto">
         <div className="mb-8">
           <Button variant="ghost" asChild>
             <Link to="/blog">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              {t('common.backTo')} {t('blog.title')}
+              {t("common.backTo")} {t("blog.title")}
             </Link>
           </Button>
         </div>
@@ -244,21 +183,25 @@ const BlogPostPage = () => {
         <article className="prose dark:prose-invert max-w-none">
           <header className="mb-8">
             <h1 className="text-4xl font-bold mb-4">{post.title}</h1>
-            
-            <div className="flex flex-wrap gap-2 mb-6">
-              {post.tags && post.tags.map((tag) => (
-                <Badge key={tag} variant="secondary">{tag}</Badge>
-              ))}
-            </div>
-            
+
+            {post.tags && (
+              <div className="flex flex-wrap gap-2 mb-6">
+                {post.tags.map((tag) => (
+                  <Badge key={tag} variant="secondary">
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+            )}
+
             <div className="text-muted-foreground mb-6">
               <time dateTime={post.created_at}>
-                {t('common.publishedOn')} {formatDate(post.created_at)}
+                {t("common.publishedOn")} {formatDate(post.created_at)}
               </time>
               {post.updated_at !== post.created_at && (
                 <span className="ml-4">
                   <time dateTime={post.updated_at}>
-                    {t('common.updated')} {formatDate(post.updated_at)}
+                    {t("common.updated")} {formatDate(post.updated_at)}
                   </time>
                 </span>
               )}
@@ -266,28 +209,19 @@ const BlogPostPage = () => {
 
             {post.cover_image && (
               <div className="relative aspect-video mb-8 overflow-hidden rounded-lg">
-                <img 
-                  src={post.cover_image} 
-                  alt={`${t('blog.title')} - ${post.title}`}
+                <img
+                  src={post.cover_image}
+                  alt={`${t("blog.title")} - ${post.title}`}
                   className="absolute inset-0 w-full h-full object-cover"
                 />
               </div>
             )}
           </header>
 
-          <div className="mt-8 leading-relaxed">
-            <SecureHtml 
-              html={post.content}
-              className="blog-content"
-            />
-          </div>
+          <SecureHtml html={post.content} className="blog-content mt-8 leading-relaxed" />
 
           <footer className="mt-12 pt-8 border-t">
-            <SocialShare 
-              title={post.title}
-              url={currentUrl}
-              description={post.excerpt}
-            />
+            <SocialShare title={post.title} url={currentUrl} description={post.excerpt} />
           </footer>
         </article>
       </div>

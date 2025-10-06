@@ -1,4 +1,3 @@
-
 import HeroSection from "@/components/home/hero-section";
 import { FeaturedProjects } from "@/components/home/featured-projects";
 import { JournalActivities } from "@/components/home/journal-activities";
@@ -25,13 +24,19 @@ const HomePage = () => {
 
   return (
     <>
+      {/* SEO Meta */}
       <SEOHead 
         title="Yves Janvier - Full Stack Developer & Data Engineer | Portfolio"
         description="Experienced full-stack developer and data engineer specializing in web development, machine learning, data analytics, and process automation. View my portfolio of innovative digital solutions."
-        tags={["Yves Janvier", "full stack developer", "data engineer", "portfolio", "web development", "machine learning", "React", "Python", "JavaScript", "data analytics"]}
+        tags={[
+          "Yves Janvier", "full stack developer", "data engineer", "portfolio",
+          "web development", "machine learning", "React", "Python", "JavaScript", "data analytics"
+        ]}
         author="Yves Janvier"
         type="website"
       />
+
+      {/* Hero & Main Sections */}
       <HeroSection />
       <FeaturedProjects />
       <JournalActivities />
@@ -39,7 +44,7 @@ const HomePage = () => {
       <Testimonials />
       <LatestPosts />
       <NewsletterSection />
-      
+
       {/* Exit Intent Modal */}
       <ExitIntentModal
         isOpen={isModalOpen}
@@ -49,15 +54,15 @@ const HomePage = () => {
 
       {/* Privacy Consent Banner */}
       <PrivacyConsentBanner
-        onConsent={handlePrivacyConsent}
         isVisible={showPrivacyBanner}
+        onConsent={handlePrivacyConsent}
       />
 
       {/* Subscription Modal */}
       <SubscriptionModal
         isOpen={showSubscriptionModal}
         onClose={handleSubscriptionModalClose}
-        privacyConsent={privacyConsent || false}
+        privacyConsent={privacyConsent ?? false}
       />
     </>
   );
