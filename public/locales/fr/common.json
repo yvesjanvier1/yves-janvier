@@ -19,22 +19,5 @@
   "page": "Page",
   "of": "de",
   "sort": "Trier",
-  "changeLanguage": "Changer de langue",
-  
-  "nav": {
-    "home": "Accueil",
-    "work": "Travail",
-    "portfolio": "Portfolio",
-    "projects": "Projets",
-    "content": "Contenu",
-    "blog": "Blog",
-    "journal": "Journal",
-    "now": "Maintenant",
-    "resources": "Ressources",
-    "tools": "Outils",
-    "guides": "Guides",
-    "downloads": "Téléchargements",
-    "about": "À propos",
-    "contact": "Contact"
-  }
+  "changeLanguage": "Changer de langue"
 }

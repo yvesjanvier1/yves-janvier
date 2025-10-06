@@ -1,14 +1,14 @@
+
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { SectionHeader } from "@/components/ui/section-header";
-import { useTranslation } from "react-i18next";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useFeaturedProjects } from "@/hooks/useFeaturedProjects";
 import { ProjectCard } from "./project-card";
 import { ProjectSkeleton } from "./project-skeleton";
 
 export const FeaturedProjects = () => {
-  // 🧠 Use both "portfolio" and "common" namespaces
-  const { t } = useTranslation(["portfolio", "common"]);
+  const { t } = useLanguage();
   const { projects, isLoading, error, refetch } = useFeaturedProjects();
 
   if (error) {
@@ -16,14 +16,14 @@ export const FeaturedProjects = () => {
       <section className="section bg-muted/30">
         <div className="container px-4 mx-auto">
           <SectionHeader
-            title={t("featuredProjects")}
-            subtitle={t("featuredProjectsSubtitle")}
+            title={t('portfolio.featuredProjects')}
+            subtitle={t('portfolio.featuredProjectsSubtitle')}
             centered
           />
           <div className="text-center py-12">
             <p className="text-destructive mb-4">{error}</p>
             <Button onClick={refetch} variant="outline">
-              {t("common.retry")}
+              {t('common.retry')}
             </Button>
           </div>
         </div>
@@ -35,8 +35,8 @@ export const FeaturedProjects = () => {
     <section className="section bg-muted/30">
       <div className="container px-4 mx-auto">
         <SectionHeader
-          title={t("featuredProjects")}
-          subtitle={t("featuredProjectsSubtitle")}
+          title={t('portfolio.featuredProjects')}
+          subtitle={t('portfolio.featuredProjectsSubtitle')}
           centered
         />
 
@@ -54,18 +54,14 @@ export const FeaturedProjects = () => {
           </div>
         ) : (
           <div className="text-center py-16">
-            <p className="text-muted-foreground mb-4">
-              {t("noProjectsFound")}
-            </p>
-            <p className="text-sm text-muted-foreground">
-              {t("checkBackLater")}
-            </p>
+            <p className="text-muted-foreground mb-4">{t('portfolio.noProjectsFound')}</p>
+            <p className="text-sm text-muted-foreground">Check back later for new projects.</p>
           </div>
         )}
 
         <div className="mt-12 text-center">
           <Button asChild variant="outline" size="lg">
-            <Link to="/portfolio">{t("viewAll")}</Link>
+            <Link to="/portfolio">{t('portfolio.viewAll')}</Link>
           </Button>
         </div>
       </div>

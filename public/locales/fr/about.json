@@ -1,12 +1,11 @@
 {
-  "title": "À propos de moi",
-  "subtitle": "Développeur Full Stack et Expert Data",
-  "loading": "Chargement des informations...",
-  "notAvailable": "Les informations ne sont pas disponibles pour le moment.",
-  "downloadResume": "Télécharger le CV",
-  "linkedin": "Voir mon LinkedIn",
-  "github": "Voir mon GitHub",
-  "emailMe": "Envoyez-moi un email",
-  "skillsTitle": "Compétences",
-  "journeyTitle": "Parcours professionnel"
+  "title": "À propos",
+  "subtitle": "En savoir plus sur mon parcours et mes compétences",
+  "bio": "Biographie",
+  "skills": "Compétences",
+  "experience": "Expérience",
+  "education": "Formation",
+  "certifications": "Certifications",
+  "downloadCV": "Télécharger le CV",
+  "yearsOfExperience": "Années d'expérience"
 }

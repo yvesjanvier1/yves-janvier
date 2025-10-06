@@ -1,3 +1,4 @@
+
 import { useParams, useSearchParams } from "react-router-dom";
 import { Search } from "lucide-react";
 import { SectionHeader } from "@/components/ui/section-header";
@@ -17,25 +18,25 @@ const BlogPage = () => {
   const { page } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const { t, language } = useLanguage();
-
+  
   const currentPage = parseInt(page || "1", 10);
   const selectedTag = searchParams.get("tag") || "all";
   const sortBy = searchParams.get("sort") || "date";
   const searchTerm = searchParams.get("search") || "";
-
+  
   const filters = {
     ...(selectedTag !== "all" && { tags: [selectedTag] }),
-    ...(searchTerm && { search: searchTerm }),
+    ...(searchTerm && { search: searchTerm })
   };
 
   const { data: allPosts = [], isLoading, error } = useMultilingualBlogPosts(filters);
 
-  // Client-side pagination
+  // Client-side pagination and filtering
   const totalPages = Math.ceil(allPosts.length / POSTS_PER_PAGE);
   const startIndex = (currentPage - 1) * POSTS_PER_PAGE;
   const blogPosts = allPosts.slice(startIndex, startIndex + POSTS_PER_PAGE);
 
-  // Extract available tags
+  // Extract available tags from posts
   const availableTags = Array.from(new Set(allPosts.flatMap(post => post.tags || [])));
 
   const updateSearchParams = (key: string, value: string) => {
@@ -52,7 +53,6 @@ const BlogPage = () => {
 
   return (
     <ResponsiveContainer className="py-16 md:py-24">
-      {/* Header */}
       <AnimatedSection>
         <SectionHeader
           title={t('blog.title')}
@@ -60,7 +60,7 @@ const BlogPage = () => {
           centered
         />
       </AnimatedSection>
-
+      
       {/* Filters and Search */}
       <AnimatedSection delay={0.2}>
         <div className="mb-8 space-y-4 md:space-y-0 md:flex md:items-center md:gap-4">
@@ -73,7 +73,7 @@ const BlogPage = () => {
               className="pl-10 max-w-sm"
             />
           </div>
-
+          
           <div className="flex gap-2 flex-wrap">
             <Select value={selectedTag} onValueChange={(value) => updateSearchParams("tag", value)}>
               <SelectTrigger className="w-32">
@@ -100,11 +100,10 @@ const BlogPage = () => {
           </div>
         </div>
       </AnimatedSection>
-
-      {/* Content */}
+      
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {[...Array(POSTS_PER_PAGE)].map((_, i) => (
+          {[1, 2, 3, 4, 5, 6].map(i => (
             <AnimatedSection key={i} delay={i * 0.1}>
               <BlogPostSkeleton />
             </AnimatedSection>
@@ -115,7 +114,7 @@ const BlogPage = () => {
           <div className="text-center py-16">
             <h3 className="text-xl font-medium mb-2">{t('common.error')}</h3>
             <p className="text-muted-foreground mb-4">{t('blog.noPostsMessage')}</p>
-            <button
+            <button 
               onClick={() => window.location.reload()}
               className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90"
             >
@@ -128,7 +127,7 @@ const BlogPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
             {blogPosts.map((post, index) => (
               <AnimatedSection key={post.id} delay={index * 0.1}>
-                <BlogCard
+                <BlogCard 
                   post={{
                     id: post.id,
                     slug: post.slug || post.id,
@@ -140,14 +139,14 @@ const BlogPage = () => {
                     date: post.created_at,
                     author: {
                       name: "Yves Janvier",
-                      avatar: "/placeholder.svg",
-                    },
+                      avatar: "/placeholder.svg"
+                    }
                   }}
                 />
               </AnimatedSection>
             ))}
           </div>
-
+          
           {totalPages > 1 && (
             <AnimatedSection delay={0.6}>
               <PaginationEnhanced
@@ -164,7 +163,7 @@ const BlogPage = () => {
           <div className="text-center py-16">
             <h3 className="text-xl font-medium mb-2">{t('blog.noPostsFound')}</h3>
             <p className="text-muted-foreground">
-              {searchTerm || selectedTag !== "all"
+              {searchTerm || selectedTag !== "all" 
                 ? t('blog.noPostsMessage')
                 : t('blog.noPostsMessage')}
             </p>
