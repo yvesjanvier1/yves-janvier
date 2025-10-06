@@ -5,11 +5,11 @@ import { Button } from "@/components/ui/button";
 import { SectionHeader } from "@/components/ui/section-header";
 import { LazyImage } from "@/components/ui/lazy-image";
 import { useMultilingualData } from "@/hooks/useMultilingualData";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { useTranslation } from "react-i18next";
 import { useResponsive } from "@/hooks/useResponsive";
 
 const LatestPosts = () => {
-  const { t, formatDate } = useLanguage();
+  const { t, i18n } = useTranslation();
   const { isMobile } = useResponsive();
 
   const { data: posts = [], isLoading, error } = useMultilingualData<any>({
@@ -18,6 +18,19 @@ const LatestPosts = () => {
     orderBy: { column: "created_at", ascending: false },
     limit: isMobile ? 2 : 3,
   });
+
+  // Format date according to current language
+  const formatDate = (dateString: string) => {
+    try {
+      return new Date(dateString).toLocaleDateString(i18n.language, {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+    } catch {
+      return dateString;
+    }
+  };
 
   if (error) {
     return (

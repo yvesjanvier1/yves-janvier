@@ -5,9 +5,11 @@ import { motion } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useResponsive } from "@/hooks/useResponsive";
 import { ResponsiveContainer } from "@/components/ui/responsive-container";
+import { useTranslation } from "react-i18next";
 
 const HeroSection = () => {
-  const { t } = useLanguage();
+  // 👇 Use hero namespace
+  const { t } = useTranslation("hero");
   const { isMobile, isTablet } = useResponsive();
 
   const buttonSize = isMobile ? "default" : "lg";
@@ -46,7 +48,7 @@ const HeroSection = () => {
               <span
                 className={`${isMobile ? "text-sm" : "text-base"} text-muted-foreground font-medium`}
               >
-                {t("hero.greeting")}
+                {t("greeting")}
               </span>
             </motion.div>
 
@@ -58,7 +60,7 @@ const HeroSection = () => {
               transition={{ delay: 0.4, duration: 0.8 }}
             >
               <span className="text-gradient animate-gradient bg-[length:200%_200%]">
-                {t("hero.name")}
+                {t("name")}
               </span>
             </motion.h1>
 
@@ -70,7 +72,7 @@ const HeroSection = () => {
               transition={{ delay: 0.6, duration: 0.8 }}
             >
               <span className="relative">
-                {t("hero.title")}
+                {t("title")}
                 <div
                   className="absolute -bottom-2 left-0 w-full h-1 bg-gradient-primary rounded-full transform scale-x-0 animate-scale-in"
                   style={{ animationDelay: "1.2s" }}
@@ -85,7 +87,7 @@ const HeroSection = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.8, duration: 0.8 }}
             >
-              {t("hero.subtitle")}
+              {t("subtitle")}
             </motion.p>
 
             {/* CTA Buttons */}
@@ -101,7 +103,7 @@ const HeroSection = () => {
                 className="group w-full sm:w-auto min-h-[44px] px-8 bg-gradient-primary hover:shadow-primary hover-lift"
               >
                 <Link to="/portfolio">
-                  {t("hero.cta.portfolio")}
+                  {t("cta.portfolio")}
                   <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </Button>
@@ -113,7 +115,7 @@ const HeroSection = () => {
                 className="group w-full sm:w-auto min-h-[44px] px-8 glass-card hover-lift border-primary/20"
               >
                 <Link to="/contact">
-                  {t("hero.cta.contact")}
+                  {t("cta.contact")}
                   <Download className="ml-2 h-4 w-4 group-hover:translate-y-1 transition-transform" />
                 </Link>
               </Button>
@@ -127,9 +129,9 @@ const HeroSection = () => {
               transition={{ delay: 1.2, duration: 0.8 }}
             >
               {[
-                { number: "50+", label: t("hero.stats.projectsCompleted") },
-                { number: "5+", label: t("hero.stats.yearsExperience") },
-                { number: "100%", label: t("hero.stats.clientSatisfaction") },
+                { number: "50+", label: t("stats.projectsCompleted") },
+                { number: "5+", label: t("stats.yearsExperience") },
+                { number: "100%", label: t("stats.clientSatisfaction") },
               ].map((stat, index) => (
                 <div key={index} className="text-center glass-card p-4 hover-scale">
                   <div className="text-2xl font-bold text-gradient-accent mb-1">{stat.number}</div>
@@ -150,7 +152,7 @@ const HeroSection = () => {
       >
         <div className="flex flex-col items-center">
           <span className="text-xs text-muted-foreground mb-2 uppercase tracking-wider">
-            {t("hero.stats.scrollDown")}
+            {t("stats.scrollDown")}
           </span>
           <div className="w-6 h-10 border-2 border-primary/30 rounded-full flex justify-center">
             <div className="w-1 h-3 bg-primary rounded-full mt-2 animate-bounce" />
