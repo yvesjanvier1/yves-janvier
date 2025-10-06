@@ -1,6 +1,5 @@
 // src/components/layout/Navbar.tsx
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -19,9 +18,8 @@ import {
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
-import { useStaticMultilingualData } from "@/hooks/useStaticMultilingualData";
 
-// Types matching navbar.json structure
+// Define the structure of navbar.json for type safety
 interface NavItemData {
   label: string;
   description: string;
@@ -33,7 +31,7 @@ interface NavSectionData {
   items?: Record<string, NavItemData>;
 }
 
-interface NavbarData {
+interface NavbarJsonStructure {
   home: NavItemData;
   aboutSection: NavSectionData;
   work: NavSectionData;
@@ -41,7 +39,7 @@ interface NavbarData {
   resources: NavSectionData;
 }
 
-// Map section keys to actual routes
+// Route mapping
 const SECTION_ROUTE_MAP: Record<string, string> = {
   about: "/about",
   contact: "/contact",
@@ -56,17 +54,15 @@ const SECTION_ROUTE_MAP: Record<string, string> = {
   downloads: "/resources/downloads",
 };
 
-// Determine if a section item is "coming soon"
 const IS_COMING_SOON: Record<string, boolean> = {
   projects: true,
 };
 
-// NavItem remains mostly the same
 interface NavItemProps {
   item: {
     path: string;
-    nameKey: string;
-    descriptionKey?: string;
+    labelKey: string;       // e.g. "navbar.aboutSection.items.about"
+    descriptionKey: string; // e.g. "navbar.aboutSection.items.about.description"
     comingSoon?: boolean;
   };
   closeMenu: () => void;
@@ -93,11 +89,11 @@ const NavItem = ({ item, closeMenu, isActiveItem, t, isMobile = false }: NavItem
         )}
       >
         <div className="font-medium">
-          {t(item.nameKey)}{" "}
+          {t(item.labelKey)}{" "}
           <span className="text-xs text-muted-foreground">({t("common.comingSoon")})</span>
         </div>
         {hasDescription && (
-          <div className="text-sm text-muted-foreground">{t(item.descriptionKey!)}</div>
+          <div className="text-sm text-muted-foreground">{t(item.descriptionKey)}</div>
         )}
       </button>
     );
@@ -116,8 +112,8 @@ const NavItem = ({ item, closeMenu, isActiveItem, t, isMobile = false }: NavItem
         )
       }
     >
-      <div className="font-medium">{t(item.nameKey)}</div>
-      {hasDescription && <div className="text-sm text-muted-foreground">{t(item.descriptionKey!)}</div>}
+      <div className="font-medium">{t(item.labelKey)}</div>
+      {hasDescription && <div className="text-sm text-muted-foreground">{t(item.descriptionKey)}</div>}
     </NavLink>
   ) : (
     <Link
@@ -129,21 +125,17 @@ const NavItem = ({ item, closeMenu, isActiveItem, t, isMobile = false }: NavItem
           : "text-foreground/80 hover:text-foreground"
       )}
     >
-      <div className="font-medium">{t(item.nameKey)}</div>
-      {hasDescription && <div className="text-sm text-muted-foreground">{t(item.descriptionKey!)}</div>}
+      <div className="font-medium">{t(item.labelKey)}</div>
+      {hasDescription && <div className="text-sm text-muted-foreground">{t(item.descriptionKey)}</div>}
     </Link>
   );
 };
 
-// Main Navbar Component
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
-  const { t, currentLanguage } = useLanguage();
+  const { t } = useLanguage();
   const { isMobile } = useResponsive();
-
-  // Load navbar.json dynamically
-  const { data: navbarData, loading } = useStaticMultilingualData<NavbarData>("navbar");
 
   const toggleMenu = () => setIsOpen(!isOpen);
   const closeMenu = () => setIsOpen(false);
@@ -155,67 +147,44 @@ const Navbar = () => {
   const isActiveItem = (itemPath: string) =>
     location.pathname === itemPath || location.pathname.startsWith(`${itemPath}/`);
 
-  // Convert navbar.json structure into navigationSections
-  const navigationSections = React.useMemo(() => {
-    if (!navbarData) return [];
+  // Dynamically build navigation sections from navbar.json structure
+  const navigationSections = useMemo(() => {
+    const sections = [
+      { key: "aboutSection", titleKey: "navbar.aboutSection.label" },
+      { key: "work", titleKey: "navbar.work.label" },
+      { key: "content", titleKey: "navbar.content.label" },
+      { key: "resources", titleKey: "navbar.resources.label" },
+    ];
 
-    const sections: {
-      key: string;
-      titleKey: string;
-      items: { path: string; nameKey: string; descriptionKey: string; comingSoon?: boolean }[];
-    }[] = [];
+    return sections.map((section) => {
+      const items: { path: string; labelKey: string; descriptionKey: string; comingSoon?: boolean }[] = [];
 
-    // Helper to build key path for t()
-    const buildKey = (sectionKey: string, itemKey?: string) => {
-      if (itemKey) {
-        return `navbar.${sectionKey}.items.${itemKey}`;
-      }
-      return `navbar.${sectionKey}`;
-    };
+      // Determine which item keys belong to this section
+      let itemKeys: string[] = [];
+      if (section.key === "aboutSection") itemKeys = ["about", "contact", "resume"];
+      else if (section.key === "work") itemKeys = ["portfolio", "projects"];
+      else if (section.key === "content") itemKeys = ["blog", "journal", "now"];
+      else if (section.key === "resources") itemKeys = ["tools", "guides", "downloads"];
 
-    // Process each section
-    Object.entries(navbarData).forEach(([sectionKey, section]) => {
-      // Skip "home" — it's handled separately
-      if (sectionKey === "home") return;
-
-      const items: typeof sections[number]["items"] = [];
-
-      if (section.items) {
-        Object.keys(section.items).forEach((itemKey) => {
-          const route = SECTION_ROUTE_MAP[itemKey] || `/${itemKey}`;
-          items.push({
-            path: route,
-            nameKey: `${buildKey(sectionKey, itemKey)}.label`,
-            descriptionKey: `${buildKey(sectionKey, itemKey)}.description`,
-            comingSoon: IS_COMING_SOON[itemKey],
-          });
+      itemKeys.forEach((itemKey) => {
+        const route = SECTION_ROUTE_MAP[itemKey] || `/${itemKey}`;
+        items.push({
+          path: route,
+          labelKey: `navbar.${section.key}.items.${itemKey}.label`,
+          descriptionKey: `navbar.${section.key}.items.${itemKey}.description`,
+          comingSoon: IS_COMING_SOON[itemKey],
         });
-      }
-
-      sections.push({
-        key: sectionKey,
-        titleKey: `${buildKey(sectionKey)}.label`,
-        items,
       });
+
+      return {
+        ...section,
+        items,
+      };
     });
+  }, [t]);
 
-    return sections;
-  }, [navbarData]);
-
-  if (loading) {
-    // Optional: show minimal navbar skeleton
-    return (
-      <nav className="sticky top-0 z-50 w-full glass border-b border-primary/10 h-16">
-        <div className="flex items-center justify-between px-4 h-full">
-          <div className="w-24 h-6 bg-muted rounded animate-pulse" />
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 rounded-full bg-muted animate-pulse" />
-            <div className="w-10 h-10 rounded bg-muted animate-pulse lg:hidden" />
-          </div>
-        </div>
-      </nav>
-    );
-  }
+  const isActiveSection = (section: (typeof navigationSections)[0]) =>
+    section.items.some((item) => isActiveItem(item.path));
 
   return (
     <nav id="navigation" className="sticky top-0 z-50 w-full glass border-b border-primary/10">
@@ -237,7 +206,7 @@ const Navbar = () => {
                 )
               }
             >
-              {navbarData ? t("navbar.home.label") : "Accueil"}
+              {t("navbar.home.label")}
             </NavLink>
 
             <NavigationMenu>
@@ -246,9 +215,7 @@ const Navbar = () => {
                   <NavigationMenuItem key={section.key}>
                     <NavigationMenuTrigger
                       className={cn(
-                        navigationSections.some((s) =>
-                          s.items.some((item) => isActiveItem(item.path))
-                        ) && section.items.some((item) => isActiveItem(item.path))
+                        isActiveSection(section)
                           ? "text-primary font-semibold bg-primary/10"
                           : "text-foreground/80"
                       )}
@@ -322,7 +289,7 @@ const Navbar = () => {
                   )
                 }
               >
-                {navbarData ? t("navbar.home.label") : "Accueil"}
+                {t("navbar.home.label")}
               </NavLink>
 
               {navigationSections.map((section) => (
