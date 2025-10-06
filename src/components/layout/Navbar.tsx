@@ -113,36 +113,37 @@ const Navbar = ({ translations }: NavbarProps) => {
   const navigationSections: NavigationSection[] = [
     {
       key: "aboutSection",
-      titleKey: "about.label", // "À propos"
+      titleKey: "aboutSection.label",
       items: [
-        { path: "/about", nameKey: "about.label" },      // "À propos"
-        { path: "/contact", nameKey: "contact.label" },  // "Contact"
-        { path: "/resume", nameKey: "resume.label" },    // "CV"
+        { path: "/about", nameKey: "aboutSection.items.about.label", descriptionKey: "aboutSection.items.about.description" },
+        { path: "/contact", nameKey: "aboutSection.items.contact.label", descriptionKey: "aboutSection.items.contact.description" },
+        { path: "/resume", nameKey: "aboutSection.items.resume.label", descriptionKey: "aboutSection.items.resume.description" },
       ],
     },
     {
       key: "work",
-      titleKey: "work.label",       // "Travaux"
+      titleKey: "work.label",
       items: [
-        { path: "/portfolio", nameKey: "portfolio.label" }, // "Portfolio"
+        { path: "/portfolio", nameKey: "work.items.portfolio.label", descriptionKey: "work.items.portfolio.description" },
+        { path: "/projects", nameKey: "work.items.projects.label", descriptionKey: "work.items.projects.description", comingSoon: true },
       ],
     },
     {
       key: "content",
-      titleKey: "content.label",    // "Contenu"
+      titleKey: "content.label",
       items: [
-        { path: "/blog", nameKey: "blog.label" },           // "Blog"
-        { path: "/journal", nameKey: "journal.label" },     // "Journal"
-        { path: "/now", nameKey: "now.label" },             // "En ce moment"
+        { path: "/blog", nameKey: "content.items.blog.label", descriptionKey: "content.items.blog.description" },
+        { path: "/journal", nameKey: "content.items.journal.label", descriptionKey: "content.items.journal.description" },
+        { path: "/now", nameKey: "content.items.now.label", descriptionKey: "content.items.now.description" },
       ],
     },
     {
       key: "resources",
-      titleKey: "resources.label",  // "Ressources"
+      titleKey: "resources.label",
       items: [
-        { path: "/resources/tools", nameKey: "tools.label" },       // "Outils"
-        { path: "/resources/guides", nameKey: "guides.label" },     // "Guides"
-        { path: "/resources/downloads", nameKey: "downloads.label" }, // "Téléchargements"
+        { path: "/resources/tools", nameKey: "resources.items.tools.label", descriptionKey: "resources.items.tools.description" },
+        { path: "/resources/guides", nameKey: "resources.items.guides.label", descriptionKey: "resources.items.guides.description" },
+        { path: "/resources/downloads", nameKey: "resources.items.downloads.label", descriptionKey: "resources.items.downloads.description" },
       ],
     },
   ];
@@ -154,13 +155,8 @@ const Navbar = ({ translations }: NavbarProps) => {
     closeMenu();
   }, [location.pathname]);
 
-  const isActiveItem = (itemPath: string) => {
-    return location.pathname === itemPath || location.pathname.startsWith(itemPath + "/");
-  };
-
-  const isActiveSection = (section: NavigationSection) => {
-    return section.items.some((item) => isActiveItem(item.path));
-  };
+  const isActiveItem = (itemPath: string) => location.pathname === itemPath || location.pathname.startsWith(itemPath + "/");
+  const isActiveSection = (section: NavigationSection) => section.items.some((item) => isActiveItem(item.path));
 
   return (
     <nav id="navigation" className="sticky top-0 z-50 w-full glass border-b border-primary/10">
