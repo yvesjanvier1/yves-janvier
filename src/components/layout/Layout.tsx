@@ -1,4 +1,3 @@
-// src/components/layout/Layout.tsx
 import { Outlet } from "react-router-dom";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
@@ -13,8 +12,12 @@ import { PerformanceTracker } from "@/components/analytics/PerformanceTracker";
 import SkipNavigation from "@/components/accessibility/SkipNavigation";
 import { SEOInternational } from "@/components/seo/SEOInternational";
 
-// Remove the translations prop — it's no longer needed
-export const Layout = () => {
+type LayoutProps = {
+  translations?: Record<string, any>;
+  children?: React.ReactNode;
+};
+
+export const Layout = ({ translations = {}, children }: LayoutProps) => {
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <LanguageProvider>
@@ -24,8 +27,8 @@ export const Layout = () => {
 
           <div className="min-h-screen flex flex-col bg-background text-foreground">
             <header role="banner" aria-label="Main navigation">
-              {/* ✅ No props needed — uses t() from context */}
-              <Navbar />
+              {/* Pass translations to Navbar */}
+              <Navbar translations={translations.navbar} />
             </header>
 
             <main
@@ -33,12 +36,12 @@ export const Layout = () => {
               id="main-content"
               aria-label="Page content"
             >
-              <Outlet />
+              {children || <Outlet context={{ translations }} />}
             </main>
 
             <footer role="contentinfo" aria-label="Site footer">
-              {/* ✅ Same for Footer — should also use t() internally */}
-              <Footer />
+              {/* Pass translations to Footer */}
+              <Footer translations={translations.footer} />
             </footer>
           </div>
 
@@ -47,7 +50,7 @@ export const Layout = () => {
             <Toaster />
           </div>
 
-          {/* Cookie Consent */}
+          {/* Consent Banner */}
           <div
             role="dialog"
             aria-modal="true"
@@ -80,7 +83,7 @@ export const Layout = () => {
             Are you sure you want to exit? You might miss important updates.
           </p>
 
-          {/* Tracking */}
+          {/* Invisible tracking/analytics */}
           <PageViewTracker aria-hidden="true" />
           <PerformanceTracker aria-hidden="true" />
         </SecurityProvider>

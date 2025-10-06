@@ -1,5 +1,4 @@
-// src/components/layout/Navbar.tsx
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -19,30 +18,12 @@ import {
 } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
 
-// Route mapping
-const SECTION_ROUTE_MAP: Record<string, string> = {
-  about: "/about",
-  contact: "/contact",
-  resume: "/resume",
-  portfolio: "/portfolio",
-  projects: "/projects",
-  blog: "/blog",
-  journal: "/journal",
-  now: "/now",
-  tools: "/resources/tools",
-  guides: "/resources/guides",
-  downloads: "/resources/downloads",
-};
-
-const IS_COMING_SOON: Record<string, boolean> = {
-  projects: true,
-};
-
+// Type for individual navigation item
 interface NavItemProps {
   item: {
     path: string;
-    labelKey: string;
-    descriptionKey: string;
+    nameKey: string;
+    descriptionKey?: string;
     comingSoon?: boolean;
   };
   closeMenu: () => void;
@@ -69,11 +50,11 @@ const NavItem = ({ item, closeMenu, isActiveItem, t, isMobile = false }: NavItem
         )}
       >
         <div className="font-medium">
-          {t(item.labelKey)}{" "}
+          {t(item.nameKey)}{" "}
           <span className="text-xs text-muted-foreground">({t("common.comingSoon")})</span>
         </div>
         {hasDescription && (
-          <div className="text-sm text-muted-foreground">{t(item.descriptionKey)}</div>
+          <div className="text-sm text-muted-foreground">{t(item.descriptionKey!)}</div>
         )}
       </button>
     );
@@ -92,8 +73,8 @@ const NavItem = ({ item, closeMenu, isActiveItem, t, isMobile = false }: NavItem
         )
       }
     >
-      <div className="font-medium">{t(item.labelKey)}</div>
-      {hasDescription && <div className="text-sm text-muted-foreground">{t(item.descriptionKey)}</div>}
+      <div className="font-medium">{t(item.nameKey)}</div>
+      {hasDescription && <div className="text-sm text-muted-foreground">{t(item.descriptionKey!)}</div>}
     </NavLink>
   ) : (
     <Link
@@ -105,17 +86,62 @@ const NavItem = ({ item, closeMenu, isActiveItem, t, isMobile = false }: NavItem
           : "text-foreground/80 hover:text-foreground"
       )}
     >
-      <div className="font-medium">{t(item.labelKey)}</div>
-      {hasDescription && <div className="text-sm text-muted-foreground">{t(item.descriptionKey)}</div>}
+      <div className="font-medium">{t(item.nameKey)}</div>
+      {hasDescription && <div className="text-sm text-muted-foreground">{t(item.descriptionKey!)}</div>}
     </Link>
   );
 };
 
-const Navbar = () => {
+interface NavigationSection {
+  key: string;
+  titleKey: string;
+  items: NavItemProps["item"][];
+}
+
+interface NavbarProps {
+  translations?: Record<string, any>;
+}
+
+const Navbar = ({ translations }: NavbarProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   const { t } = useLanguage();
   const { isMobile } = useResponsive();
+
+  // Define navigation sections including About & Contact dropdown
+  const navigationSections: NavigationSection[] = [
+    {
+      key: "about",
+      titleKey: "nav.aboutSection", // Add in your locales JSON
+      items: [
+        { path: "/about", nameKey: "nav.about" },
+        { path: "/contact", nameKey: "nav.contact" },
+      ],
+    },
+    {
+      key: "work",
+      titleKey: "nav.work",
+      items: [{ path: "/portfolio", nameKey: "nav.portfolio" }],
+    },
+    {
+      key: "content",
+      titleKey: "nav.content",
+      items: [
+        { path: "/blog", nameKey: "nav.blog" },
+        { path: "/journal", nameKey: "nav.journal" },
+        { path: "/now", nameKey: "nav.now" },
+      ],
+    },
+    {
+      key: "resources",
+      titleKey: "nav.resources",
+      items: [
+        { path: "/resources/tools", nameKey: "nav.tools" },
+        { path: "/resources/guides", nameKey: "nav.guides" },
+        { path: "/resources/downloads", nameKey: "nav.downloads" },
+      ],
+    },
+  ];
 
   const toggleMenu = () => setIsOpen(!isOpen);
   const closeMenu = () => setIsOpen(false);
@@ -124,46 +150,13 @@ const Navbar = () => {
     closeMenu();
   }, [location.pathname]);
 
-  const isActiveItem = (itemPath: string) =>
-    location.pathname === itemPath || location.pathname.startsWith(`${itemPath}/`);
+  const isActiveItem = (itemPath: string) => {
+    return location.pathname === itemPath || location.pathname.startsWith(itemPath + "/");
+  };
 
-  // ✅ Updated: Removed "navbar." prefix from all keys
-  const navigationSections = useMemo(() => {
-    const sections = [
-      { key: "aboutSection", titleKey: "aboutSection.label" },
-      { key: "work", titleKey: "work.label" },
-      { key: "content", titleKey: "content.label" },
-      { key: "resources", titleKey: "resources.label" },
-    ];
-
-    return sections.map((section) => {
-      const items: { path: string; labelKey: string; descriptionKey: string; comingSoon?: boolean }[] = [];
-
-      let itemKeys: string[] = [];
-      if (section.key === "aboutSection") itemKeys = ["about", "contact", "resume"];
-      else if (section.key === "work") itemKeys = ["portfolio", "projects"];
-      else if (section.key === "content") itemKeys = ["blog", "journal", "now"];
-      else if (section.key === "resources") itemKeys = ["tools", "guides", "downloads"];
-
-      itemKeys.forEach((itemKey) => {
-        const route = SECTION_ROUTE_MAP[itemKey] || `/${itemKey}`;
-        items.push({
-          path: route,
-          labelKey: `${section.key}.items.${itemKey}.label`,
-          descriptionKey: `${section.key}.items.${itemKey}.description`,
-          comingSoon: IS_COMING_SOON[itemKey],
-        });
-      });
-
-      return {
-        ...section,
-        items,
-      };
-    });
-  }, [t]);
-
-  const isActiveSection = (section: (typeof navigationSections)[0]) =>
-    section.items.some((item) => isActiveItem(item.path));
+  const isActiveSection = (section: NavigationSection) => {
+    return section.items.some((item) => isActiveItem(item.path));
+  };
 
   return (
     <nav id="navigation" className="sticky top-0 z-50 w-full glass border-b border-primary/10">
@@ -179,13 +172,11 @@ const Navbar = () => {
                 cn(
                   navigationMenuTriggerStyle(),
                   "text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
-                  isActive
-                    ? "text-primary font-semibold bg-primary/10"
-                    : "text-foreground/80 hover:text-foreground hover:bg-muted/50"
+                  isActive ? "text-primary font-semibold bg-primary/10" : "text-foreground/80 hover:text-foreground hover:bg-muted/50"
                 )
               }
             >
-              {t("home.label")} {/* ✅ Removed "navbar." */}
+              {t("home")}
             </NavLink>
 
             <NavigationMenu>
@@ -262,13 +253,11 @@ const Navbar = () => {
                 className={({ isActive }) =>
                   cn(
                     "block px-4 py-3 rounded-lg text-base font-medium transition-colors min-h-[48px] flex items-center",
-                    isActive
-                      ? "text-primary font-semibold bg-primary/10"
-                      : "text-foreground/80 hover:text-foreground hover:bg-muted/50"
+                    isActive ? "text-primary font-semibold bg-primary/10" : "text-foreground/80 hover:text-foreground hover:bg-muted/50"
                   )
                 }
               >
-                {t("home.label")} {/* ✅ Removed "navbar." */}
+                {t("home")}
               </NavLink>
 
               {navigationSections.map((section) => (

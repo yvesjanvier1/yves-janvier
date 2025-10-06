@@ -3,72 +3,60 @@
     "label": "Accueil",
     "description": "Retour à la page d’accueil"
   },
-  "aboutSection": {
-    "label": "À propos",
-    "description": "En savoir plus sur moi et me contacter",
-    "items": {
-      "about": {
-        "label": "À propos",
-        "description": "En savoir plus sur moi"
-      },
-      "contact": {
-        "label": "Contact",
-        "description": "Entrer en contact avec moi"
-      },
-      "resume": {
-        "label": "CV",
-        "description": "Voir mon parcours professionnel"
-      }
-    }
-  },
   "work": {
-    "label": "Travail",
-    "description": "Mes réalisations et contributions professionnelles",
-    "items": {
-      "portfolio": {
-        "label": "Portfolio",
-        "description": "Présentation de mes projets créatifs et techniques"
-      },
-      "projects": {
-        "label": "Projets (Bientôt disponible)",
-        "description": "Restez à l’écoute pour découvrir les prochains projets"
-      }
-    }
+    "label": "Travaux",
+    "description": "Mes réalisations et contributions professionnelles"
+  },
+  "portfolio": {
+    "label": "Portfolio",
+    "description": "Présentation de mes projets créatifs et techniques"
+  },
+  "projects": {
+    "label": "Projets (Bientôt disponible)",
+    "description": "Restez à l’écoute pour découvrir les prochains projets"
   },
   "content": {
     "label": "Contenu",
-    "description": "Explorez les articles, journaux et mises à jour",
-    "items": {
-      "blog": {
-        "label": "Blog",
-        "description": "Articles, tutoriels et réflexions"
-      },
-      "journal": {
-        "label": "Journal",
-        "description": "Pensées personnelles et réflexions"
-      },
-      "now": {
-        "label": "En ce moment",
-        "description": "Ce sur quoi je me concentre actuellement"
-      }
-    }
+    "description": "Explorez les articles, journaux et mises à jour"
+  },
+  "blog": {
+    "label": "Blog",
+    "description": "Articles, tutoriels et réflexions"
+  },
+  "journal": {
+    "label": "Journal",
+    "description": "Pensées personnelles et réflexions"
+  },
+  "now": {
+    "label": "En ce moment",
+    "description": "Ce sur quoi je me concentre actuellement"
   },
   "resources": {
     "label": "Ressources",
-    "description": "Outils, guides et téléchargements utiles",
-    "items": {
-      "tools": {
-        "label": "Outils",
-        "description": "Outils de développement utiles"
-      },
-      "guides": {
-        "label": "Guides",
-        "description": "Guides techniques et tutoriels"
-      },
-      "downloads": {
-        "label": "Téléchargements",
-        "description": "Ressources et fichiers gratuits à télécharger"
-      }
-    }
+    "description": "Outils, guides et téléchargements utiles"
+  },
+  "tools": {
+    "label": "Outils",
+    "description": "Outils de développement utiles"
+  },
+  "guides": {
+    "label": "Guides",
+    "description": "Guides techniques et tutoriels"
+  },
+  "downloads": {
+    "label": "Téléchargements",
+    "description": "Ressources et fichiers gratuits à télécharger"
+  },
+  "about": {
+    "label": "À propos",
+    "description": "En savoir plus sur moi"
+  },
+  "resume": {
+    "label": "CV",
+    "description": "Voir mon parcours professionnel"
+  },
+  "contact": {
+    "label": "Contact",
+    "description": "Entrer en contact avec moi"
   }
 }

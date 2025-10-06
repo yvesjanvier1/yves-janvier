@@ -1,12 +1,14 @@
-// src/components/layout/Footer.tsx
 import { Link } from "react-router-dom";
 import { Github, Linkedin, Mail } from "lucide-react";
 import { NewsletterSubscription } from "@/components/newsletter/NewsletterSubscription";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { appRoutes } from "@/router/routes";
 
-// ✅ Remove the prop interface — no longer needed
-const Footer = () => {
+interface FooterProps {
+  translations?: Record<string, any>;
+}
+
+const Footer = ({ translations }: FooterProps) => {
   const { t } = useLanguage();
 
   return (
@@ -26,7 +28,6 @@ const Footer = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-muted-foreground hover:text-foreground transition-colors"
-                aria-label="GitHub"
               >
                 <Github className="h-5 w-5" />
               </a>
@@ -35,14 +36,12 @@ const Footer = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-muted-foreground hover:text-foreground transition-colors"
-                aria-label="LinkedIn"
               >
                 <Linkedin className="h-5 w-5" />
               </a>
               <a
                 href="mailto:contact@yvesjanvier.com"
                 className="text-muted-foreground hover:text-foreground transition-colors"
-                aria-label="Email"
               >
                 <Mail className="h-5 w-5" />
               </a>
@@ -54,7 +53,7 @@ const Footer = () => {
             <h4 className="font-semibold mb-4">{t("footer.quickLinks") || "Quick Links"}</h4>
             <ul className="space-y-2 text-sm">
               {appRoutes.about.items.slice(0, 1).map((item) => (
-                <li key={item.path}>
+                <li key={item.nameKey}>
                   <Link
                     to={item.path}
                     className="text-muted-foreground hover:text-foreground transition-colors"
@@ -64,7 +63,7 @@ const Footer = () => {
                 </li>
               ))}
               {appRoutes.work.items.slice(0, 1).map((item) => (
-                <li key={item.path}>
+                <li key={item.nameKey}>
                   <Link
                     to={item.path}
                     className="text-muted-foreground hover:text-foreground transition-colors"
@@ -74,7 +73,7 @@ const Footer = () => {
                 </li>
               ))}
               {appRoutes.content.items.filter((_, i) => i === 0 || i === 2).map((item) => (
-                <li key={item.path}>
+                <li key={item.nameKey}>
                   <Link
                     to={item.path}
                     className="text-muted-foreground hover:text-foreground transition-colors"
@@ -84,7 +83,7 @@ const Footer = () => {
                 </li>
               ))}
               {appRoutes.about.items.slice(2, 3).map((item) => (
-                <li key={item.path}>
+                <li key={item.nameKey}>
                   <Link
                     to={item.path}
                     className="text-muted-foreground hover:text-foreground transition-colors"
@@ -103,7 +102,7 @@ const Footer = () => {
               {[3, 2, 1].map((i) => {
                 const item = appRoutes.resources.items[i];
                 return (
-                  <li key={item.path}>
+                  <li key={item.nameKey}>
                     <Link
                       to={item.path}
                       className="text-muted-foreground hover:text-foreground transition-colors"
