@@ -1,0 +1,12 @@
+{
+  "title": "À propos de moi",
+  "subtitle": "Développeur Full Stack et Expert Data",
+  "loading": "Chargement des informations...",
+  "notAvailable": "Les informations ne sont pas disponibles pour le moment.",
+  "downloadResume": "Télécharger le CV",
+  "linkedin": "Voir mon LinkedIn",
+  "github": "Voir mon GitHub",
+  "emailMe": "Envoyez-moi un email",
+  "skillsTitle": "Compétences",
+  "journeyTitle": "Parcours professionnel"
+}
