@@ -92,6 +92,7 @@ const NavItem = ({ item, closeMenu, isActiveItem, t, isMobile = false }: NavItem
   );
 };
 
+// Navbar Component
 interface NavigationSection {
   key: string;
   titleKey: string;
@@ -108,37 +109,40 @@ const Navbar = ({ translations }: NavbarProps) => {
   const { t } = useLanguage();
   const { isMobile } = useResponsive();
 
-  // Define navigation sections including About & Contact dropdown
+  // Navigation Sections with French labels
   const navigationSections: NavigationSection[] = [
     {
-      key: "about",
-      titleKey: "nav.aboutSection", // Add in your locales JSON
+      key: "aboutSection",
+      titleKey: "about.label", // "À propos"
       items: [
-        { path: "/about", nameKey: "nav.about" },
-        { path: "/contact", nameKey: "nav.contact" },
+        { path: "/about", nameKey: "about.label" },      // "À propos"
+        { path: "/contact", nameKey: "contact.label" },  // "Contact"
+        { path: "/resume", nameKey: "resume.label" },    // "CV"
       ],
     },
     {
       key: "work",
-      titleKey: "nav.work",
-      items: [{ path: "/portfolio", nameKey: "nav.portfolio" }],
+      titleKey: "work.label",       // "Travaux"
+      items: [
+        { path: "/portfolio", nameKey: "portfolio.label" }, // "Portfolio"
+      ],
     },
     {
       key: "content",
-      titleKey: "nav.content",
+      titleKey: "content.label",    // "Contenu"
       items: [
-        { path: "/blog", nameKey: "nav.blog" },
-        { path: "/journal", nameKey: "nav.journal" },
-        { path: "/now", nameKey: "nav.now" },
+        { path: "/blog", nameKey: "blog.label" },           // "Blog"
+        { path: "/journal", nameKey: "journal.label" },     // "Journal"
+        { path: "/now", nameKey: "now.label" },             // "En ce moment"
       ],
     },
     {
       key: "resources",
-      titleKey: "nav.resources",
+      titleKey: "resources.label",  // "Ressources"
       items: [
-        { path: "/resources/tools", nameKey: "nav.tools" },
-        { path: "/resources/guides", nameKey: "nav.guides" },
-        { path: "/resources/downloads", nameKey: "nav.downloads" },
+        { path: "/resources/tools", nameKey: "tools.label" },       // "Outils"
+        { path: "/resources/guides", nameKey: "guides.label" },     // "Guides"
+        { path: "/resources/downloads", nameKey: "downloads.label" }, // "Téléchargements"
       ],
     },
   ];
@@ -176,7 +180,7 @@ const Navbar = ({ translations }: NavbarProps) => {
                 )
               }
             >
-              {t("home")}
+              {t("home.label")}
             </NavLink>
 
             <NavigationMenu>
@@ -257,7 +261,7 @@ const Navbar = ({ translations }: NavbarProps) => {
                   )
                 }
               >
-                {t("home")}
+                {t("home.label")}
               </NavLink>
 
               {navigationSections.map((section) => (
