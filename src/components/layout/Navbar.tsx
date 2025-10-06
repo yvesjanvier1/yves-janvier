@@ -1,3 +1,5 @@
+// src/components/layout/Navbar.tsx
+
 import { useState, useEffect } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
@@ -17,8 +19,49 @@ import {
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
+import { useStaticMultilingualData } from "@/hooks/useStaticMultilingualData";
 
-// Type for individual navigation item
+// Types matching navbar.json structure
+interface NavItemData {
+  label: string;
+  description: string;
+}
+
+interface NavSectionData {
+  label: string;
+  description: string;
+  items?: Record<string, NavItemData>;
+}
+
+interface NavbarData {
+  home: NavItemData;
+  aboutSection: NavSectionData;
+  work: NavSectionData;
+  content: NavSectionData;
+  resources: NavSectionData;
+}
+
+// Map section keys to actual routes
+const SECTION_ROUTE_MAP: Record<string, string> = {
+  about: "/about",
+  contact: "/contact",
+  resume: "/resume",
+  portfolio: "/portfolio",
+  projects: "/projects",
+  blog: "/blog",
+  journal: "/journal",
+  now: "/now",
+  tools: "/resources/tools",
+  guides: "/resources/guides",
+  downloads: "/resources/downloads",
+};
+
+// Determine if a section item is "coming soon"
+const IS_COMING_SOON: Record<string, boolean> = {
+  projects: true,
+};
+
+// NavItem remains mostly the same
 interface NavItemProps {
   item: {
     path: string;
@@ -92,61 +135,15 @@ const NavItem = ({ item, closeMenu, isActiveItem, t, isMobile = false }: NavItem
   );
 };
 
-// Navbar Component
-interface NavigationSection {
-  key: string;
-  titleKey: string;
-  items: NavItemProps["item"][];
-}
-
-interface NavbarProps {
-  translations?: Record<string, any>;
-}
-
-const Navbar = ({ translations }: NavbarProps) => {
+// Main Navbar Component
+const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
-  const { t } = useLanguage();
+  const { t, currentLanguage } = useLanguage();
   const { isMobile } = useResponsive();
 
-  // Navigation Sections with French labels
-  const navigationSections: NavigationSection[] = [
-    {
-      key: "aboutSection",
-      titleKey: "aboutSection.label",
-      items: [
-        { path: "/about", nameKey: "aboutSection.items.about.label", descriptionKey: "aboutSection.items.about.description" },
-        { path: "/contact", nameKey: "aboutSection.items.contact.label", descriptionKey: "aboutSection.items.contact.description" },
-        { path: "/resume", nameKey: "aboutSection.items.resume.label", descriptionKey: "aboutSection.items.resume.description" },
-      ],
-    },
-    {
-      key: "work",
-      titleKey: "work.label",
-      items: [
-        { path: "/portfolio", nameKey: "work.items.portfolio.label", descriptionKey: "work.items.portfolio.description" },
-        { path: "/projects", nameKey: "work.items.projects.label", descriptionKey: "work.items.projects.description", comingSoon: true },
-      ],
-    },
-    {
-      key: "content",
-      titleKey: "content.label",
-      items: [
-        { path: "/blog", nameKey: "content.items.blog.label", descriptionKey: "content.items.blog.description" },
-        { path: "/journal", nameKey: "content.items.journal.label", descriptionKey: "content.items.journal.description" },
-        { path: "/now", nameKey: "content.items.now.label", descriptionKey: "content.items.now.description" },
-      ],
-    },
-    {
-      key: "resources",
-      titleKey: "resources.label",
-      items: [
-        { path: "/resources/tools", nameKey: "resources.items.tools.label", descriptionKey: "resources.items.tools.description" },
-        { path: "/resources/guides", nameKey: "resources.items.guides.label", descriptionKey: "resources.items.guides.description" },
-        { path: "/resources/downloads", nameKey: "resources.items.downloads.label", descriptionKey: "resources.items.downloads.description" },
-      ],
-    },
-  ];
+  // Load navbar.json dynamically
+  const { data: navbarData, loading } = useStaticMultilingualData<NavbarData>("navbar");
 
   const toggleMenu = () => setIsOpen(!isOpen);
   const closeMenu = () => setIsOpen(false);
@@ -155,8 +152,70 @@ const Navbar = ({ translations }: NavbarProps) => {
     closeMenu();
   }, [location.pathname]);
 
-  const isActiveItem = (itemPath: string) => location.pathname === itemPath || location.pathname.startsWith(itemPath + "/");
-  const isActiveSection = (section: NavigationSection) => section.items.some((item) => isActiveItem(item.path));
+  const isActiveItem = (itemPath: string) =>
+    location.pathname === itemPath || location.pathname.startsWith(`${itemPath}/`);
+
+  // Convert navbar.json structure into navigationSections
+  const navigationSections = React.useMemo(() => {
+    if (!navbarData) return [];
+
+    const sections: {
+      key: string;
+      titleKey: string;
+      items: { path: string; nameKey: string; descriptionKey: string; comingSoon?: boolean }[];
+    }[] = [];
+
+    // Helper to build key path for t()
+    const buildKey = (sectionKey: string, itemKey?: string) => {
+      if (itemKey) {
+        return `navbar.${sectionKey}.items.${itemKey}`;
+      }
+      return `navbar.${sectionKey}`;
+    };
+
+    // Process each section
+    Object.entries(navbarData).forEach(([sectionKey, section]) => {
+      // Skip "home" — it's handled separately
+      if (sectionKey === "home") return;
+
+      const items: typeof sections[number]["items"] = [];
+
+      if (section.items) {
+        Object.keys(section.items).forEach((itemKey) => {
+          const route = SECTION_ROUTE_MAP[itemKey] || `/${itemKey}`;
+          items.push({
+            path: route,
+            nameKey: `${buildKey(sectionKey, itemKey)}.label`,
+            descriptionKey: `${buildKey(sectionKey, itemKey)}.description`,
+            comingSoon: IS_COMING_SOON[itemKey],
+          });
+        });
+      }
+
+      sections.push({
+        key: sectionKey,
+        titleKey: `${buildKey(sectionKey)}.label`,
+        items,
+      });
+    });
+
+    return sections;
+  }, [navbarData]);
+
+  if (loading) {
+    // Optional: show minimal navbar skeleton
+    return (
+      <nav className="sticky top-0 z-50 w-full glass border-b border-primary/10 h-16">
+        <div className="flex items-center justify-between px-4 h-full">
+          <div className="w-24 h-6 bg-muted rounded animate-pulse" />
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 rounded-full bg-muted animate-pulse" />
+            <div className="w-10 h-10 rounded bg-muted animate-pulse lg:hidden" />
+          </div>
+        </div>
+      </nav>
+    );
+  }
 
   return (
     <nav id="navigation" className="sticky top-0 z-50 w-full glass border-b border-primary/10">
@@ -172,11 +231,13 @@ const Navbar = ({ translations }: NavbarProps) => {
                 cn(
                   navigationMenuTriggerStyle(),
                   "text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
-                  isActive ? "text-primary font-semibold bg-primary/10" : "text-foreground/80 hover:text-foreground hover:bg-muted/50"
+                  isActive
+                    ? "text-primary font-semibold bg-primary/10"
+                    : "text-foreground/80 hover:text-foreground hover:bg-muted/50"
                 )
               }
             >
-              {t("home.label")}
+              {navbarData ? t("navbar.home.label") : "Accueil"}
             </NavLink>
 
             <NavigationMenu>
@@ -185,7 +246,9 @@ const Navbar = ({ translations }: NavbarProps) => {
                   <NavigationMenuItem key={section.key}>
                     <NavigationMenuTrigger
                       className={cn(
-                        isActiveSection(section)
+                        navigationSections.some((s) =>
+                          s.items.some((item) => isActiveItem(item.path))
+                        ) && section.items.some((item) => isActiveItem(item.path))
                           ? "text-primary font-semibold bg-primary/10"
                           : "text-foreground/80"
                       )}
@@ -253,11 +316,13 @@ const Navbar = ({ translations }: NavbarProps) => {
                 className={({ isActive }) =>
                   cn(
                     "block px-4 py-3 rounded-lg text-base font-medium transition-colors min-h-[48px] flex items-center",
-                    isActive ? "text-primary font-semibold bg-primary/10" : "text-foreground/80 hover:text-foreground hover:bg-muted/50"
+                    isActive
+                      ? "text-primary font-semibold bg-primary/10"
+                      : "text-foreground/80 hover:text-foreground hover:bg-muted/50"
                   )
                 }
               >
-                {t("home.label")}
+                {navbarData ? t("navbar.home.label") : "Accueil"}
               </NavLink>
 
               {navigationSections.map((section) => (
