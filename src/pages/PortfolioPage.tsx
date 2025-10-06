@@ -1,11 +1,11 @@
 import { useState, useMemo } from "react";
 import { Search, Star } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useMultilingualData } from "@/hooks/useMultilingualData";
+import { useMultilingualPortfolioProjects } from "@/hooks/useMultilingualData";
 import { SectionHeader } from "@/components/ui/section-header";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { LazyImage } from "@/components/ui/lazy-image";
+import ProjectCard from "@/components/portfolio/project-card";
 
 const PortfolioPage = () => {
   const { t } = useLanguage();
@@ -16,12 +16,8 @@ const PortfolioPage = () => {
   const [selectedTech, setSelectedTech] = useState("all");
   const [featuredFirst, setFeaturedFirst] = useState(true);
 
-  // Fetch projects from Supabase (or any backend)
-  const { data: projects = [], isLoading, error } = useMultilingualData<any>({
-    table: "projects",
-    filters: { published: true },
-    orderBy: { column: "created_at", ascending: false },
-  });
+  // Fetch projects from Supabase
+  const { data: projects = [], isLoading, error } = useMultilingualPortfolioProjects();
 
   // Extract unique categories & techs
   const categories = useMemo(() => {
@@ -33,7 +29,7 @@ const PortfolioPage = () => {
   const technologies = useMemo(() => {
     const set = new Set<string>();
     projects.forEach((p) =>
-      p.technologies?.forEach((tech: string) => set.add(tech))
+      p.tech_stack?.forEach((tech: string) => set.add(tech))
     );
     return Array.from(set);
   }, [projects]);
@@ -59,7 +55,7 @@ const PortfolioPage = () => {
     // Tech filter
     if (selectedTech !== "all") {
       result = result.filter((p) =>
-        p.technologies?.includes(selectedTech)
+        p.tech_stack?.includes(selectedTech)
       );
     }
 
@@ -167,35 +163,19 @@ const PortfolioPage = () => {
         {!isLoading && !error && filteredProjects.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredProjects.map((project) => (
-              <div
+              <ProjectCard
                 key={project.id}
-                className="group bg-card rounded-lg overflow-hidden border shadow-sm hover:shadow-md transition-all"
-              >
-                <LazyImage
-                  src={project.cover_image || "/placeholder.svg"}
-                  alt={project.title}
-                  aspectRatio="video"
-                  className="group-hover:scale-105 transition-transform duration-300"
-                />
-                <div className="p-5">
-                  <div className="flex flex-wrap gap-2 mb-2">
-                    {project.technologies?.slice(0, 3).map((tech: string) => (
-                      <span
-                        key={tech}
-                        className="text-xs px-2 py-1 bg-secondary text-secondary-foreground rounded-full"
-                      >
-                        {tech}
-                      </span>
-                    ))}
-                  </div>
-                  <h3 className="font-semibold text-xl mb-2 group-hover:text-primary transition-colors">
-                    {project.title}
-                  </h3>
-                  <p className="text-muted-foreground line-clamp-2">
-                    {project.description || ""}
-                  </p>
-                </div>
-              </div>
+                project={{
+                  id: project.id,
+                  slug: project.slug,
+                  title: project.title,
+                  description: project.description,
+                  coverImage: project.images?.[0] || "/placeholder.svg",
+                  category: project.category,
+                  tools: project.tech_stack,
+                  featured: project.featured,
+                }}
+              />
             ))}
           </div>
         )}
