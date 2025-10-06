@@ -1,15 +1,16 @@
 {
   "greeting": "Bonjour, je suis",
-  "title": "Expert Data & Tech",
-  "subtitle": "Spécialisé dans la transformation de données complexes en insights exploitables et la création de solutions technologiques innovantes.",
+  "name": "Yves Janvier",
+  "title": "Développeur Full Stack & Ingénieur Data",
+  "subtitle": "Je crée des solutions numériques innovantes adaptées à vos besoins.",
   "cta": {
-    "portfolio": "Voir mon travail",
+    "portfolio": "Voir mon portfolio",
     "contact": "Me contacter"
   },
   "stats": {
     "projectsCompleted": "Projets Réalisés",
-    "yearsExperience": "Années d'Expérience",
+    "yearsExperience": "Années d’expérience",
     "clientSatisfaction": "Satisfaction Client",
-    "scrollDown": "Défiler vers le bas"
+    "scrollDown": "Faire défiler"
   }
 }

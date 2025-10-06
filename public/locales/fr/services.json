@@ -1,4 +1,26 @@
 {
-  "title": "Services",
-  "subtitle": "Solutions complètes de données et de technologie adaptées à vos besoins"
+  "title": "Ce que je fais le mieux",
+  "subtitle": "Des solutions modernes adaptées à vos besoins",
+  "items": {
+    "dataEngineering": {
+      "title": "Data Engineering",
+      "description": "Création de pipelines et d’infrastructures de données robustes."
+    },
+    "machineLearning": {
+      "title": "Machine Learning",
+      "description": "Développement de solutions intelligentes basées sur l'IA."
+    },
+    "webDevelopment": {
+      "title": "Développement Web",
+      "description": "Création d’applications modernes et réactives."
+    },
+    "dataAnalytics": {
+      "title": "Analyse de Données",
+      "description": "Transformation des données brutes en insights exploitables."
+    },
+    "processAutomation": {
+      "title": "Automatisation des Processus",
+      "description": "Optimisation des flux de travail pour gagner en efficacité."
+    }
+  }
 }
