@@ -19,26 +19,6 @@ import {
 } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
 
-// Define the structure of navbar.json for type safety
-interface NavItemData {
-  label: string;
-  description: string;
-}
-
-interface NavSectionData {
-  label: string;
-  description: string;
-  items?: Record<string, NavItemData>;
-}
-
-interface NavbarJsonStructure {
-  home: NavItemData;
-  aboutSection: NavSectionData;
-  work: NavSectionData;
-  content: NavSectionData;
-  resources: NavSectionData;
-}
-
 // Route mapping
 const SECTION_ROUTE_MAP: Record<string, string> = {
   about: "/about",
@@ -61,8 +41,8 @@ const IS_COMING_SOON: Record<string, boolean> = {
 interface NavItemProps {
   item: {
     path: string;
-    labelKey: string;       // e.g. "navbar.aboutSection.items.about"
-    descriptionKey: string; // e.g. "navbar.aboutSection.items.about.description"
+    labelKey: string;
+    descriptionKey: string;
     comingSoon?: boolean;
   };
   closeMenu: () => void;
@@ -147,19 +127,18 @@ const Navbar = () => {
   const isActiveItem = (itemPath: string) =>
     location.pathname === itemPath || location.pathname.startsWith(`${itemPath}/`);
 
-  // Dynamically build navigation sections from navbar.json structure
+  // ✅ Updated: Removed "navbar." prefix from all keys
   const navigationSections = useMemo(() => {
     const sections = [
-      { key: "aboutSection", titleKey: "navbar.aboutSection.label" },
-      { key: "work", titleKey: "navbar.work.label" },
-      { key: "content", titleKey: "navbar.content.label" },
-      { key: "resources", titleKey: "navbar.resources.label" },
+      { key: "aboutSection", titleKey: "aboutSection.label" },
+      { key: "work", titleKey: "work.label" },
+      { key: "content", titleKey: "content.label" },
+      { key: "resources", titleKey: "resources.label" },
     ];
 
     return sections.map((section) => {
       const items: { path: string; labelKey: string; descriptionKey: string; comingSoon?: boolean }[] = [];
 
-      // Determine which item keys belong to this section
       let itemKeys: string[] = [];
       if (section.key === "aboutSection") itemKeys = ["about", "contact", "resume"];
       else if (section.key === "work") itemKeys = ["portfolio", "projects"];
@@ -170,8 +149,8 @@ const Navbar = () => {
         const route = SECTION_ROUTE_MAP[itemKey] || `/${itemKey}`;
         items.push({
           path: route,
-          labelKey: `navbar.${section.key}.items.${itemKey}.label`,
-          descriptionKey: `navbar.${section.key}.items.${itemKey}.description`,
+          labelKey: `${section.key}.items.${itemKey}.label`,
+          descriptionKey: `${section.key}.items.${itemKey}.description`,
           comingSoon: IS_COMING_SOON[itemKey],
         });
       });
@@ -206,7 +185,7 @@ const Navbar = () => {
                 )
               }
             >
-              {t("navbar.home.label")}
+              {t("home.label")} {/* ✅ Removed "navbar." */}
             </NavLink>
 
             <NavigationMenu>
@@ -289,7 +268,7 @@ const Navbar = () => {
                   )
                 }
               >
-                {t("navbar.home.label")}
+                {t("home.label")} {/* ✅ Removed "navbar." */}
               </NavLink>
 
               {navigationSections.map((section) => (
