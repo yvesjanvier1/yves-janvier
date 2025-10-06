@@ -4,10 +4,10 @@ import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Logo } from "@/components/ui/logo";
-import { useLanguage } from "@/contexts/LanguageContext";
 import { useResponsive } from "@/hooks/useResponsive";
 import { ResponsiveContainer } from "@/components/ui/responsive-container";
 import { toast } from "@/hooks/use-toast";
+import { useTranslation } from "react-i18next";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -18,7 +18,6 @@ import {
 } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
 
-// Type for individual navigation item
 interface NavItemProps {
   item: {
     path: string;
@@ -50,12 +49,9 @@ const NavItem = ({ item, closeMenu, isActiveItem, t, isMobile = false }: NavItem
         )}
       >
         <div className="font-medium">
-          {t(item.nameKey)}{" "}
-          <span className="text-xs text-muted-foreground">({t("common.comingSoon")})</span>
+          {t(item.nameKey)} <span className="text-xs text-muted-foreground">({t("common.comingSoon")})</span>
         </div>
-        {hasDescription && (
-          <div className="text-sm text-muted-foreground">{t(item.descriptionKey!)}</div>
-        )}
+        {hasDescription && <div className="text-sm text-muted-foreground">{t(item.descriptionKey!)}</div>}
       </button>
     );
   }
@@ -98,17 +94,12 @@ interface NavigationSection {
   items: NavItemProps["item"][];
 }
 
-interface NavbarProps {
-  translations?: Record<string, any>;
-}
-
-const Navbar = ({ translations }: NavbarProps) => {
+const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
-  const { t } = useLanguage();
   const { isMobile } = useResponsive();
+  const { t } = useTranslation(["common", "navbar"]);
 
-  // Define navigation sections
   const navigationSections: NavigationSection[] = [
     {
       key: "work",
@@ -179,7 +170,7 @@ const Navbar = ({ translations }: NavbarProps) => {
                 )
               }
             >
-              {t("home")}
+              {t("nav.home")}
             </NavLink>
 
             <NavigationMenu>
@@ -187,7 +178,9 @@ const Navbar = ({ translations }: NavbarProps) => {
                 {navigationSections.map((section) => (
                   <NavigationMenuItem key={section.key}>
                     <NavigationMenuTrigger
-                      className={cn(isActiveSection(section) ? "text-primary font-semibold bg-primary/10" : "text-foreground/80")}
+                      className={cn(
+                        isActiveSection(section) ? "text-primary font-semibold bg-primary/10" : "text-foreground/80"
+                      )}
                     >
                       {t(section.titleKey)}
                     </NavigationMenuTrigger>
@@ -199,13 +192,7 @@ const Navbar = ({ translations }: NavbarProps) => {
                         )}
                       >
                         {section.items.map((item) => (
-                          <NavItem
-                            key={item.path}
-                            item={item}
-                            closeMenu={closeMenu}
-                            isActiveItem={isActiveItem}
-                            t={t}
-                          />
+                          <NavItem key={item.path} item={item} closeMenu={closeMenu} isActiveItem={isActiveItem} t={t} />
                         ))}
                       </div>
                     </NavigationMenuContent>
@@ -226,7 +213,7 @@ const Navbar = ({ translations }: NavbarProps) => {
               variant="ghost"
               size="icon"
               onClick={toggleMenu}
-              aria-label={isOpen ? "Close menu" : "Open menu"}
+              aria-label={isOpen ? t("common.closeMenu") : t("common.openMenu")}
               aria-expanded={isOpen}
               aria-controls="mobile-menu"
               className="h-10 w-10 p-0"
@@ -256,7 +243,7 @@ const Navbar = ({ translations }: NavbarProps) => {
                   )
                 }
               >
-                {t("home")}
+                {t("nav.home")}
               </NavLink>
 
               {navigationSections.map((section) => (
@@ -265,14 +252,7 @@ const Navbar = ({ translations }: NavbarProps) => {
                     {t(section.titleKey)}
                   </div>
                   {section.items.map((item) => (
-                    <NavItem
-                      key={item.path}
-                      item={item}
-                      closeMenu={closeMenu}
-                      isActiveItem={isActiveItem}
-                      t={t}
-                      isMobile
-                    />
+                    <NavItem key={item.path} item={item} closeMenu={closeMenu} isActiveItem={isActiveItem} t={t} isMobile />
                   ))}
                 </div>
               ))}

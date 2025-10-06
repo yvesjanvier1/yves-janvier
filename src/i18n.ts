@@ -6,19 +6,33 @@ i18n
   .use(HttpBackend)
   .use(initReactI18next)
   .init({
-    lng: "fr",                  // default language
-    fallbackLng: "fr",          // fallback if translation is missing
-    ns: ["hero", "navbar", "footer", "resources", "blog", "portfolio"], // 🧠 all namespaces you use
-    defaultNS: "hero",          // default if you don't specify
+    lng: "fr",
+    fallbackLng: "fr",
+    ns: [
+      "common",
+      "hero",
+      "navbar",
+      "footer",
+      "resources",
+      "blog",
+      "portfolio",
+      "coming-soon",
+      "journal",
+      "now",
+      "testimonials",
+      "services",
+      "about"
+    ],
+    defaultNS: "common",
     interpolation: {
-      escapeValue: false,       // React already escapes values
+      escapeValue: false
     },
     backend: {
-      loadPath: "/locales/{{lng}}/{{ns}}.json", // 👈 load each namespace file
+      loadPath: "/locales/{{lng}}/{{ns}}.json"
     },
     react: {
-      useSuspense: false,       // avoids Suspense issues in React
-    },
+      useSuspense: false
+    }
   });
 
 export default i18n;
