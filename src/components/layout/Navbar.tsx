@@ -136,6 +136,14 @@ const Navbar = ({ translations }: NavbarProps) => {
         { path: "/resources/downloads", nameKey: "nav.downloads" },
       ],
     },
+    {
+      key: "about",
+      titleKey: "nav.about",
+      items: [
+        { path: "/about", nameKey: "nav.about" },
+        { path: "/contact", nameKey: "nav.contact" },
+      ],
+    },
   ];
 
   const toggleMenu = () => setIsOpen(!isOpen);
