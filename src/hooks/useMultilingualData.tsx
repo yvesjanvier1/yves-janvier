@@ -135,13 +135,13 @@ export const useDashboardTestimonials = () =>
 export const useDashboardMessages = () =>
   useMultilingualData<any>({ table: "contact_messages", orderBy: { column: "created_at", ascending: false }, scope: "dashboard" });
 
-// 🔗 Resources hooks
+// 🔗 Resources hooks (no locale filtering since resources table has no locale column)
 export const useResources = (filters: Record<string, any> = {}) => {
   return useMultilingualData<any>({
     table: "resources",
     filters,
     orderBy: { column: "featured", ascending: false },
-    scope: "public",
+    scope: "dashboard", // Use dashboard scope to skip locale filtering
   });
 };
 
