@@ -108,20 +108,15 @@ const Navbar = ({ translations }: NavbarProps) => {
   const { t } = useLanguage();
   const { isMobile } = useResponsive();
 
-  // Define navigation sections including About & Contact dropdown
+  // Define navigation sections
   const navigationSections: NavigationSection[] = [
-    {
-      key: "about",
-      titleKey: "nav.aboutSection", // Add in your locales JSON
-      items: [
-        { path: "/about", nameKey: "nav.about" },
-        { path: "/contact", nameKey: "nav.contact" },
-      ],
-    },
     {
       key: "work",
       titleKey: "nav.work",
-      items: [{ path: "/portfolio", nameKey: "nav.portfolio" }],
+      items: [
+        { path: "/portfolio", nameKey: "nav.portfolio" },
+        { path: "/projects", nameKey: "nav.projects", comingSoon: true },
+      ],
     },
     {
       key: "content",
@@ -184,11 +179,7 @@ const Navbar = ({ translations }: NavbarProps) => {
                 {navigationSections.map((section) => (
                   <NavigationMenuItem key={section.key}>
                     <NavigationMenuTrigger
-                      className={cn(
-                        isActiveSection(section)
-                          ? "text-primary font-semibold bg-primary/10"
-                          : "text-foreground/80"
-                      )}
+                      className={cn(isActiveSection(section) ? "text-primary font-semibold bg-primary/10" : "text-foreground/80")}
                     >
                       {t(section.titleKey)}
                     </NavigationMenuTrigger>
