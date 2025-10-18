@@ -1,6 +1,7 @@
 
 import { Link } from "react-router-dom";
 import { formatDate } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export interface BlogPost {
   id: string;
@@ -21,6 +22,8 @@ interface BlogCardProps {
 }
 
 const BlogCard = ({ post }: BlogCardProps) => {
+  const { t } = useLanguage();
+
   return (
     <div className="group bg-card rounded-lg overflow-hidden border shadow-sm hover:shadow-md transition-all h-full flex flex-col">
       <Link to={`/blog/${post.id}`} className="aspect-video relative overflow-hidden">
@@ -52,7 +55,7 @@ const BlogCard = ({ post }: BlogCardProps) => {
           to={`/blog/${post.id}`}
           className="text-primary font-medium hover:underline"
         >
-          Read More
+          {t('blog.readMore')}
         </Link>
       </div>
     </div>

@@ -1,5 +1,6 @@
 
 import { Link } from "react-router-dom";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ProjectLink {
   title: string;
@@ -12,11 +13,11 @@ export interface Project {
   summary?: string;
   description: string;
   coverImage?: string;
-  image?: string; // Added for compatibility with PortfolioPage
+  image?: string;
   categories?: string[];
   tools?: string[];
-  tags?: string[]; // Added for compatibility with PortfolioPage
-  category?: string; // Added for compatibility with PortfolioPage
+  tags?: string[];
+  category?: string;
   featured?: boolean;
   date?: string;
   links?: ProjectLink[];
@@ -27,6 +28,8 @@ interface ProjectCardProps {
 }
 
 const ProjectCard = ({ project }: ProjectCardProps) => {
+  const { t } = useLanguage();
+  
   // Extract categories from either project.categories array or single project.category
   const categories = project.categories || (project.category ? [project.category] : []);
   
@@ -52,7 +55,7 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
             to={`/portfolio/${project.id}`}
             className="bg-primary text-primary-foreground px-4 py-2 rounded-md font-medium"
           >
-            View Project
+            {t('portfolio.viewProject')}
           </Link>
         </div>
       </div>
@@ -73,7 +76,7 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
           to={`/portfolio/${project.id}`}
           className="text-primary font-medium hover:underline"
         >
-          View Case Study
+          {t('portfolio.viewCaseStudy')}
         </Link>
       </div>
     </div>

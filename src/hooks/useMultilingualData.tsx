@@ -23,13 +23,14 @@ export const useMultilingualData = <T,>({
   return useQuery({
     queryKey: [table, language, filters, orderBy, select],
     queryFn: async () => {
-      // Use any to bypass TypeScript strict typing for dynamic table names
+      // Create the query with type assertion to handle dynamic table names
       let query = (supabase as any).from(table).select(select);
 
-      // Apply language filter - assume locale column exists for multilingual tables
-      // This is a safe assumption for blog_posts, portfolio_projects, etc.
-      if (['blog_posts', 'portfolio_projects', 'services', 'testimonials'].includes(table)) {
-        query = query.eq('locale', language);
+      // Apply language filter for multilingual tables
+      const multilingualTables = ['blog_posts', 'portfolio_projects', 'services', 'testimonials'];
+      if (multilingualTables.includes(table)) {
+        // Use OR condition to get content in selected language or without locale (fallback)
+        query = query.or(`locale.eq.${language},locale.is.null`);
       }
 
       // Apply additional filters
@@ -47,6 +48,7 @@ export const useMultilingualData = <T,>({
       const { data, error } = await query;
 
       if (error) {
+        console.error(`Error fetching from ${table}:`, error);
         throw error;
       }
 
@@ -70,5 +72,21 @@ export const useMultilingualPortfolioProjects = (filters: Record<string, any> = 
     table: 'portfolio_projects',
     filters,
     orderBy: { column: 'featured', ascending: false }
+  });
+};
+
+export const useMultilingualServices = (filters: Record<string, any> = {}) => {
+  return useMultilingualData<any>({
+    table: 'services',
+    filters,
+    orderBy: { column: 'created_at', ascending: false }
+  });
+};
+
+export const useMultilingualTestimonials = (filters: Record<string, any> = {}) => {
+  return useMultilingualData<any>({
+    table: 'testimonials',
+    filters,
+    orderBy: { column: 'created_at', ascending: false }
   });
 };
