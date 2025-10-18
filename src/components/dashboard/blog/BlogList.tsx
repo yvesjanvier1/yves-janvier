@@ -1,35 +1,39 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DataTable } from "@/components/ui/data-table";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { BlogListHeader } from "./blog-list/BlogListHeader";
 import { getBlogListColumns, BlogPost } from "./blog-list/BlogListColumns";
-import { useQuery } from "@tanstack/react-query";
 
 export function BlogList() {
+  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [postToDelete, setPostToDelete] = useState<string | null>(null);
   
-  const { data: posts = [], isLoading, refetch } = useQuery({
-    queryKey: ['admin_blog_posts'],
-    queryFn: async () => {
-      // Dashboard shows all posts regardless of locale for admin management
+  const fetchPosts = async () => {
+    setIsLoading(true);
+    try {
       const { data, error } = await supabase
-        .from('blog_posts')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .from("blog_posts")
+        .select("*")
+        .order("created_at", { ascending: false });
 
-      if (error) {
-        console.error('Error fetching blog posts:', error);
-        throw error;
-      }
-      return data as BlogPost[];
-    },
-    retry: 1,
-    staleTime: 5 * 60 * 1000,
-  });
+      if (error) throw error;
+      setPosts(data || []);
+    } catch (error) {
+      console.error("Error fetching blog posts:", error);
+      toast.error("Failed to fetch blog posts");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPosts();
+  }, []);
 
   const handleDeletePost = async () => {
     if (!postToDelete) return;
@@ -42,7 +46,7 @@ export function BlogList() {
         
       if (error) throw error;
       
-      await refetch();
+      setPosts(prevPosts => prevPosts.filter(post => post.id !== postToDelete));
       toast.success("Post deleted successfully");
     } catch (error) {
       console.error("Error deleting post:", error);

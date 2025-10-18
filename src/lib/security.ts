@@ -49,38 +49,8 @@ export const blogPostSchema = z.object({
   tags: z.array(z.string().max(50)).max(10, 'Too many tags')
 });
 
-// Enhanced rate limiting with persistent tracking
-import { supabase } from '@/integrations/supabase/client';
-
-// Legacy in-memory rate limiting (fallback only)
+// Enhanced rate limiting with IP tracking
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
-
-// Persistent rate limiting using Supabase
-export const checkRateLimitPersistent = async (
-  identifier: string, 
-  maxRequests: number = 5, 
-  windowMinutes: number = 5
-): Promise<boolean> => {
-  try {
-    const { data, error } = await supabase.rpc('check_rate_limit_persistent', {
-      p_identifier: identifier,
-      p_max_requests: maxRequests,
-      p_window_minutes: windowMinutes
-    });
-
-    if (error) {
-      console.error('Rate limit check failed:', error);
-      // Fall back to in-memory rate limiting
-      return checkRateLimit(identifier, maxRequests, windowMinutes * 60000);
-    }
-
-    return data === true;
-  } catch (error) {
-    console.error('Rate limit error:', error);
-    // Fall back to in-memory rate limiting
-    return checkRateLimit(identifier, maxRequests, windowMinutes * 60000);
-  }
-};
 
 export const checkRateLimit = (identifier: string, maxRequests: number = 5, windowMs: number = 300000): boolean => {
   const now = Date.now();

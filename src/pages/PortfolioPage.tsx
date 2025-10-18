@@ -1,198 +1,270 @@
-import { useState, useMemo } from "react";
-import { Search, Star } from "lucide-react";
-import { useLanguage } from "@/contexts/LanguageContext";
-import { useMultilingualPortfolioProjects } from "@/hooks/useMultilingualData";
+
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
+import { Search } from "lucide-react";
 import { SectionHeader } from "@/components/ui/section-header";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import ProjectCard from "@/components/portfolio/project-card";
+import { AnimatedSection } from "@/components/ui/animated-section";
+import { ProjectSkeleton } from "@/components/ui/loading-skeletons";
+import { ResponsiveContainer } from "@/components/ui/responsive-container";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
+
+interface Project {
+  id: string;
+  title: string;
+  slug: string;
+  description: string;
+  images: string[];
+  category?: string;
+  tech_stack?: string[];
+  links?: {
+    title?: string;
+    url?: string;
+  }[];
+  featured: boolean;
+  created_at: string;
+}
 
 const PortfolioPage = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const { t } = useLanguage();
+  
+  const [categories, setCategories] = useState<string[]>([]);
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
+  const selectedCategory = searchParams.get("category") || "all";
+  const selectedTag = searchParams.get("tag") || "all";
+  const sortBy = searchParams.get("sort") || "featured";
+  const searchTerm = searchParams.get("search") || "";
+  
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  useEffect(() => {
+    fetchProjects();
+  }, [selectedCategory, selectedTag, sortBy, searchTerm]);
 
-  // States
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [selectedTech, setSelectedTech] = useState("all");
-  const [featuredFirst, setFeaturedFirst] = useState(true);
+  const fetchProjects = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      let query = supabase
+        .from("portfolio_projects")
+        .select("*");
 
-  // Fetch projects from Supabase
-  const { data: projects = [], isLoading, error } = useMultilingualPortfolioProjects();
+      // Apply category filter
+      if (selectedCategory !== "all") {
+        query = query.eq("category", selectedCategory);
+      }
 
-  // Extract unique categories & techs
-  const categories = useMemo(() => {
-    const set = new Set<string>();
-    projects.forEach((p) => p.category && set.add(p.category));
-    return Array.from(set);
-  }, [projects]);
+      // Apply tag filter
+      if (selectedTag !== "all") {
+        query = query.contains("tech_stack", [selectedTag]);
+      }
 
-  const technologies = useMemo(() => {
-    const set = new Set<string>();
-    projects.forEach((p) =>
-      p.tech_stack?.forEach((tech: string) => set.add(tech))
-    );
-    return Array.from(set);
-  }, [projects]);
+      // Apply search filter
+      if (searchTerm) {
+        query = query.or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`);
+      }
 
-  // Filter & sort
-  const filteredProjects = useMemo(() => {
-    let result = [...projects];
+      // Apply sorting
+      if (sortBy === "date") {
+        query = query.order("created_at", { ascending: false });
+      } else if (sortBy === "title") {
+        query = query.order("title", { ascending: true });
+      } else if (sortBy === "featured") {
+        query = query.order("featured", { ascending: false }).order("created_at", { ascending: false });
+      }
 
-    // Search
-    if (searchQuery) {
-      result = result.filter(
-        (p) =>
-          p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          p.description.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+      const { data, error } = await query;
+      
+      if (error) {
+        throw error;
+      }
+      
+      if (data) {
+        const processedProjects = data.map(project => ({
+          ...project,
+          links: Array.isArray(project.links) 
+            ? project.links 
+            : (typeof project.links === 'string' 
+                ? JSON.parse(project.links) 
+                : (project.links || []))
+        }));
+        
+        setProjects(processedProjects);
+        
+        // Extract unique categories and tags from all projects
+        const { data: allProjects } = await supabase
+          .from("portfolio_projects")
+          .select("category, tech_stack");
+        
+        if (allProjects) {
+          const allCategories: string[] = [];
+          const allTags: string[] = [];
+          
+          allProjects.forEach(project => {
+            if (project.category && !allCategories.includes(project.category)) {
+              allCategories.push(project.category);
+            }
+            if (project.tech_stack && Array.isArray(project.tech_stack)) {
+              project.tech_stack.forEach(tag => {
+                if (!allTags.includes(tag)) {
+                  allTags.push(tag);
+                }
+              });
+            }
+          });
+          
+          setCategories(allCategories);
+          setAvailableTags(allTags);
+        }
+      }
+    } catch (err) {
+      console.error("Error fetching projects:", err);
+      setError("Failed to load projects");
+      toast.error("Failed to load projects");
+    } finally {
+      setIsLoading(false);
     }
+  };
 
-    // Category filter
-    if (selectedCategory !== "all") {
-      result = result.filter((p) => p.category === selectedCategory);
-    }
-
-    // Tech filter
-    if (selectedTech !== "all") {
-      result = result.filter((p) =>
-        p.tech_stack?.includes(selectedTech)
-      );
-    }
-
-    // Featured first
-    if (featuredFirst) {
-      result.sort((a, b) => (b.featured === true ? 1 : 0) - (a.featured === true ? 1 : 0));
-    }
-
-    return result;
-  }, [projects, searchQuery, selectedCategory, selectedTech, featuredFirst]);
+  const updateSearchParams = (key: string, value: string) => {
+    setSearchParams(prev => {
+      const newParams = new URLSearchParams(prev);
+      if (value === "all" || value === "") {
+        newParams.delete(key);
+      } else {
+        newParams.set(key, value);
+      }
+      return newParams;
+    });
+  };
 
   return (
-    <section className="section">
-      <div className="container px-4 mx-auto">
-        {/* Header */}
+    <ResponsiveContainer className="py-16 md:py-24">
+      <AnimatedSection>
         <SectionHeader
-          title={t("portfolio.title")}
-          subtitle={t("portfolio.subtitle")}
+          title={t('portfolio.title') || "Portfolio"}
+          subtitle={t('portfolio.subtitle') || "A showcase of my work and projects"}
           centered
         />
-
-        {/* Filters */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-          {/* Search */}
-          <div className="relative w-full md:w-1/3">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+      </AnimatedSection>
+      
+      {/* Filters and Search */}
+      <AnimatedSection delay={0.2}>
+        <div className="mb-8 space-y-4 md:space-y-0 md:flex md:items-center md:gap-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              type="text"
-              placeholder={t("portfolio.searchPlaceholder")}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
+              placeholder="Search projects..."
+              value={searchTerm}
+              onChange={(e) => updateSearchParams("search", e.target.value)}
+              className="pl-10 max-w-sm"
             />
           </div>
-
-          {/* Category Filter */}
+          
           <div className="flex gap-2 flex-wrap">
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="border rounded-md px-3 py-2 text-sm bg-background"
-            >
-              <option value="all">{t("portfolio.allCategories")}</option>
-              {categories.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
-            </select>
+            <Select value={selectedCategory} onValueChange={(value) => updateSearchParams("category", value)}>
+              <SelectTrigger className="w-32">
+                <SelectValue placeholder="Category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                {categories.map((category) => (
+                  <SelectItem key={category} value={category}>{category}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-            {/* Tech Filter */}
-            <select
-              value={selectedTech}
-              onChange={(e) => setSelectedTech(e.target.value)}
-              className="border rounded-md px-3 py-2 text-sm bg-background"
-            >
-              <option value="all">{t("portfolio.allTech")}</option>
-              {technologies.map((tech) => (
-                <option key={tech} value={tech}>
-                  {tech}
-                </option>
-              ))}
-            </select>
+            <Select value={selectedTag} onValueChange={(value) => updateSearchParams("tag", value)}>
+              <SelectTrigger className="w-32">
+                <SelectValue placeholder="Tech" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Tech</SelectItem>
+                {availableTags.map((tag) => (
+                  <SelectItem key={tag} value={tag}>{tag}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-            {/* Featured First Toggle */}
-            <Button
-              type="button"
-              variant={featuredFirst ? "default" : "outline"}
-              onClick={() => setFeaturedFirst((prev) => !prev)}
-              className="flex items-center gap-1"
-            >
-              <Star className="h-4 w-4" />
-              {t("portfolio.featuredFirst")}
-            </Button>
+            <Select value={sortBy} onValueChange={(value) => updateSearchParams("sort", value)}>
+              <SelectTrigger className="w-32">
+                <SelectValue placeholder="Sort" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="featured">Featured First</SelectItem>
+                <SelectItem value="date">By Date</SelectItem>
+                <SelectItem value="title">By Title</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
-
-        {/* Loading State */}
-        {isLoading && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="bg-card rounded-lg overflow-hidden border shadow-sm">
-                <div className="aspect-video bg-muted animate-pulse" />
-                <div className="p-5 space-y-3">
-                  <div className="h-6 bg-muted animate-pulse rounded w-2/3" />
-                  <div className="h-4 bg-muted animate-pulse rounded w-1/2" />
-                  <div className="h-4 bg-muted animate-pulse rounded w-full" />
-                </div>
-              </div>
-            ))}
+      </AnimatedSection>
+      
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {[1, 2, 3, 4, 5, 6].map(i => (
+            <AnimatedSection key={i} delay={i * 0.1}>
+              <ProjectSkeleton />
+            </AnimatedSection>
+          ))}
+        </div>
+      ) : error ? (
+        <AnimatedSection>
+          <div className="text-center py-16">
+            <h3 className="text-xl font-medium mb-2">Error Loading Projects</h3>
+            <p className="text-muted-foreground mb-4">{error}</p>
+            <button 
+              onClick={fetchProjects}
+              className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90"
+            >
+              Try Again
+            </button>
           </div>
-        )}
-
-        {/* Error State */}
-        {error && (
-          <div className="text-center py-12 text-destructive">
-            <p>{t("common.error")}</p>
-            <Button onClick={() => window.location.reload()} variant="outline" className="mt-4">
-              {t("common.retry")}
-            </Button>
-          </div>
-        )}
-
-        {/* Projects Grid */}
-        {!isLoading && !error && filteredProjects.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredProjects.map((project) => (
-              <ProjectCard
-                key={project.id}
+        </AnimatedSection>
+      ) : projects.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {projects.map((project, index) => (
+            <AnimatedSection
+              key={project.id}
+              delay={index * 0.1}
+              className="h-full"
+            >
+              <ProjectCard 
                 project={{
-                  id: project.id,
-                  slug: project.slug,
+                  id: project.slug || project.id,
                   title: project.title,
                   description: project.description,
-                  coverImage: project.images?.[0] || "/placeholder.svg",
-                  category: project.category,
-                  tools: project.tech_stack,
-                  featured: project.featured,
+                  image: project.images && project.images.length > 0 
+                    ? project.images[0] 
+                    : "/placeholder.svg",
+                  tags: project.tech_stack || [],
+                  category: project.category || "Project"
                 }}
               />
-            ))}
-          </div>
-        )}
-
-        {/* Empty State */}
-        {!isLoading && !error && filteredProjects.length === 0 && (
+            </AnimatedSection>
+          ))}
+        </div>
+      ) : (
+        <AnimatedSection>
           <div className="text-center py-16">
-            <p className="text-muted-foreground mb-4">
-              {t("portfolio.noProjectsFound")}
-            </p>
-            <p className="text-sm text-muted-foreground">
-              {t("portfolio.checkBackMessage")}
+            <h3 className="text-xl font-medium mb-2">No Projects Found</h3>
+            <p className="text-muted-foreground">
+              {searchTerm || selectedCategory !== "all" || selectedTag !== "all" 
+                ? "Try adjusting your search criteria or filters." 
+                : "Check back soon for new projects."}
             </p>
           </div>
-        )}
-      </div>
-    </section>
+        </AnimatedSection>
+      )}
+    </ResponsiveContainer>
   );
 };
 

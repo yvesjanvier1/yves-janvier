@@ -1,18 +1,30 @@
 
 import { useState } from "react";
-import { Link, NavLink, useLocation, Outlet } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger } from "@/components/ui/sidebar";
 import { LayoutDashboard, FileText, Briefcase, MessageSquare, BarChart2, User, LogOut, MessageCircle, UserRound, BookOpen, TrendingUp, FolderOpen, Clock } from "lucide-react";
 import { useAuth } from "./AuthProvider";
-import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/ui/logo";
 
-const DashboardLayout = () => {
-  const { user, signOut } = useAuth();
-  const { t } = useLanguage();
+interface DashboardLayoutProps {
+  children: React.ReactNode;
+}
+
+const DashboardLayout = ({ children }: DashboardLayoutProps) => {
+  const { user, signOut, isAuthenticated } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const location = useLocation();
+
+  // Show loading or redirect if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <p className="ml-3">Checking authentication...</p>
+      </div>
+    );
+  }
 
   // Helper function to check if a route is active
   const isRouteActive = (path: string) => {
@@ -143,7 +155,7 @@ const DashboardLayout = () => {
                 </div>
                 <Button variant="outline" className="w-full" onClick={signOut}>
                   <LogOut className="w-4 h-4 mr-2" />
-                  {t('auth.signOut')}
+                  Sign Out
                 </Button>
               </div>
             )}
@@ -151,7 +163,7 @@ const DashboardLayout = () => {
         </Sidebar>
 
         <main className="flex-1 overflow-auto p-6">
-          <Outlet />
+          {children}
         </main>
       </div>
     </SidebarProvider>

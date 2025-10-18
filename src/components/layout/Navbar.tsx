@@ -1,212 +1,169 @@
+
 import { useState, useEffect } from "react";
-import { Link, NavLink, useLocation } from "react-router-dom";
-import { Menu, X } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useLocation } from "react-router-dom";
+import { Menu, X, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
+import { LanguageToggle } from "@/components/ui/language-toggle";
 import { Logo } from "@/components/ui/logo";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useResponsive } from "@/hooks/useResponsive";
 import { ResponsiveContainer } from "@/components/ui/responsive-container";
-import { toast } from "@/hooks/use-toast";
 import {
   NavigationMenu,
   NavigationMenuContent,
   NavigationMenuItem,
+  NavigationMenuLink,
   NavigationMenuList,
   NavigationMenuTrigger,
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
 
-// Type for individual navigation item
-interface NavItemProps {
-  item: {
-    path: string;
-    nameKey: string;
-    descriptionKey?: string;
-    comingSoon?: boolean;
-  };
-  closeMenu: () => void;
-  isActiveItem: (path: string) => boolean;
-  t: (key: string) => string;
-  isMobile?: boolean;
-}
-
-const NavItem = ({ item, closeMenu, isActiveItem, t, isMobile = false }: NavItemProps) => {
-  const hasDescription = !!item.descriptionKey;
-
-  if (item.comingSoon) {
-    return (
-      <button
-        onClick={() =>
-          toast({
-            title: t("common.comingSoon"),
-            description: t("common.comingSoonDescription"),
-          })
-        }
-        className={cn(
-          "block w-full text-left p-3 rounded-md transition-colors hover:bg-muted/50 cursor-pointer text-foreground/60 hover:text-foreground/80",
-          isMobile ? "px-6 py-3 min-h-[48px]" : ""
-        )}
-      >
-        <div className="font-medium">
-          {t(item.nameKey)}{" "}
-          <span className="text-xs text-muted-foreground">({t("common.comingSoon")})</span>
-        </div>
-        {hasDescription && (
-          <div className="text-sm text-muted-foreground">{t(item.descriptionKey!)}</div>
-        )}
-      </button>
-    );
-  }
-
-  return isMobile ? (
-    <NavLink
-      to={item.path}
-      onClick={closeMenu}
-      className={({ isActive }) =>
-        cn(
-          "block px-6 py-3 rounded-lg text-base transition-colors min-h-[48px]",
-          isActive
-            ? "text-primary font-medium bg-primary/10"
-            : "text-foreground/80 hover:text-foreground hover:bg-muted/50"
-        )
-      }
-    >
-      <div className="font-medium">{t(item.nameKey)}</div>
-      {hasDescription && <div className="text-sm text-muted-foreground">{t(item.descriptionKey!)}</div>}
-    </NavLink>
-  ) : (
-    <Link
-      to={item.path}
-      className={cn(
-        "block p-3 rounded-md transition-colors hover:bg-muted/50",
-        isActiveItem(item.path)
-          ? "text-primary font-medium bg-primary/10"
-          : "text-foreground/80 hover:text-foreground"
-      )}
-    >
-      <div className="font-medium">{t(item.nameKey)}</div>
-      {hasDescription && <div className="text-sm text-muted-foreground">{t(item.descriptionKey!)}</div>}
-    </Link>
-  );
-};
-
-interface NavigationSection {
-  key: string;
-  titleKey: string;
-  items: NavItemProps["item"][];
-}
-
-interface NavbarProps {
-  translations?: Record<string, any>;
-}
-
-const Navbar = ({ translations }: NavbarProps) => {
+const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   const { t } = useLanguage();
   const { isMobile } = useResponsive();
 
-  // Define navigation sections
-  const navigationSections: NavigationSection[] = [
-    {
-      key: "work",
-      titleKey: "nav.work",
+  const navigationItems = {
+    work: {
+      title: "Work",
       items: [
-        { path: "/portfolio", nameKey: "nav.portfolio" },
-        { path: "/projects", nameKey: "nav.projects", comingSoon: true },
-      ],
+        { name: "Portfolio", path: "/work", description: "View my complete portfolio" },
+        { name: "Projects", path: "/work/projects", description: "Featured projects and case studies" },
+      ]
     },
-    {
-      key: "content",
-      titleKey: "nav.content",
+    content: {
+      title: "Content",
       items: [
-        { path: "/blog", nameKey: "nav.blog" },
-        { path: "/journal", nameKey: "nav.journal" },
-        { path: "/now", nameKey: "nav.now" },
-      ],
+        { name: t('nav.blog'), path: "/content/blog", description: "Latest articles and insights" },
+        { name: "Journal", path: "/content/journal", description: "Project updates and activities" },
+        { name: "Now", path: "/content/now", description: "What I'm currently working on" },
+      ]
     },
-    {
-      key: "resources",
-      titleKey: "nav.resources",
+    resources: {
+      title: "Resources",
       items: [
-        { path: "/resources/tools", nameKey: "nav.tools" },
-        { path: "/resources/guides", nameKey: "nav.guides" },
-        { path: "/resources/downloads", nameKey: "nav.downloads" },
-      ],
+        { name: "Tools", path: "/resources?category=tools", description: "Useful development tools" },
+        { name: "Guides", path: "/resources?category=guides", description: "Technical guides and tutorials" },
+        { name: "Downloads", path: "/resources", description: "Free resources and downloads" },
+      ]
     },
-    {
-      key: "about",
-      titleKey: "nav.about",
+    about: {
+      title: "About",
       items: [
-        { path: "/about", nameKey: "nav.about" },
-        { path: "/contact", nameKey: "nav.contact" },
-      ],
-    },
-  ];
-
-  const toggleMenu = () => setIsOpen(!isOpen);
-  const closeMenu = () => setIsOpen(false);
-
-  useEffect(() => {
-    closeMenu();
-  }, [location.pathname]);
-
-  const isActiveItem = (itemPath: string) => {
-    return location.pathname === itemPath || location.pathname.startsWith(itemPath + "/");
+        { name: t('nav.about'), path: "/about", description: "Learn more about me" },
+        { name: "Resume", path: "/about#resume", description: "Professional experience" },
+        { name: t('nav.contact'), path: "/contact", description: "Get in touch" },
+      ]
+    }
   };
 
-  const isActiveSection = (section: NavigationSection) => {
-    return section.items.some((item) => isActiveItem(item.path));
+  const toggleMenu = () => {
+    setIsOpen(!isOpen);
+  };
+
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setIsOpen(false);
+  }, [location.pathname]);
+
+  // Close mobile menu on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (isOpen && !target.closest('#navigation')) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('click', handleClickOutside);
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
+
+  const isActiveSection = (sectionPath: string) => {
+    return location.pathname.startsWith(sectionPath);
+  };
+
+  const isActiveItem = (itemPath: string) => {
+    if (itemPath.includes('#')) {
+      return location.pathname === itemPath.split('#')[0] && location.hash === '#' + itemPath.split('#')[1];
+    }
+    return location.pathname === itemPath || location.pathname.startsWith(itemPath + '/');
   };
 
   return (
-    <nav id="navigation" className="sticky top-0 z-50 w-full glass border-b border-primary/10">
+    <nav 
+      id="navigation" 
+      className="sticky top-0 z-50 w-full glass border-b border-primary/10" 
+      role="navigation" 
+      aria-label="Main navigation"
+    >
       <ResponsiveContainer padding="sm">
         <div className="flex h-16 items-center justify-between">
           <Logo />
 
-          {/* Desktop Menu */}
+          {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-2">
-            <NavLink
+            <Link
               to="/"
-              className={({ isActive }) =>
-                cn(
-                  navigationMenuTriggerStyle(),
-                  "text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
-                  isActive ? "text-primary font-semibold bg-primary/10" : "text-foreground/80 hover:text-foreground hover:bg-muted/50"
-                )
-              }
+              className={cn(
+                navigationMenuTriggerStyle(),
+                "text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+                location.pathname === "/" 
+                  ? "text-primary font-semibold bg-primary/10" 
+                  : "text-foreground/80 hover:text-foreground hover:bg-muted/50"
+              )}
             >
-              {t("home")}
-            </NavLink>
+              Home
+            </Link>
 
             <NavigationMenu>
               <NavigationMenuList>
-                {navigationSections.map((section) => (
-                  <NavigationMenuItem key={section.key}>
-                    <NavigationMenuTrigger
-                      className={cn(isActiveSection(section) ? "text-primary font-semibold bg-primary/10" : "text-foreground/80")}
+                {Object.entries(navigationItems).map(([key, section]) => (
+                  <NavigationMenuItem key={key}>
+                    <NavigationMenuTrigger 
+                      className={cn(
+                        isActiveSection(`/${key === 'work' ? 'work' : key === 'content' ? 'content' : key}`) 
+                          ? "text-primary font-semibold bg-primary/10" 
+                          : "text-foreground/80"
+                      )}
                     >
-                      {t(section.titleKey)}
+                      {section.title}
                     </NavigationMenuTrigger>
                     <NavigationMenuContent>
-                      <div
-                        className={cn(
-                          "p-4 bg-background/95 backdrop-blur-md border border-border/50 rounded-lg shadow-lg z-50",
-                          section.items.length > 3 ? "grid grid-cols-2 gap-4 w-96" : "w-64"
-                        )}
-                      >
-                        {section.items.map((item) => (
-                          <NavItem
-                            key={item.path}
-                            item={item}
-                            closeMenu={closeMenu}
-                            isActiveItem={isActiveItem}
-                            t={t}
-                          />
-                        ))}
+                      <div className="w-64 p-4 bg-background/95 backdrop-blur-md border border-border/50 rounded-lg shadow-lg">
+                        <ul className="space-y-2">
+                          {section.items.map((item) => (
+                            <li key={item.path}>
+                              <NavigationMenuLink asChild>
+                                <Link
+                                  to={item.path}
+                                  className={cn(
+                                    "block p-3 rounded-md transition-colors hover:bg-muted/50",
+                                    isActiveItem(item.path) 
+                                      ? "text-primary font-medium bg-primary/10" 
+                                      : "text-foreground/80 hover:text-foreground"
+                                  )}
+                                >
+                                  <div className="font-medium">{item.name}</div>
+                                  <div className="text-sm text-muted-foreground">{item.description}</div>
+                                </Link>
+                              </NavigationMenuLink>
+                            </li>
+                          ))}
+                        </ul>
                       </div>
                     </NavigationMenuContent>
                   </NavigationMenuItem>
@@ -215,12 +172,14 @@ const Navbar = ({ translations }: NavbarProps) => {
             </NavigationMenu>
 
             <div className="flex items-center space-x-2 ml-4">
+              <LanguageToggle />
               <ThemeToggle />
             </div>
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile/Tablet Navigation Controls */}
           <div className="flex items-center space-x-2 lg:hidden">
+            <LanguageToggle />
             <ThemeToggle />
             <Button
               variant="ghost"
@@ -237,42 +196,50 @@ const Navbar = ({ translations }: NavbarProps) => {
         </div>
       </ResponsiveContainer>
 
-      {/* Mobile Menu */}
+      {/* Mobile/Tablet Menu Overlay */}
       {isOpen && (
         <>
           <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 lg:hidden" />
-          <div
+          <div 
             id="mobile-menu"
             className="fixed inset-x-0 top-16 bg-background/95 backdrop-blur-md border-b border-border shadow-lg z-50 lg:hidden animate-slide-in"
+            role="menu"
+            aria-label="Mobile navigation menu"
           >
             <div className="px-4 py-6 space-y-4 max-h-[calc(100vh-4rem)] overflow-y-auto">
-              <NavLink
+              <Link
                 to="/"
-                onClick={closeMenu}
-                className={({ isActive }) =>
-                  cn(
-                    "block px-4 py-3 rounded-lg text-base font-medium transition-colors min-h-[48px] flex items-center",
-                    isActive ? "text-primary font-semibold bg-primary/10" : "text-foreground/80 hover:text-foreground hover:bg-muted/50"
-                  )
-                }
+                className={cn(
+                  "block px-4 py-3 rounded-lg text-base font-medium transition-colors",
+                  location.pathname === "/"
+                    ? "text-primary font-semibold bg-primary/10"
+                    : "text-foreground/80 hover:text-foreground hover:bg-muted/50"
+                )}
+                onClick={() => setIsOpen(false)}
               >
-                {t("home")}
-              </NavLink>
+                Home
+              </Link>
 
-              {navigationSections.map((section) => (
-                <div key={section.key} className="space-y-2">
+              {Object.entries(navigationItems).map(([key, section]) => (
+                <div key={key} className="space-y-2">
                   <div className="px-4 py-2 text-sm font-medium text-muted-foreground uppercase tracking-wider">
-                    {t(section.titleKey)}
+                    {section.title}
                   </div>
                   {section.items.map((item) => (
-                    <NavItem
+                    <Link
                       key={item.path}
-                      item={item}
-                      closeMenu={closeMenu}
-                      isActiveItem={isActiveItem}
-                      t={t}
-                      isMobile
-                    />
+                      to={item.path}
+                      className={cn(
+                        "block px-6 py-3 rounded-lg text-base transition-colors",
+                        isActiveItem(item.path)
+                          ? "text-primary font-medium bg-primary/10"
+                          : "text-foreground/80 hover:text-foreground hover:bg-muted/50"
+                      )}
+                      onClick={() => setIsOpen(false)}
+                    >
+                      <div className="font-medium">{item.name}</div>
+                      <div className="text-sm text-muted-foreground">{item.description}</div>
+                    </Link>
                   ))}
                 </div>
               ))}

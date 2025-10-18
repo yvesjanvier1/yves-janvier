@@ -1,14 +1,27 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Search } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ResourcesList } from "@/components/dashboard/resources/ResourcesList";
-import { useDashboardResources } from "@/hooks/useMultilingualData";
 
 export default function ResourcesManagePage() {
   const [searchQuery, setSearchQuery] = useState("");
-  const { data: resources, isLoading, refetch } = useDashboardResources();
+
+  const { data: resources, isLoading, refetch } = useQuery({
+    queryKey: ["dashboard-resources"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("resources")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const filteredResources = resources?.filter(resource =>
     resource.title.toLowerCase().includes(searchQuery.toLowerCase()) ||

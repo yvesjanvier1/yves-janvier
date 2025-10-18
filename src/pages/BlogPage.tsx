@@ -1,16 +1,31 @@
 
+import { useState, useEffect } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { Search } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { SectionHeader } from "@/components/ui/section-header";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import BlogCard from "@/components/blog/blog-card";
 import { PaginationEnhanced } from "@/components/ui/pagination-enhanced";
 import { BlogPostSkeleton } from "@/components/ui/loading-skeletons";
+import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { ResponsiveContainer } from "@/components/ui/responsive-container";
 import { AnimatedSection } from "@/components/ui/animated-section";
-import { useMultilingualBlogPosts } from "@/hooks/useMultilingualData";
+
+interface BlogPost {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  cover_image: string;
+  tags: string[];
+  created_at: string;
+  author_id?: string;
+  published: boolean;
+}
 
 const POSTS_PER_PAGE = 6;
 
@@ -24,20 +39,97 @@ const BlogPage = () => {
   const sortBy = searchParams.get("sort") || "date";
   const searchTerm = searchParams.get("search") || "";
   
-  const filters = {
-    ...(selectedTag !== "all" && { tags: [selectedTag] }),
-    ...(searchTerm && { search: searchTerm })
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [totalPages, setTotalPages] = useState(1);
+  
+  useEffect(() => {
+    fetchPosts();
+  }, [currentPage, selectedTag, sortBy, searchTerm, language]);
+
+  const fetchPosts = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      let query = supabase
+        .from("blog_posts")
+        .select("*", { count: 'exact' })
+        .eq("published", true);
+
+      // Apply tag filter
+      if (selectedTag !== "all") {
+        query = query.contains("tags", [selectedTag]);
+      }
+
+      // Apply search filter
+      if (searchTerm) {
+        query = query.or(`title.ilike.%${searchTerm}%,excerpt.ilike.%${searchTerm}%,content.ilike.%${searchTerm}%`);
+      }
+
+      // Apply sorting
+      if (sortBy === "date") {
+        query = query.order("created_at", { ascending: false });
+      } else if (sortBy === "title") {
+        query = query.order("title", { ascending: true });
+      } else if (sortBy === "updated") {
+        query = query.order("updated_at", { ascending: false });
+      }
+
+      // Get total count first
+      const { count } = await query;
+      const totalCount = count || 0;
+      setTotalPages(Math.ceil(totalCount / POSTS_PER_PAGE));
+
+      // Apply pagination
+      const offset = (currentPage - 1) * POSTS_PER_PAGE;
+      const { data, error } = await query
+        .range(offset, offset + POSTS_PER_PAGE - 1);
+
+      if (error) {
+        throw error;
+      }
+      
+      if (data && data.length > 0) {
+        const validPosts = data.filter(post => 
+          post.title && post.slug && post.content
+        );
+        
+        setBlogPosts(validPosts);
+        
+        // Extract unique tags from all posts
+        const { data: allPosts } = await supabase
+          .from("blog_posts")
+          .select("tags")
+          .eq("published", true);
+        
+        if (allPosts) {
+          const allTags: string[] = [];
+          allPosts.forEach(post => {
+            if (post.tags && Array.isArray(post.tags)) {
+              post.tags.forEach(tag => {
+                if (!allTags.includes(tag)) {
+                  allTags.push(tag);
+                }
+              });
+            }
+          });
+          
+          setAvailableTags(allTags);
+        }
+      } else {
+        setBlogPosts([]);
+      }
+    } catch (err) {
+      console.error("Error fetching blog posts:", err);
+      setError(t('blog.noPostsMessage'));
+      toast.error(t('blog.noPostsMessage'));
+    } finally {
+      setIsLoading(false);
+    }
   };
-
-  const { data: allPosts = [], isLoading, error } = useMultilingualBlogPosts(filters);
-
-  // Client-side pagination and filtering
-  const totalPages = Math.ceil(allPosts.length / POSTS_PER_PAGE);
-  const startIndex = (currentPage - 1) * POSTS_PER_PAGE;
-  const blogPosts = allPosts.slice(startIndex, startIndex + POSTS_PER_PAGE);
-
-  // Extract available tags from posts
-  const availableTags = Array.from(new Set(allPosts.flatMap(post => post.tags || [])));
 
   const updateSearchParams = (key: string, value: string) => {
     setSearchParams(prev => {
@@ -89,12 +181,12 @@ const BlogPage = () => {
 
             <Select value={sortBy} onValueChange={(value) => updateSearchParams("sort", value)}>
               <SelectTrigger className="w-32">
-                <SelectValue placeholder={t('common.sort')} />
+                <SelectValue placeholder="Sort" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="date">{t('portfolio.byDate')}</SelectItem>
-                <SelectItem value="title">{t('portfolio.byTitle')}</SelectItem>
-                <SelectItem value="updated">{t('common.updated')}</SelectItem>
+                <SelectItem value="date">By Date</SelectItem>
+                <SelectItem value="title">By Title</SelectItem>
+                <SelectItem value="updated">By Updated</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -113,9 +205,9 @@ const BlogPage = () => {
         <AnimatedSection>
           <div className="text-center py-16">
             <h3 className="text-xl font-medium mb-2">{t('common.error')}</h3>
-            <p className="text-muted-foreground mb-4">{t('blog.noPostsMessage')}</p>
+            <p className="text-muted-foreground mb-4">{error}</p>
             <button 
-              onClick={() => window.location.reload()}
+              onClick={fetchPosts}
               className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90"
             >
               {t('common.retry')}
@@ -129,8 +221,7 @@ const BlogPage = () => {
               <AnimatedSection key={post.id} delay={index * 0.1}>
                 <BlogCard 
                   post={{
-                    id: post.id,
-                    slug: post.slug || post.id,
+                    id: post.slug || post.id,
                     title: post.title,
                     excerpt: post.excerpt || post.content.substring(0, 150) + "...",
                     content: post.content,
@@ -141,7 +232,7 @@ const BlogPage = () => {
                       name: "Yves Janvier",
                       avatar: "/placeholder.svg"
                     }
-                  }}
+                  }} 
                 />
               </AnimatedSection>
             ))}
@@ -165,7 +256,7 @@ const BlogPage = () => {
             <p className="text-muted-foreground">
               {searchTerm || selectedTag !== "all" 
                 ? t('blog.noPostsMessage')
-                : t('blog.noPostsMessage')}
+                : "Check back soon for new content."}
             </p>
           </div>
         </AnimatedSection>

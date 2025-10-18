@@ -1,6 +1,5 @@
 
 import { Link } from "react-router-dom";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ProjectLink {
   title: string;
@@ -9,16 +8,15 @@ interface ProjectLink {
 
 export interface Project {
   id: string;
-  slug: string;
   title: string;
   summary?: string;
   description: string;
   coverImage?: string;
-  image?: string;
+  image?: string; // Added for compatibility with PortfolioPage
   categories?: string[];
   tools?: string[];
-  tags?: string[];
-  category?: string;
+  tags?: string[]; // Added for compatibility with PortfolioPage
+  category?: string; // Added for compatibility with PortfolioPage
   featured?: boolean;
   date?: string;
   links?: ProjectLink[];
@@ -29,8 +27,6 @@ interface ProjectCardProps {
 }
 
 const ProjectCard = ({ project }: ProjectCardProps) => {
-  const { t, language } = useLanguage();
-  
   // Extract categories from either project.categories array or single project.category
   const categories = project.categories || (project.category ? [project.category] : []);
   
@@ -53,10 +49,10 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
         />
         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
           <Link 
-            to={`/portfolio/${project.slug}`}
+            to={`/portfolio/${project.id}`}
             className="bg-primary text-primary-foreground px-4 py-2 rounded-md font-medium"
           >
-            {t('portfolio.viewProject')}
+            View Project
           </Link>
         </div>
       </div>
@@ -74,10 +70,10 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
         <h3 className="font-semibold text-xl mb-2">{project.title}</h3>
         <p className="text-muted-foreground flex-grow mb-4">{summary}</p>
         <Link 
-          to={`/portfolio/${project.slug}`}
+          to={`/portfolio/${project.id}`}
           className="text-primary font-medium hover:underline"
         >
-          {t('portfolio.viewCaseStudy')}
+          View Case Study
         </Link>
       </div>
     </div>

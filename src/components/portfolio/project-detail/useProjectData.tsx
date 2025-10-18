@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { secureLog } from "@/lib/security";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ProjectLink {
   title: string;
@@ -19,43 +18,26 @@ interface ProjectDetails {
   created_at: string;
   images?: string[];
   links?: ProjectLink[];
-  locale?: string;
 }
 
 export const useProjectData = (id: string | undefined) => {
-  const { language, t } = useLanguage();
   const [project, setProject] = useState<ProjectDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProject = async () => {
-      if (!id) {
-        setIsLoading(false);
-        return;
-      }
+      if (!id) return;
       
       try {
         setIsLoading(true);
         setError(null);
         
-        // Set locale before querying
-        try {
-          await supabase.rpc('set_current_locale', { _locale: language });
-        } catch (localeError) {
-          secureLog.warn('Failed to set locale', localeError);
-        }
-        
-        // Normalize slug for consistent querying
-        const normalizedId = decodeURIComponent(id.trim());
-        
-        // First try to fetch by slug with language preference
+        // First try to fetch by slug
         let { data, error } = await supabase
           .from("portfolio_projects")
           .select("*")
-          .eq("slug", normalizedId)
-          .or(`locale.eq.${language},locale.is.null`)
-          .order('locale', { ascending: false }) // Prefer current language
+          .eq("slug", id)
           .maybeSingle();
 
         if (!data && !error) {
@@ -63,9 +45,7 @@ export const useProjectData = (id: string | undefined) => {
           ({ data, error } = await supabase
             .from("portfolio_projects")
             .select("*")
-            .eq("id", normalizedId)
-            .or(`locale.eq.${language},locale.is.null`)
-            .order('locale', { ascending: false })
+            .eq("id", id)
             .maybeSingle());
         }
         
@@ -107,33 +87,12 @@ export const useProjectData = (id: string | undefined) => {
           });
           secureLog.info('Project loaded successfully');
         } else {
-          // Retry once after a short delay in case of timing issues
-          setTimeout(async () => {
-            try {
-              const { data: retryData, error: retryError } = await supabase
-                .from("portfolio_projects")
-                .select("*")
-                .eq("slug", normalizedId)
-                .or(`locale.eq.${language},locale.is.null`)
-                .maybeSingle();
-                
-              if (retryData) {
-                setProject({
-                  ...retryData,
-                  links: []
-                });
-                secureLog.info('Project loaded on retry');
-              } else {
-                setError(t('portfolio.noProjectsFound'));
-              }
-            } catch (retryErr) {
-              setError(t('portfolio.noProjectsFound'));
-              secureLog.error('Project retry failed', retryErr);
-            }
-          }, 500);
+          setError("Project not found");
+          toast.error("Project not found");
         }
       } catch (err) {
-        setError(t('common.error'));
+        setError("Failed to load project details");
+        toast.error("Failed to load project details");
         secureLog.error('Project fetch error', err);
       } finally {
         setIsLoading(false);
@@ -141,7 +100,7 @@ export const useProjectData = (id: string | undefined) => {
     };
     
     fetchProject();
-  }, [id, language, t]);
+  }, [id]);
 
   return { project, isLoading, error };
 };
