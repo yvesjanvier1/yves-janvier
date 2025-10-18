@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@4.0.0";
 import { renderAsync } from "npm:@react-email/components@0.0.22";
 import React from "npm:react@18.3.1";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.4';
 import { SubscriptionConfirmationEmail } from "./_templates/subscription-confirmation.tsx";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
@@ -18,7 +19,11 @@ interface ConfirmationEmailRequest {
 
 // Generate cryptographically secure HMAC-signed token
 async function generateSecureToken(email: string): Promise<string> {
-  const secret = Deno.env.get("JWT_SECRET") || "fallback-secret-key";
+  const secret = Deno.env.get("JWT_SECRET");
+  if (!secret) {
+    console.error('CRITICAL: JWT_SECRET not configured');
+    throw new Error('Server configuration error');
+  }
   const payload = {
     email,
     iat: Math.floor(Date.now() / 1000),
@@ -53,6 +58,41 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // IP-based rate limiting
+    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0].trim() || 
+                     req.headers.get('x-real-ip') || 
+                     'unknown';
+    
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Check rate limit: 3 confirmation emails per hour per IP
+    const { data: canProceed, error: rateLimitError } = await supabase
+      .rpc('check_rate_limit_persistent', {
+        p_identifier: `email_confirm_${clientIp}`,
+        p_max_requests: 3,
+        p_window_minutes: 60
+      });
+
+    if (rateLimitError) {
+      console.error('Rate limit check error:', rateLimitError);
+    }
+
+    if (canProceed === false) {
+      console.log('⚠️ Rate limit exceeded for IP:', clientIp);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Too many requests. Please try again later.',
+          message: 'Rate limit exceeded'
+        }),
+        {
+          status: 429,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
     const { email, confirmationToken }: ConfirmationEmailRequest = await req.json();
     
     console.log('🚀 Generating secure token for newsletter confirmation:', email);

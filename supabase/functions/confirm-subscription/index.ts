@@ -13,7 +13,11 @@ const corsHeaders = {
 // Verify HMAC-signed JWT token
 async function verifySecureToken(token: string, email: string): Promise<boolean> {
   try {
-    const secret = Deno.env.get("JWT_SECRET") || "fallback-secret-key";
+    const secret = Deno.env.get("JWT_SECRET");
+    if (!secret) {
+      console.error('CRITICAL: JWT_SECRET not configured');
+      return false;
+    }
     const [header, payload, signature] = token.split('.');
     
     if (!header || !payload || !signature) {

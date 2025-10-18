@@ -24,6 +24,21 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // Verify service role authentication for database triggers
+    const authHeader = req.headers.get('authorization');
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    
+    if (!authHeader || !authHeader.includes(serviceRoleKey || '')) {
+      console.error('❌ Unauthorized call to notify-new-project');
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
     const { title, slug, description, images, tech_stack }: ProjectNotification = await req.json();
     
     console.log('Sending project notification for:', title);

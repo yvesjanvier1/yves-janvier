@@ -23,6 +23,21 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // Verify service role authentication for database triggers
+    const authHeader = req.headers.get('authorization');
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    
+    if (!authHeader || !authHeader.includes(serviceRoleKey || '')) {
+      console.error('❌ Unauthorized call to notify-new-blog-post');
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
     const { title, slug, excerpt, cover_image }: BlogPostNotification = await req.json();
     
     console.log('Sending blog post notification for:', title);

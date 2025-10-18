@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { useNewsletter } from '@/hooks/useNewsletter';
+import { HoneypotField } from '@/components/security/HoneypotField';
+import { validateHoneypot } from '@/lib/security';
 import { Mail, CheckCircle2, Loader2 } from 'lucide-react';
 
 interface NewsletterSubscriptionProps {
@@ -26,6 +28,7 @@ export const NewsletterSubscription = ({
   className = '' 
 }: NewsletterSubscriptionProps) => {
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [honeypot, setHoneypot] = useState('');
   const { subscribe, isLoading } = useNewsletter();
   
   const { register, handleSubmit, formState: { errors }, watch, setValue } = useForm<FormData>({
@@ -41,6 +44,12 @@ export const NewsletterSubscription = ({
   const preferences = watch('preferences');
 
   const onSubmit = async (data: FormData) => {
+    // Bot check - silently fail if honeypot is filled
+    if (!validateHoneypot(honeypot)) {
+      console.log('Bot detected via honeypot');
+      return;
+    }
+
     const success = await subscribe(data.email, data.preferences);
     if (success) {
       setIsSubscribed(true);
@@ -87,6 +96,13 @@ export const NewsletterSubscription = ({
       )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        {/* Honeypot field for bot protection */}
+        <HoneypotField 
+          name="website" 
+          value={honeypot} 
+          onChange={setHoneypot}
+        />
+        
         <div className={`${isFooterVariant ? 'flex flex-col sm:flex-row sm:space-x-2 sm:space-y-0 space-y-2' : ''}`}>
           <div className={`${isFooterVariant ? 'flex-1' : 'w-full'}`}>
             <Input
