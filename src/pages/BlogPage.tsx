@@ -54,8 +54,12 @@ const BlogPage = () => {
       setIsLoading(true);
       setError(null);
       
-      // Set current locale for RLS
-      await (supabase.rpc as any)('set_current_locale', { _locale: language });
+      // Set current locale for RLS - critical for data visibility
+      try {
+        await (supabase.rpc as any)('set_current_locale', { _locale: language });
+      } catch (error) {
+        console.error('Failed to set locale:', error);
+      }
       
       let query = supabase
         .from("blog_posts")

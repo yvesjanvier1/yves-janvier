@@ -54,17 +54,18 @@ const PortfolioPage = () => {
       setIsLoading(true);
       setError(null);
       
-      // Set current locale for RLS
-      await (supabase.rpc as any)('set_current_locale', { _locale: language });
+      // Set current locale for RLS - critical for data visibility
+      try {
+        await (supabase.rpc as any)('set_current_locale', { _locale: language });
+      } catch (error) {
+        console.error('Failed to set locale:', error);
+      }
       
       let query = supabase
         .from("portfolio_projects")
         .select("*");
 
-      // Apply locale filter if locale column exists (fallback to all if not)
-      if (language) {
-        query = query.or(`locale.eq.${language},locale.is.null`);
-      }
+      // Note: Locale filtering is now handled entirely by RLS policies
 
       // Apply category filter
       if (selectedCategory !== "all") {
