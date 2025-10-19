@@ -46,6 +46,10 @@ export const useFeaturedProjects = () => {
         setIsLoading(true);
         setError(null);
 
+        // Set current locale for RLS
+        const lang = localStorage.getItem('language') || 'fr';
+        await (supabase.rpc as any)('set_current_locale', { _locale: lang });
+
         const { data, error } = await supabase
           .from("portfolio_projects")
           .select("*")

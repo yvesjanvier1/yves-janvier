@@ -23,6 +23,9 @@ export const useMultilingualData = <T,>({
   return useQuery({
     queryKey: [table, language, filters, orderBy, select],
     queryFn: async () => {
+      // Set current locale for RLS
+      await (supabase.rpc as any)('set_current_locale', { _locale: language });
+      
       // Create the query with type assertion to handle dynamic table names
       let query = (supabase as any).from(table).select(select);
 

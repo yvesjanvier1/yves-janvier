@@ -54,6 +54,9 @@ const BlogPage = () => {
       setIsLoading(true);
       setError(null);
       
+      // Set current locale for RLS
+      await (supabase.rpc as any)('set_current_locale', { _locale: language });
+      
       let query = supabase
         .from("blog_posts")
         .select("*", { count: 'exact' })
