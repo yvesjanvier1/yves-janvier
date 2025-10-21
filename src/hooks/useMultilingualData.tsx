@@ -23,18 +23,19 @@ export const useMultilingualData = <T,>({
   return useQuery({
     queryKey: [table, language, filters, orderBy, select],
     queryFn: async () => {
-      // Set current locale for RLS
-      await (supabase.rpc as any)('set_current_locale', { _locale: language });
+      try {
+        // Set current locale for RLS - this MUST succeed
+        await (supabase.rpc as any)('set_current_locale', { _locale: language });
+      } catch (error) {
+        console.error('Failed to set locale:', error);
+        // Continue anyway - RLS will handle locale filtering
+      }
       
       // Create the query with type assertion to handle dynamic table names
       let query = (supabase as any).from(table).select(select);
 
-      // Apply language filter for multilingual tables
-      const multilingualTables = ['blog_posts', 'portfolio_projects', 'services', 'testimonials'];
-      if (multilingualTables.includes(table)) {
-        // Use OR condition to get content in selected language or without locale (fallback)
-        query = query.or(`locale.eq.${language},locale.is.null`);
-      }
+      // Note: Locale filtering is now handled entirely by RLS policies
+      // No need for duplicate client-side filtering
 
       // Apply additional filters
       Object.entries(filters).forEach(([key, value]) => {

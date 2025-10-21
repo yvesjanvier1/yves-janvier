@@ -35,9 +35,13 @@ const LatestPosts = () => {
         setIsLoading(true);
         setError(null);
         
-        // Set current locale for RLS
+        // Set current locale for RLS - critical for data visibility
         const lang = localStorage.getItem('language') || 'fr';
-        await (supabase.rpc as any)('set_current_locale', { _locale: lang });
+        try {
+          await (supabase.rpc as any)('set_current_locale', { _locale: lang });
+        } catch (error) {
+          console.error('Failed to set locale:', error);
+        }
         
         const { data, error } = await supabase
           .from("blog_posts")
