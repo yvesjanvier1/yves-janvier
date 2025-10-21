@@ -54,58 +54,76 @@ const BlogPage = () => {
       setIsLoading(true);
       setError(null);
       
-      // Use atomic RPC function - sets locale and queries in same transaction
-      const { data, error } = await (supabase.rpc as any)('set_locale_and_get_blog_posts', {
-        _locale: language,
-        _limit: 1000, // Get all for filtering
-        _offset: 0,
-        _tag: selectedTag !== "all" ? selectedTag : null,
-        _search: searchTerm || null
-      });
+      // Set current locale for RLS
+      await (supabase.rpc as any)('set_current_locale', { _locale: language });
+      
+      let query = supabase
+        .from("blog_posts")
+        .select("*", { count: 'exact' })
+        .eq("published", true);
+
+      // Apply tag filter
+      if (selectedTag !== "all") {
+        query = query.contains("tags", [selectedTag]);
+      }
+
+      // Apply search filter
+      if (searchTerm) {
+        query = query.or(`title.ilike.%${searchTerm}%,excerpt.ilike.%${searchTerm}%,content.ilike.%${searchTerm}%`);
+      }
+
+      // Apply sorting
+      if (sortBy === "date") {
+        query = query.order("created_at", { ascending: false });
+      } else if (sortBy === "title") {
+        query = query.order("title", { ascending: true });
+      } else if (sortBy === "updated") {
+        query = query.order("updated_at", { ascending: false });
+      }
+
+      // Get total count first
+      const { count } = await query;
+      const totalCount = count || 0;
+      setTotalPages(Math.ceil(totalCount / POSTS_PER_PAGE));
+
+      // Apply pagination
+      const offset = (currentPage - 1) * POSTS_PER_PAGE;
+      const { data, error } = await query
+        .range(offset, offset + POSTS_PER_PAGE - 1);
 
       if (error) {
         throw error;
       }
       
       if (data && data.length > 0) {
-        const validPosts = data.filter((post: any) => 
+        const validPosts = data.filter(post => 
           post.title && post.slug && post.content
         );
-
-        // Client-side sorting and pagination
-        let sortedPosts = [...validPosts];
-        if (sortBy === "date") {
-          sortedPosts.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-        } else if (sortBy === "title") {
-          sortedPosts.sort((a, b) => a.title.localeCompare(b.title));
-        } else if (sortBy === "updated") {
-          sortedPosts.sort((a, b) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime());
+        
+        setBlogPosts(validPosts);
+        
+        // Extract unique tags from all posts
+        const { data: allPosts } = await supabase
+          .from("blog_posts")
+          .select("tags")
+          .eq("published", true);
+        
+        if (allPosts) {
+          const allTags: string[] = [];
+          allPosts.forEach(post => {
+            if (post.tags && Array.isArray(post.tags)) {
+              post.tags.forEach(tag => {
+                if (!allTags.includes(tag)) {
+                  allTags.push(tag);
+                }
+              });
+            }
+          });
+          
+          setAvailableTags(allTags);
         }
-
-        // Calculate pagination
-        const totalCount = sortedPosts.length;
-        setTotalPages(Math.ceil(totalCount / POSTS_PER_PAGE));
-        const offset = (currentPage - 1) * POSTS_PER_PAGE;
-        const paginatedPosts = sortedPosts.slice(offset, offset + POSTS_PER_PAGE);
-        
-        setBlogPosts(paginatedPosts);
-        
-        // Extract unique tags
-        const allTags: string[] = [];
-        validPosts.forEach((post: any) => {
-          if (post.tags && Array.isArray(post.tags)) {
-            post.tags.forEach((tag: string) => {
-              if (!allTags.includes(tag)) {
-                allTags.push(tag);
-              }
-            });
-          }
-        });
-        
-        setAvailableTags(allTags);
       } else {
         setBlogPosts([]);
-        setTotalPages(1);
       }
     } catch (err) {
       console.error("Error fetching blog posts:", err);

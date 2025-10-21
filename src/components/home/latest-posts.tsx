@@ -35,21 +35,21 @@ const LatestPosts = () => {
         setIsLoading(true);
         setError(null);
         
+        // Set current locale for RLS
         const lang = localStorage.getItem('language') || 'fr';
+        await (supabase.rpc as any)('set_current_locale', { _locale: lang });
         
-        // Use atomic RPC function that sets locale and queries in single transaction
-        const { data, error } = await (supabase.rpc as any)('set_locale_and_get_blog_posts', {
-          _locale: lang,
-          _limit: isMobile ? 2 : 3,
-          _offset: 0,
-          _tag: null,
-          _search: null
-        });
+        const { data, error } = await supabase
+          .from("blog_posts")
+          .select("*")
+          .eq("published", true)
+          .order("created_at", { ascending: false })
+          .limit(isMobile ? 2 : 3);
 
         if (error) throw error;
 
         if (data) {
-          const validPosts = data.filter((post: any) => 
+          const validPosts = data.filter(post => 
             post.title && post.slug && post.content
           );
           setPosts(validPosts);

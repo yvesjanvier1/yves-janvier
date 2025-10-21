@@ -54,54 +54,50 @@ const PortfolioPage = () => {
       setIsLoading(true);
       setError(null);
       
-      // Use atomic RPC function - sets locale and queries in same transaction
-      const { data, error } = await (supabase.rpc as any)('set_locale_and_get_portfolio_projects', {
-        _locale: language,
-        _limit: 1000, // Get all for client-side filtering
-        _offset: 0,
-        _category: selectedCategory !== "all" ? selectedCategory : null,
-        _featured: null
-      });
+      // Set current locale for RLS
+      await (supabase.rpc as any)('set_current_locale', { _locale: language });
+      
+      let query = supabase
+        .from("portfolio_projects")
+        .select("*");
+
+      // Apply locale filter if locale column exists (fallback to all if not)
+      if (language) {
+        query = query.or(`locale.eq.${language},locale.is.null`);
+      }
+
+      // Apply category filter
+      if (selectedCategory !== "all") {
+        query = query.eq("category", selectedCategory);
+      }
+
+      // Apply tag filter
+      if (selectedTag !== "all") {
+        query = query.contains("tech_stack", [selectedTag]);
+      }
+
+      // Apply search filter
+      if (searchTerm) {
+        query = query.or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`);
+      }
+
+      // Apply sorting
+      if (sortBy === "date") {
+        query = query.order("created_at", { ascending: false });
+      } else if (sortBy === "title") {
+        query = query.order("title", { ascending: true });
+      } else if (sortBy === "featured") {
+        query = query.order("featured", { ascending: false }).order("created_at", { ascending: false });
+      }
+
+      const { data, error } = await query;
       
       if (error) {
         throw error;
       }
       
       if (data) {
-        let filteredData = data;
-
-        // Client-side tag filter
-        if (selectedTag !== "all") {
-          filteredData = filteredData.filter((p: any) => 
-            p.tech_stack && Array.isArray(p.tech_stack) && p.tech_stack.includes(selectedTag)
-          );
-        }
-
-        // Client-side search filter
-        if (searchTerm) {
-          const query = searchTerm.toLowerCase();
-          filteredData = filteredData.filter((p: any) =>
-            p.title?.toLowerCase().includes(query) ||
-            p.description?.toLowerCase().includes(query)
-          );
-        }
-
-        // Client-side sorting
-        let sortedData = [...filteredData];
-        if (sortBy === "date") {
-          sortedData.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-        } else if (sortBy === "title") {
-          sortedData.sort((a: any, b: any) => a.title.localeCompare(b.title));
-        } else if (sortBy === "featured") {
-          sortedData.sort((a: any, b: any) => {
-            if (a.featured === b.featured) {
-              return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-            }
-            return b.featured ? 1 : -1;
-          });
-        }
-
-        const processedProjects = sortedData.map((project: any) => ({
+        const processedProjects = data.map(project => ({
           ...project,
           links: Array.isArray(project.links) 
             ? project.links 
@@ -112,25 +108,31 @@ const PortfolioPage = () => {
         
         setProjects(processedProjects);
         
-        // Extract unique categories and tags from all data
-        const allCategories: string[] = [];
-        const allTags: string[] = [];
+        // Extract unique categories and tags from all projects
+        const { data: allProjects } = await supabase
+          .from("portfolio_projects")
+          .select("category, tech_stack");
         
-        data.forEach((project: any) => {
-          if (project.category && !allCategories.includes(project.category)) {
-            allCategories.push(project.category);
-          }
-          if (project.tech_stack && Array.isArray(project.tech_stack)) {
-            project.tech_stack.forEach((tag: string) => {
-              if (!allTags.includes(tag)) {
-                allTags.push(tag);
-              }
-            });
-          }
-        });
-        
-        setCategories(allCategories);
-        setAvailableTags(allTags);
+        if (allProjects) {
+          const allCategories: string[] = [];
+          const allTags: string[] = [];
+          
+          allProjects.forEach(project => {
+            if (project.category && !allCategories.includes(project.category)) {
+              allCategories.push(project.category);
+            }
+            if (project.tech_stack && Array.isArray(project.tech_stack)) {
+              project.tech_stack.forEach(tag => {
+                if (!allTags.includes(tag)) {
+                  allTags.push(tag);
+                }
+              });
+            }
+          });
+          
+          setCategories(allCategories);
+          setAvailableTags(allTags);
+        }
       }
     } catch (err) {
       console.error("Error fetching projects:", err);

@@ -46,16 +46,15 @@ export const useFeaturedProjects = () => {
         setIsLoading(true);
         setError(null);
 
+        // Set current locale for RLS
         const lang = localStorage.getItem('language') || 'fr';
+        await (supabase.rpc as any)('set_current_locale', { _locale: lang });
 
-        // Use atomic RPC function that sets locale and queries in single transaction
-        const { data, error } = await (supabase.rpc as any)('set_locale_and_get_portfolio_projects', {
-          _locale: lang,
-          _limit: 3,
-          _offset: 0,
-          _category: null,
-          _featured: null
-        });
+        const { data, error } = await supabase
+          .from("portfolio_projects")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(3);
 
         if (error) {
           console.error("Error fetching featured projects:", error);
@@ -64,7 +63,7 @@ export const useFeaturedProjects = () => {
 
         if (data) {
           // Transform the data to match our Project interface
-          const transformedProjects: Project[] = data.map((project: any) => ({
+          const transformedProjects: Project[] = data.map(project => ({
             id: project.id,
             title: project.title,
             description: project.description,
