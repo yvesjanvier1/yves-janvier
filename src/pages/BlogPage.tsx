@@ -54,14 +54,11 @@ const BlogPage = () => {
       setIsLoading(true);
       setError(null);
       
-      // Use atomic RPC function - sets locale and queries in same transaction
-      const { data, error } = await (supabase.rpc as any)('set_locale_and_get_blog_posts', {
-        _locale: language,
-        _limit: 1000, // Get all for filtering
-        _offset: 0,
-        _tag: selectedTag !== "all" ? selectedTag : null,
-        _search: searchTerm || null
-      });
+      const { data, error } = await supabase
+        .from("blog_posts")
+        .select("*")
+        .eq("published", true)
+        .order("created_at", { ascending: false });
 
       if (error) {
         throw error;
@@ -72,8 +69,26 @@ const BlogPage = () => {
           post.title && post.slug && post.content
         );
 
-        // Client-side sorting and pagination
-        let sortedPosts = [...validPosts];
+        // Apply filters
+        let filteredPosts = [...validPosts];
+        
+        if (selectedTag !== "all") {
+          filteredPosts = filteredPosts.filter(post => 
+            post.tags && Array.isArray(post.tags) && post.tags.includes(selectedTag)
+          );
+        }
+        
+        if (searchTerm) {
+          const query = searchTerm.toLowerCase();
+          filteredPosts = filteredPosts.filter(post =>
+            post.title?.toLowerCase().includes(query) ||
+            post.excerpt?.toLowerCase().includes(query) ||
+            post.content?.toLowerCase().includes(query)
+          );
+        }
+
+        // Client-side sorting
+        let sortedPosts = [...filteredPosts];
         if (sortBy === "date") {
           sortedPosts.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
         } else if (sortBy === "title") {

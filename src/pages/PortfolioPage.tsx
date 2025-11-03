@@ -54,14 +54,10 @@ const PortfolioPage = () => {
       setIsLoading(true);
       setError(null);
       
-      // Use atomic RPC function - sets locale and queries in same transaction
-      const { data, error } = await (supabase.rpc as any)('set_locale_and_get_portfolio_projects', {
-        _locale: language,
-        _limit: 1000, // Get all for client-side filtering
-        _offset: 0,
-        _category: selectedCategory !== "all" ? selectedCategory : null,
-        _featured: null
-      });
+      const { data, error } = await supabase
+        .from("portfolio_projects")
+        .select("*")
+        .order("created_at", { ascending: false });
       
       if (error) {
         throw error;
@@ -69,6 +65,11 @@ const PortfolioPage = () => {
       
       if (data) {
         let filteredData = data;
+
+        // Client-side category filter
+        if (selectedCategory !== "all") {
+          filteredData = filteredData.filter((p: any) => p.category === selectedCategory);
+        }
 
         // Client-side tag filter
         if (selectedTag !== "all") {

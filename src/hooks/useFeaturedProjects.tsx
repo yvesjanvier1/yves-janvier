@@ -54,7 +54,7 @@ export const useFeaturedProjects = () => {
           _limit: 3,
           _offset: 0,
           _category: null,
-          _featured: null
+          _featured: true
         });
 
         if (error) {
