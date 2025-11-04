@@ -16,6 +16,10 @@ export function BlogList() {
   const fetchPosts = async () => {
     setIsLoading(true);
     try {
+      // Set locale for RLS before querying (admins see all locales)
+      const lang = localStorage.getItem('language') || 'fr';
+      await (supabase.rpc as any)('set_current_locale', { _locale: lang });
+
       const { data, error } = await supabase
         .from("blog_posts")
         .select("*")

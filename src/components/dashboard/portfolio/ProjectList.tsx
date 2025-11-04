@@ -29,6 +29,10 @@ export function ProjectList() {
   const fetchProjects = async () => {
     setIsLoading(true);
     try {
+      // Set locale for RLS before querying (admins see all locales)
+      const lang = localStorage.getItem('language') || 'fr';
+      await (supabase.rpc as any)('set_current_locale', { _locale: lang });
+
       const { data, error } = await supabase
         .from("portfolio_projects")
         .select("*")
