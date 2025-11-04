@@ -5,10 +5,11 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { BlogListHeader } from "./blog-list/BlogListHeader";
-import { getBlogListColumns, BlogPost } from "./blog-list/BlogListColumns";
+import { getBlogListColumns } from "./blog-list/BlogListColumns";
+import { BlogPostListItem } from "@/types/blog";
 
 export function BlogList() {
-  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [posts, setPosts] = useState<BlogPostListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [postToDelete, setPostToDelete] = useState<string | null>(null);

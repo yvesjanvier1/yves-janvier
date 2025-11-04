@@ -62,22 +62,9 @@ export const useMultilingualData = <T,>({
   });
 };
 
-// Specific hooks for common use cases
-export const useMultilingualBlogPosts = (filters: Record<string, any> = {}) => {
-  return useMultilingualData<any>({
-    table: 'blog_posts',
-    filters: { published: true, ...filters },
-    orderBy: { column: 'created_at', ascending: false }
-  });
-};
-
-export const useMultilingualPortfolioProjects = (filters: Record<string, any> = {}) => {
-  return useMultilingualData<any>({
-    table: 'portfolio_projects',
-    filters,
-    orderBy: { column: 'featured', ascending: false }
-  });
-};
+// Specific hooks for common use cases - use dedicated hooks instead:
+// - useBlogPosts from @/hooks/useBlogPosts
+// - usePortfolioProjects from @/hooks/usePortfolioProjects
 
 export const useMultilingualServices = (filters: Record<string, any> = {}) => {
   return useMultilingualData<any>({
