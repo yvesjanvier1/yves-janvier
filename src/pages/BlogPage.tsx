@@ -54,11 +54,13 @@ const BlogPage = () => {
       setIsLoading(true);
       setError(null);
       
-      const { data, error } = await supabase
-        .from("blog_posts")
-        .select("*")
-        .eq("published", true)
-        .order("created_at", { ascending: false });
+      const { data, error } = await (supabase.rpc as any)('set_locale_and_get_blog_posts', {
+        _locale: language,
+        _limit: 1000,
+        _offset: 0,
+        _tag: selectedTag !== "all" ? selectedTag : null,
+        _search: searchTerm || null
+      });
 
       if (error) {
         throw error;

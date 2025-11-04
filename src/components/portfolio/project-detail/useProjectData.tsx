@@ -33,6 +33,10 @@ export const useProjectData = (id: string | undefined) => {
         setIsLoading(true);
         setError(null);
         
+        // Ensure locale is set for RLS before querying
+        const lang = localStorage.getItem('language') || 'fr';
+        await (supabase.rpc as any)('set_current_locale', { _locale: lang });
+        
         // First try to fetch by slug
         let { data, error } = await supabase
           .from("portfolio_projects")
@@ -41,12 +45,15 @@ export const useProjectData = (id: string | undefined) => {
           .maybeSingle();
 
         if (!data && !error) {
-          // If no project found by slug, try by id
-          ({ data, error } = await supabase
-            .from("portfolio_projects")
-            .select("*")
-            .eq("id", id)
-            .maybeSingle());
+          // If no project found by slug, try by id only if UUID
+          const isUuid = /^[0-9a-fA-F-]{36}$/.test(id);
+          if (isUuid) {
+            ({ data, error } = await supabase
+              .from("portfolio_projects")
+              .select("*")
+              .eq("id", id)
+              .maybeSingle());
+          }
         }
         
         if (error) {

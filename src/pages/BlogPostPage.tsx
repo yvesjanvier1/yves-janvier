@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import SocialShare from "@/components/blog/social-share";
 import SEOHead from "@/components/seo/SEOHead";
 import { SecureHtml } from "@/components/ui/secure-html";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface BlogPost {
   id: string;
@@ -31,6 +32,8 @@ const BlogPostPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const { language } = useLanguage();
+
   const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
 
   useEffect(() => {
@@ -40,6 +43,7 @@ const BlogPostPage = () => {
       try {
         setIsLoading(true);
         setError(null);
+        await (supabase.rpc as any)('set_current_locale', { _locale: language });
         console.log(`BlogPostPage: Fetching blog post with id/slug: ${id}`);
         
         // First try to fetch by slug
@@ -51,14 +55,16 @@ const BlogPostPage = () => {
           .maybeSingle();
 
         if (!data && !error) {
-          console.log("BlogPostPage: No post found by slug, trying by ID");
-          // If no post found by slug, try by id
-          ({ data, error } = await supabase
-            .from("blog_posts")
-            .select("*")
-            .eq("id", id)
-            .eq("published", true)
-            .maybeSingle());
+          console.log("BlogPostPage: No post found by slug, trying by ID if UUID");
+          const isUuid = /^[0-9a-fA-F-]{36}$/.test(id);
+          if (isUuid) {
+            ({ data, error } = await supabase
+              .from("blog_posts")
+              .select("*")
+              .eq("id", id)
+              .eq("published", true)
+              .maybeSingle());
+          }
         }
 
         if (error) {
@@ -86,7 +92,7 @@ const BlogPostPage = () => {
     };
 
     fetchPost();
-  }, [id, navigate]);
+  }, [id, navigate, language]);
 
   if (isLoading) {
     return (

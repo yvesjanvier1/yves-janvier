@@ -54,10 +54,13 @@ const PortfolioPage = () => {
       setIsLoading(true);
       setError(null);
       
-      const { data, error } = await supabase
-        .from("portfolio_projects")
-        .select("*")
-        .order("created_at", { ascending: false });
+      const { data, error } = await (supabase.rpc as any)('set_locale_and_get_portfolio_projects', {
+        _locale: language,
+        _limit: 1000,
+        _offset: 0,
+        _category: selectedCategory !== "all" ? selectedCategory : null,
+        _featured: null
+      });
       
       if (error) {
         throw error;
