@@ -7,16 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { BlogForm } from "@/components/dashboard/blog/BlogForm";
 import { ArrowLeft } from "lucide-react";
-
-interface BlogPostData {
-  title: string;
-  slug: string;
-  content: string;
-  excerpt: string;
-  cover_image: string;
-  published: boolean;
-  tags: string[];
-}
+import { BlogPostFormData } from "@/types/blog";
 
 const BlogFormPage = () => {
   const { id } = useParams();
@@ -24,7 +15,7 @@ const BlogFormPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const [initialData, setInitialData] = useState<BlogPostData | null>(null);
+  const [initialData, setInitialData] = useState<BlogPostFormData | null>(null);
 
   useEffect(() => {
     if (isEditing) {
@@ -63,7 +54,7 @@ const BlogFormPage = () => {
     }
   }, [id, isEditing, navigate]);
 
-  const handleSubmit = async (formData: BlogPostData) => {
+  const handleSubmit = async (formData: BlogPostFormData) => {
     try {
       const postData = {
         ...formData,

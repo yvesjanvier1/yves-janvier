@@ -9,19 +9,14 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Edit, Trash2, Plus, Search, Star } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { PortfolioProjectListItem } from "@/types/portfolio";
 
-interface PortfolioProject {
-  id: string;
-  title: string;
-  slug: string;
-  category: string;
-  featured: boolean;
-  created_at: string;
-  tech_stack: string[];
+interface ProjectWithTech extends PortfolioProjectListItem {
+  tech_stack?: string[];
 }
 
 export function ProjectList() {
-  const [projects, setProjects] = useState<PortfolioProject[]>([]);
+  const [projects, setProjects] = useState<ProjectWithTech[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
@@ -29,13 +24,9 @@ export function ProjectList() {
   const fetchProjects = async () => {
     setIsLoading(true);
     try {
-      // Set locale for RLS before querying (admins see all locales)
-      const lang = localStorage.getItem('language') || 'fr';
-      await (supabase.rpc as any)('set_current_locale', { _locale: lang });
-
       const { data, error } = await supabase
         .from("portfolio_projects")
-        .select("*")
+        .select("id, title, slug, category, featured, created_at, tech_stack")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -105,22 +96,22 @@ export function ProjectList() {
     {
       key: "title",
       header: "Title",
-      cell: (project: PortfolioProject) => <span className="font-medium">{project.title}</span>,
+      cell: (project: ProjectWithTech) => <span className="font-medium">{project.title}</span>,
     },
     {
       key: "slug",
       header: "Slug",
-      cell: (project: PortfolioProject) => project.slug,
+      cell: (project: ProjectWithTech) => project.slug,
     },
     {
       key: "category",
       header: "Category",
-      cell: (project: PortfolioProject) => project.category || "-",
+      cell: (project: ProjectWithTech) => project.category || "-",
     },
     {
       key: "tech_stack",
       header: "Technologies",
-      cell: (project: PortfolioProject) => (
+      cell: (project: ProjectWithTech) => (
         <div className="flex flex-wrap gap-1">
           {project.tech_stack && project.tech_stack.slice(0, 3).map((tech, i) => (
             <Badge key={i} variant="outline">{tech}</Badge>
@@ -134,7 +125,7 @@ export function ProjectList() {
     {
       key: "featured",
       header: "Featured",
-      cell: (project: PortfolioProject) => (
+      cell: (project: ProjectWithTech) => (
         <Button
           variant="ghost"
           size="icon"
@@ -150,12 +141,12 @@ export function ProjectList() {
     {
       key: "date",
       header: "Date",
-      cell: (project: PortfolioProject) => new Date(project.created_at).toLocaleDateString(),
+      cell: (project: ProjectWithTech) => new Date(project.created_at).toLocaleDateString(),
     },
     {
       key: "actions",
       header: "Actions",
-      cell: (project: PortfolioProject) => (
+      cell: (project: ProjectWithTech) => (
         <div className="flex justify-end gap-2">
           <Button variant="ghost" size="icon" asChild>
             <Link to={`/dashboard/portfolio/edit/${project.id}`}>

@@ -7,22 +7,13 @@ import { FormFields } from "./blog-form/FormFields";
 import { blogPostSchema, sanitizeError } from "@/lib/security";
 import { z } from "zod";
 import { toast } from "sonner";
-
-interface BlogPostData {
-  title: string;
-  slug: string;
-  content: string;
-  excerpt: string;
-  cover_image: string;
-  published: boolean;
-  tags: string[];
-}
+import { BlogPostFormData } from "@/types/blog";
 
 interface BlogFormProps {
   id?: string;
-  initialData?: BlogPostData;
+  initialData?: BlogPostFormData;
   isLoading?: boolean;
-  onSubmit: (data: BlogPostData) => Promise<void>;
+  onSubmit: (data: BlogPostFormData) => Promise<void>;
 }
 
 export function BlogForm({ id, initialData, isLoading, onSubmit }: BlogFormProps) {
@@ -31,7 +22,7 @@ export function BlogForm({ id, initialData, isLoading, onSubmit }: BlogFormProps
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const isEditing = !!id;
   
-  const [formData, setFormData] = useState<BlogPostData>({
+  const [formData, setFormData] = useState<BlogPostFormData>({
     title: "",
     slug: "",
     content: "",
