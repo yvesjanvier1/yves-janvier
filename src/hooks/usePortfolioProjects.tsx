@@ -23,20 +23,59 @@ export const usePortfolioProjects = ({
   return useQuery({
     queryKey: ['portfolio_projects', language, limit, offset, category, featured],
     queryFn: async () => {
-      const { data, error } = await (supabase.rpc as any)('set_locale_and_get_portfolio_projects', {
-        _locale: language,
-        _limit: limit,
-        _offset: offset,
-        _category: category || null,
-        _featured: featured ?? null
-      });
+      // Set locale first
+      await (supabase.rpc as any)('set_current_locale', { _locale: language });
+
+      // Build query
+      let query = supabase
+        .from("portfolio_projects")
+        .select("*")
+        .order('created_at', { ascending: false });
+
+      // Apply filters
+      if (category) {
+        query = query.eq('category', category);
+      }
+      
+      if (featured !== undefined && featured !== null) {
+        query = query.eq('featured', featured);
+      }
+
+      // Apply pagination
+      if (limit) {
+        query = query.limit(limit);
+      }
+      
+      if (offset) {
+        query = query.range(offset, offset + limit - 1);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error("Error fetching portfolio projects:", error);
         throw error;
       }
 
-      return data as PortfolioProject[];
+      // Convert links safely
+      const convertLinks = (links: any): ProjectLink[] => {
+        if (!links || !Array.isArray(links)) return [];
+        
+        return links.filter((link: any) => 
+          link && 
+          typeof link === 'object' && 
+          typeof link.title === 'string' && 
+          typeof link.url === 'string'
+        ).map((link: any) => ({
+          title: link.title,
+          url: link.url
+        }));
+      };
+
+      return data?.map(project => ({
+        ...project,
+        links: convertLinks(project.links)
+      })) as PortfolioProject[] || [];
     },
     enabled,
   });
