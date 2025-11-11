@@ -46,7 +46,7 @@ export type Database = {
           action: string
           created_at: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           new_values: Json | null
           old_values: Json | null
           record_id: string | null
@@ -58,7 +58,7 @@ export type Database = {
           action: string
           created_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           new_values?: Json | null
           old_values?: Json | null
           record_id?: string | null
@@ -70,7 +70,7 @@ export type Database = {
           action?: string
           created_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           new_values?: Json | null
           old_values?: Json | null
           record_id?: string | null
@@ -598,7 +598,7 @@ export type Database = {
         Returns: undefined
       }
       get_current_user_role: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: Database["public"]["Enums"]["app_role"]
       }
       has_role: {
@@ -608,10 +608,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      set_current_locale: {
-        Args: { _locale: string }
-        Returns: undefined
-      }
+      set_current_locale: { Args: { _locale: string }; Returns: undefined }
       set_locale_and_get_blog_posts: {
         Args: {
           _limit?: number
@@ -634,6 +631,12 @@ export type Database = {
           title: string
           updated_at: string
         }[]
+        SetofOptions: {
+          from: "*"
+          to: "blog_posts"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       set_locale_and_get_portfolio_projects: {
         Args: {
@@ -657,6 +660,12 @@ export type Database = {
           title: string
           updated_at: string
         }[]
+        SetofOptions: {
+          from: "*"
+          to: "portfolio_projects"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       track_page_view: {
         Args: {
