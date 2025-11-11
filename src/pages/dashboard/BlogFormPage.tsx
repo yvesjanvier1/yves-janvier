@@ -57,9 +57,16 @@ const BlogFormPage = () => {
   const handleSubmit = async (formData: BlogPostFormData) => {
     try {
       const postData = {
-        ...formData,
+        title: formData.title,
+        slug: formData.slug,
+        content: formData.content,
+        excerpt: formData.excerpt,
+        cover_image: formData.cover_image,
+        published: formData.published,
+        tags: formData.tags,
+        locale: 'fr', // Default locale
         author_id: user?.id,
-        updated_at: new Date().toISOString() // Convert Date to ISO string
+        updated_at: new Date().toISOString()
       };
       
       let result;
@@ -80,12 +87,12 @@ const BlogFormPage = () => {
       toast.success(`Post ${isEditing ? "updated" : "created"} successfully`);
       navigate("/dashboard/blog");
     } catch (error: any) {
-      if (error.code === "23505") { // Unique violation error code
+      if (error.code === "23505") {
         toast.error("A post with this slug already exists. Please use a different slug.");
       } else {
         toast.error(`Failed to ${isEditing ? "update" : "create"} post: ${error.message}`);
       }
-      throw error; // Rethrow to be handled by the form
+      throw error;
     }
   };
 
