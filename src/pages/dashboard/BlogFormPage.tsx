@@ -60,11 +60,11 @@ const BlogFormPage = () => {
         title: formData.title,
         slug: formData.slug,
         content: formData.content,
-        excerpt: formData.excerpt,
-        cover_image: formData.cover_image,
+        excerpt: formData.excerpt || "",
+        cover_image: formData.cover_image || "",
         published: formData.published,
-        tags: formData.tags,
-        locale: 'fr', // Default locale
+        tags: Array.isArray(formData.tags) ? formData.tags : [],
+        locale: 'fr',
         author_id: user?.id,
         updated_at: new Date().toISOString()
       };
