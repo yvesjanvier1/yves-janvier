@@ -1,4 +1,4 @@
-
+ 
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { BlogForm } from "@/components/dashboard/blog/BlogForm";
 import { ArrowLeft } from "lucide-react";
 import { BlogPostFormData } from "@/types/blog";
+import { sanitizeHtml } from "@/lib/security";
 
 const BlogFormPage = () => {
   const { id } = useParams();
@@ -59,14 +60,15 @@ const BlogFormPage = () => {
       const baseData = {
         title: formData.title,
         slug: formData.slug,
-        content: formData.content,
+        content: sanitizeHtml(formData.content),
         excerpt: formData.excerpt || "",
         cover_image: formData.cover_image || "",
         published: formData.published,
-        tags: Array.isArray(formData.tags) ? formData.tags : [],
+        tags: Array.isArray(formData.tags) ? formData.tags.map(t => String(t).trim()).filter(Boolean) : [],
         locale: 'fr'
       };
       
+      console.log("Submitting blog post", { isEditing, payload: baseData });
       let result;
       
       if (isEditing) {
