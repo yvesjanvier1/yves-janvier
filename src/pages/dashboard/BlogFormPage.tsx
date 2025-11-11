@@ -56,7 +56,7 @@ const BlogFormPage = () => {
 
   const handleSubmit = async (formData: BlogPostFormData) => {
     try {
-      const postData = {
+      const baseData = {
         title: formData.title,
         slug: formData.slug,
         content: formData.content,
@@ -64,22 +64,28 @@ const BlogFormPage = () => {
         cover_image: formData.cover_image || "",
         published: formData.published,
         tags: Array.isArray(formData.tags) ? formData.tags : [],
-        locale: 'fr',
-        author_id: user?.id,
-        updated_at: new Date().toISOString()
+        locale: 'fr'
       };
       
       let result;
       
       if (isEditing) {
+        // For updates, don't send author_id or created_at
         result = await supabase
           .from("blog_posts")
-          .update(postData)
+          .update({
+            ...baseData,
+            updated_at: new Date().toISOString()
+          })
           .eq("id", id);
       } else {
+        // For inserts, include author_id
         result = await supabase
           .from("blog_posts")
-          .insert([postData]);
+          .insert([{
+            ...baseData,
+            author_id: user?.id
+          }]);
       }
       
       if (result.error) throw result.error;
