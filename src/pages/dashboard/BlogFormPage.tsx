@@ -63,12 +63,17 @@ const BlogFormPage = () => {
         content: sanitizeHtml(formData.content),
         excerpt: formData.excerpt || "",
         cover_image: formData.cover_image || "",
-        published: formData.published,
-        tags: Array.isArray(formData.tags) ? formData.tags.map(t => String(t).trim()).filter(Boolean) : [],
+        published: !!formData.published,
+        tags: Array.isArray(formData.tags)
+          ? formData.tags
+              .map((t) => String(t))
+              .map((t) => t.replace(/[{}"]/g, "").trim())
+              .filter(Boolean)
+          : [],
         locale: 'fr'
       };
       
-      console.log("Submitting blog post", { isEditing, payload: baseData });
+      console.log("Submitting blog post", JSON.stringify({ isEditing, payload: baseData }));
       let result;
       
       if (isEditing) {
@@ -95,10 +100,11 @@ const BlogFormPage = () => {
       toast.success(`Post ${isEditing ? "updated" : "created"} successfully`);
       navigate("/dashboard/blog");
     } catch (error: any) {
-      if (error.code === "23505") {
+      console.error("Error saving blog post:", error);
+      if (error?.code === "23505") {
         toast.error("A post with this slug already exists. Please use a different slug.");
       } else {
-        toast.error(`Failed to ${isEditing ? "update" : "create"} post: ${error.message}`);
+        toast.error(`Failed to ${isEditing ? "update" : "create"} post: ${error?.message || "Unknown error"}`);
       }
       throw error;
     }
