@@ -48,6 +48,26 @@ export function validateJsonField(value: any): any {
   }
 }
 
+// Clean empty strings to null
+export function cleanEmptyStrings(obj: Record<string, any>): Record<string, any> {
+  const cleaned: Record<string, any> = {};
+  
+  for (const [key, value] of Object.entries(obj)) {
+    if (value === "" || (typeof value === "string" && value.trim() === "")) {
+      cleaned[key] = null;
+    } else if (value !== undefined) {
+      cleaned[key] = value;
+    }
+  }
+  
+  return cleaned;
+}
+
+// Strip undefined fields and normalize payload
+export function normalizePayload<T extends Record<string, any>>(payload: T): T {
+  return JSON.parse(JSON.stringify(payload)) as T;
+}
+
 /**
  * Blog Post Data Formatter
  */
@@ -63,16 +83,19 @@ export interface BlogPostInput {
 }
 
 export function formatBlogPostData(data: BlogPostInput) {
-  return {
+  const formatted = {
     title: data.title.trim(),
     slug: data.slug ? sanitizeSlug(data.slug) : sanitizeSlug(data.title),
     content: sanitizeHtml(data.content),
-    excerpt: data.excerpt?.trim() || "",
-    cover_image: data.cover_image?.trim() || "",
+    excerpt: data.excerpt?.trim() || null,
+    cover_image: data.cover_image?.trim() || null,
     published: normalizeBoolean(data.published),
     tags: sanitizeStringArray(data.tags || []),
     locale: data.locale || "fr",
   };
+  
+  // Remove empty strings and undefined fields
+  return normalizePayload(cleanEmptyStrings(formatted));
 }
 
 /**
@@ -91,17 +114,20 @@ export interface PortfolioProjectInput {
 }
 
 export function formatPortfolioProjectData(data: PortfolioProjectInput) {
-  return {
+  const formatted = {
     title: data.title.trim(),
     slug: data.slug ? sanitizeSlug(data.slug) : sanitizeSlug(data.title),
     description: data.description.trim(),
-    category: data.category?.trim() || "",
+    category: data.category?.trim() || null,
     tech_stack: sanitizeStringArray(data.tech_stack || []),
     images: sanitizeStringArray(data.images || []),
     links: validateJsonField(data.links) || [],
     featured: normalizeBoolean(data.featured),
     locale: data.locale || "fr",
   };
+  
+  // Remove empty strings and undefined fields
+  return normalizePayload(cleanEmptyStrings(formatted));
 }
 
 /**
@@ -114,20 +140,29 @@ export async function supabaseInsert<T>(
 ) {
   try {
     const formattedData = formatter ? formatter(data) : data;
+    const normalizedData = normalizePayload(formattedData);
+    
+    console.log(`[Supabase INSERT] ${table}:`, JSON.stringify(normalizedData, null, 2));
     
     const { data: result, error } = await (supabase as any)
       .from(table)
-      .insert([formattedData])
+      .insert([normalizedData])
       .select()
       .single();
 
     if (error) throw error;
+    
+    console.log(`[Supabase INSERT SUCCESS] ${table}`);
     return result as T;
   } catch (error: any) {
-    console.error(`Supabase insert error (${table}):`, error);
+    console.error(`[Supabase INSERT ERROR] ${table}:`, error);
     
     if (error?.code === "23505") {
       throw new Error("A record with this slug already exists. Please use a different slug.");
+    }
+    
+    if (error?.message?.includes("invalid input syntax")) {
+      throw new Error("Invalid data format. Please check your input fields.");
     }
     
     throw new Error(error?.message || `Failed to create ${table} record`);
@@ -142,24 +177,33 @@ export async function supabaseUpdate<T>(
 ) {
   try {
     const formattedData = formatter ? formatter(data) : data;
+    const payload = normalizePayload({
+      ...formattedData,
+      updated_at: new Date().toISOString(),
+    });
+    
+    console.log(`[Supabase UPDATE] ${table} (${id}):`, JSON.stringify(payload, null, 2));
     
     const { data: result, error } = await (supabase as any)
       .from(table)
-      .update({
-        ...formattedData,
-        updated_at: new Date().toISOString(),
-      })
+      .update(payload)
       .eq("id", id)
       .select()
       .single();
 
     if (error) throw error;
+    
+    console.log(`[Supabase UPDATE SUCCESS] ${table}`);
     return result as T;
   } catch (error: any) {
-    console.error(`Supabase update error (${table}):`, error);
+    console.error(`[Supabase UPDATE ERROR] ${table}:`, error);
     
     if (error?.code === "23505") {
       throw new Error("A record with this slug already exists. Please use a different slug.");
+    }
+    
+    if (error?.message?.includes("invalid input syntax")) {
+      throw new Error("Invalid data format. Please check your input fields.");
     }
     
     throw new Error(error?.message || `Failed to update ${table} record`);
