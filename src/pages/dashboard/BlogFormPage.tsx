@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { BlogForm } from "@/components/dashboard/blog/BlogForm";
 import { ArrowLeft } from "lucide-react";
 import { BlogPostFormData } from "@/types/blog";
-import { sanitizeHtml } from "@/lib/security";
 
 const BlogFormPage = () => {
   const { id } = useParams();
@@ -57,55 +56,23 @@ const BlogFormPage = () => {
 
   const handleSubmit = async (formData: BlogPostFormData) => {
     try {
-      const baseData = {
-        title: formData.title,
-        slug: formData.slug,
-        content: sanitizeHtml(formData.content),
-        excerpt: formData.excerpt || "",
-        cover_image: formData.cover_image || "",
-        published: !!formData.published,
-        tags: Array.isArray(formData.tags)
-          ? formData.tags
-              .map((t) => String(t))
-              .map((t) => t.replace(/[{}"]/g, "").trim())
-              .filter(Boolean)
-          : [],
-        locale: 'fr'
-      };
-      
-      console.log("Submitting blog post", JSON.stringify({ isEditing, payload: baseData }));
-      let result;
+      const { formatBlogPostData, supabaseInsert, supabaseUpdate } = await import("@/lib/supabase-helpers");
       
       if (isEditing) {
-        // For updates, don't send author_id or created_at
-        result = await supabase
-          .from("blog_posts")
-          .update({
-            ...baseData,
-            updated_at: new Date().toISOString()
-          })
-          .eq("id", id);
+        await supabaseUpdate("blog_posts", id!, formData, formatBlogPostData);
+        toast.success("Post updated successfully");
       } else {
-        // For inserts, include author_id
-        result = await supabase
-          .from("blog_posts")
-          .insert([{
-            ...baseData,
-            author_id: user?.id
-          }]);
+        const dataWithAuthor = { ...formData, author_id: user?.id };
+        await supabaseInsert("blog_posts", dataWithAuthor, (data) => ({
+          ...formatBlogPostData(data),
+          author_id: data.author_id,
+        }));
+        toast.success("Post created successfully");
       }
       
-      if (result.error) throw result.error;
-      
-      toast.success(`Post ${isEditing ? "updated" : "created"} successfully`);
       navigate("/dashboard/blog");
     } catch (error: any) {
-      console.error("Error saving blog post:", error);
-      if (error?.code === "23505") {
-        toast.error("A post with this slug already exists. Please use a different slug.");
-      } else {
-        toast.error(`Failed to ${isEditing ? "update" : "create"} post: ${error?.message || "Unknown error"}`);
-      }
+      toast.error(error.message);
       throw error;
     }
   };
