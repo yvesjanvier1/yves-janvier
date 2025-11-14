@@ -57,30 +57,19 @@ const TestimonialsFormPage = () => {
 
   const handleSubmit = async (formData: TestimonialData) => {
     try {
-      const testimonialData = {
-        ...formData,
-        updated_at: new Date().toISOString()
-      };
-      
-      let result;
+      const { formatTestimonialData, supabaseInsert, supabaseUpdate } = await import("@/lib/supabase-helpers");
       
       if (isEditing) {
-        result = await supabase
-          .from("testimonials")
-          .update(testimonialData)
-          .eq("id", id);
+        await supabaseUpdate("testimonials", id!, formData, formatTestimonialData);
+        toast.success("Testimonial updated successfully");
       } else {
-        result = await supabase
-          .from("testimonials")
-          .insert([testimonialData]);
+        await supabaseInsert("testimonials", formData, formatTestimonialData);
+        toast.success("Testimonial created successfully");
       }
       
-      if (result.error) throw result.error;
-      
-      toast.success(`Testimonial ${isEditing ? "updated" : "created"} successfully`);
       navigate("/dashboard/testimonials");
     } catch (error: any) {
-      toast.error(`Failed to ${isEditing ? "update" : "create"} testimonial: ${error.message}`);
+      toast.error(error.message);
       throw error;
     }
   };

@@ -87,11 +87,8 @@ export function ResourceForm({ resourceId }: ResourceFormProps) {
 
   const createResourceMutation = useMutation({
     mutationFn: async (data: any) => {
-      const { error } = await supabase
-        .from("resources")
-        .insert(data);
-
-      if (error) throw error;
+      const { formatResourceData, supabaseInsert } = await import("@/lib/supabase-helpers");
+      return supabaseInsert("resources", data, formatResourceData);
     },
     onSuccess: () => {
       toast({
@@ -112,12 +109,8 @@ export function ResourceForm({ resourceId }: ResourceFormProps) {
 
   const updateResourceMutation = useMutation({
     mutationFn: async (data: any) => {
-      const { error } = await supabase
-        .from("resources")
-        .update(data)
-        .eq("id", resourceId);
-
-      if (error) throw error;
+      const { formatResourceData, supabaseUpdate } = await import("@/lib/supabase-helpers");
+      return supabaseUpdate("resources", resourceId!, data, formatResourceData);
     },
     onSuccess: () => {
       toast({
@@ -138,22 +131,10 @@ export function ResourceForm({ resourceId }: ResourceFormProps) {
   });
 
   const onSubmit = (data: ResourceFormData) => {
-    // Ensure required fields are present and clean up optional fields
-    const cleanData = {
-      title: data.title,
-      description: data.description || null,
-      file_url: data.file_url,
-      file_type: data.file_type,
-      file_size: data.file_size || null,
-      category: data.category || null,
-      tags: data.tags || [],
-      featured: data.featured || false,
-    };
-
     if (resourceId) {
-      updateResourceMutation.mutate(cleanData);
+      updateResourceMutation.mutate(data);
     } else {
-      createResourceMutation.mutate(cleanData);
+      createResourceMutation.mutate(data);
     }
   };
 
