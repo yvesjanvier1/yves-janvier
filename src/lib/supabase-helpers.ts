@@ -131,8 +131,169 @@ export function formatPortfolioProjectData(data: PortfolioProjectInput) {
 }
 
 /**
- * Generic CRUD wrapper with automatic error handling
+ * Services Data Formatter
  */
+export interface ServiceInput {
+  title: string;
+  description: string;
+  icon?: string;
+  locale?: string;
+}
+
+export function formatServiceData(data: ServiceInput) {
+  const formatted = {
+    title: data.title.trim(),
+    description: data.description.trim(),
+    icon: data.icon?.trim() || null,
+    locale: data.locale || "fr",
+  };
+  
+  return normalizePayload(cleanEmptyStrings(formatted));
+}
+
+/**
+ * Testimonials Data Formatter
+ */
+export interface TestimonialInput {
+  name: string;
+  position: string;
+  testimonial: string;
+  image?: string;
+  locale?: string;
+}
+
+export function formatTestimonialData(data: TestimonialInput) {
+  const formatted = {
+    name: data.name.trim(),
+    position: data.position.trim(),
+    testimonial: data.testimonial.trim(),
+    image: data.image?.trim() || null,
+    locale: data.locale || "fr",
+  };
+  
+  return normalizePayload(cleanEmptyStrings(formatted));
+}
+
+/**
+ * Journal Entry Data Formatter
+ */
+export interface JournalEntryInput {
+  title: string;
+  content?: string;
+  date: string;
+  entry_type: string;
+  tags?: any[];
+  image_url?: string;
+  video_url?: string;
+  external_link?: string;
+  featured?: boolean;
+  status?: string;
+  locale?: string;
+}
+
+export function formatJournalEntryData(data: JournalEntryInput) {
+  const formatted = {
+    title: data.title.trim(),
+    content: data.content?.trim() || null,
+    date: data.date,
+    entry_type: data.entry_type,
+    tags: sanitizeStringArray(data.tags || []),
+    image_url: data.image_url?.trim() || null,
+    video_url: data.video_url?.trim() || null,
+    external_link: data.external_link?.trim() || null,
+    featured: normalizeBoolean(data.featured),
+    status: data.status || "published",
+    locale: data.locale || "fr",
+  };
+  
+  return normalizePayload(cleanEmptyStrings(formatted));
+}
+
+/**
+ * Resource Data Formatter
+ */
+export interface ResourceInput {
+  title: string;
+  description?: string;
+  file_url: string;
+  file_type: string;
+  file_size?: number;
+  category?: string;
+  tags?: any[];
+  featured?: boolean;
+}
+
+export function formatResourceData(data: ResourceInput) {
+  const formatted = {
+    title: data.title.trim(),
+    description: data.description?.trim() || null,
+    file_url: data.file_url.trim(),
+    file_type: data.file_type.trim(),
+    file_size: data.file_size || null,
+    category: data.category?.trim() || null,
+    tags: sanitizeStringArray(data.tags || []),
+    featured: normalizeBoolean(data.featured),
+  };
+  
+  return normalizePayload(cleanEmptyStrings(formatted));
+}
+
+/**
+ * About Page Data Formatter
+ */
+export interface AboutPageInput {
+  bio: string;
+  profile_image?: string;
+  resume_url?: string;
+}
+
+export function formatAboutPageData(data: AboutPageInput) {
+  const formatted = {
+    bio: data.bio.trim(),
+    profile_image: data.profile_image?.trim() || null,
+    resume_url: data.resume_url?.trim() || null,
+  };
+  
+  return normalizePayload(cleanEmptyStrings(formatted));
+}
+
+/**
+ * Skills Data Formatter
+ */
+export interface SkillInput {
+  category: string;
+  items: any[];
+}
+
+export function formatSkillData(data: SkillInput) {
+  const formatted = {
+    category: data.category.trim(),
+    items: sanitizeStringArray(data.items),
+  };
+  
+  return normalizePayload(formatted);
+}
+
+/**
+ * Experience Data Formatter
+ */
+export interface ExperienceInput {
+  company: string;
+  role: string;
+  year_range: string;
+  description: string;
+}
+
+export function formatExperienceData(data: ExperienceInput) {
+  const formatted = {
+    company: data.company.trim(),
+    role: data.role.trim(),
+    year_range: data.year_range.trim(),
+    description: data.description.trim(),
+  };
+  
+  return normalizePayload(formatted);
+}
 export async function supabaseInsert<T>(
   table: string,
   data: any,

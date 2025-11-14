@@ -55,30 +55,19 @@ const ServiceFormPage = () => {
 
   const handleSubmit = async (formData: ServiceData) => {
     try {
-      const serviceData = {
-        ...formData,
-        updated_at: new Date().toISOString()
-      };
-      
-      let result;
+      const { formatServiceData, supabaseInsert, supabaseUpdate } = await import("@/lib/supabase-helpers");
       
       if (isEditing) {
-        result = await supabase
-          .from("services")
-          .update(serviceData)
-          .eq("id", id);
+        await supabaseUpdate("services", id!, formData, formatServiceData);
+        toast.success("Service updated successfully");
       } else {
-        result = await supabase
-          .from("services")
-          .insert([serviceData]);
+        await supabaseInsert("services", formData, formatServiceData);
+        toast.success("Service created successfully");
       }
       
-      if (result.error) throw result.error;
-      
-      toast.success(`Service ${isEditing ? "updated" : "created"} successfully`);
       navigate("/dashboard/services");
     } catch (error: any) {
-      toast.error(`Failed to ${isEditing ? "update" : "create"} service: ${error.message}`);
+      toast.error(error.message);
       throw error;
     }
   };

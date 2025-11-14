@@ -92,40 +92,20 @@ export const JournalForm = () => {
     try {
       setIsLoading(true);
 
-      const entryData = {
-        title: data.title,
-        content: data.content || null,
-        entry_type: data.entry_type,
-        date: data.date,
-        featured: data.featured,
-        tags: data.tags,
-        image_url: data.image_url || null,
-        video_url: data.video_url || null,
-        external_link: data.external_link || null,
-        status: data.status,
-      };
+      const { formatJournalEntryData, supabaseInsert, supabaseUpdate } = await import("@/lib/supabase-helpers");
 
       if (isEditing) {
-        const { error } = await supabase
-          .from("journal_entries")
-          .update(entryData)
-          .eq("id", id);
-
-        if (error) throw error;
+        await supabaseUpdate("journal_entries", id!, data, formatJournalEntryData);
         toast.success("Journal entry updated successfully");
       } else {
-        const { error } = await supabase
-          .from("journal_entries")
-          .insert(entryData);
-
-        if (error) throw error;
+        await supabaseInsert("journal_entries", data, formatJournalEntryData);
         toast.success("Journal entry created successfully");
       }
 
       navigate("/dashboard/journal");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving journal entry:", error);
-      toast.error("Failed to save journal entry");
+      toast.error(error.message || "Failed to save journal entry");
     } finally {
       setIsLoading(false);
     }
