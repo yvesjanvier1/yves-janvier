@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { PortfolioForm } from "@/components/dashboard/portfolio/PortfolioForm";
 import { PortfolioProjectFormData, ProjectLink } from "@/types/portfolio";
-import { Json } from "@/integrations/supabase/types";
 
 const PortfolioFormPage = () => {
   const { id } = useParams();
@@ -63,34 +62,19 @@ const PortfolioFormPage = () => {
 
   const handleSubmit = async (formData: PortfolioProjectFormData) => {
     try {
-      // Convert links to JSON-compatible format for Supabase
-      const projectData = {
-        ...formData,
-        links: formData.links as unknown as Json,
-        updated_at: new Date().toISOString(),
-      };
-
-      let result;
-
+      const { formatPortfolioProjectData, supabaseInsert, supabaseUpdate } = await import("@/lib/supabase-helpers");
+      
       if (isEditing) {
-        result = await supabase
-          .from("portfolio_projects")
-          .update(projectData)
-          .eq("id", id);
+        await supabaseUpdate("portfolio_projects", id!, formData, formatPortfolioProjectData);
+        toast.success("Project updated successfully");
       } else {
-        result = await supabase.from("portfolio_projects").insert([projectData]);
+        await supabaseInsert("portfolio_projects", formData, formatPortfolioProjectData);
+        toast.success("Project created successfully");
       }
-
-      if (result.error) throw result.error;
-
-      toast.success(`Project ${isEditing ? "updated" : "created"} successfully`);
+      
       navigate("/dashboard/portfolio");
     } catch (error: any) {
-      if (error.code === "23505") {
-        toast.error("A project with this slug already exists. Please use a different slug.");
-      } else {
-        toast.error(`Failed to ${isEditing ? "update" : "create"} project: ${error.message}`);
-      }
+      toast.error(error.message);
       throw error;
     }
   };

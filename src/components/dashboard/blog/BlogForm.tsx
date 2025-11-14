@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FormFields } from "./blog-form/FormFields";
 import { blogPostSchema, sanitizeError } from "@/lib/security";
+import { sanitizeSlug } from "@/lib/supabase-helpers";
 import { z } from "zod";
 import { toast } from "sonner";
 import { BlogPostFormData } from "@/types/blog";
@@ -75,7 +76,7 @@ export function BlogForm({ id, initialData, isLoading, onSubmit }: BlogFormProps
     setFormData(prev => ({ 
       ...prev, 
       title,
-      slug: (!isEditing || prev.slug === '') ? title.toLowerCase().replace(/[^\w\s]/gi, '').replace(/\s+/g, '-') : prev.slug
+      slug: (!isEditing || prev.slug === '') ? sanitizeSlug(title) : prev.slug
     }));
     
     if (validationErrors.title) {
