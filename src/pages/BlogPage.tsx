@@ -159,8 +159,15 @@ const BlogPage = () => {
       <AnimatedSection delay={0.2}>
         <div className="mb-8 space-y-4 md:space-y-0 md:flex md:items-center md:gap-4">
           <div className="flex-1 relative">
+            <label htmlFor="blog-page-search" className="sr-only">
+              {t('blog.searchPlaceholder')}
+            </label>
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
+              id="blog-page-search"
+              name="search"
+              type="search"
+              autoComplete="off"
               placeholder={t('blog.searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => updateSearchParams("search", e.target.value)}

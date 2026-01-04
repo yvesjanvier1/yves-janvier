@@ -22,8 +22,15 @@ const BlogFilters = ({
   return (
     <div className="space-y-6 mb-8">
       <div className="relative">
+        <label htmlFor="blog-search" className="sr-only">
+          Search blog posts
+        </label>
         <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
+          id="blog-search"
+          name="search"
+          type="search"
+          autoComplete="off"
           placeholder="Search posts..."
           className="pl-10"
           value={searchValue}
