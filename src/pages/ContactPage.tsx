@@ -200,6 +200,7 @@ const ContactPage = () => {
               <Input
                 id="name"
                 name="name"
+                autoComplete="name"
                 value={formData.name}
                 onChange={handleChange}
                 required
@@ -219,6 +220,7 @@ const ContactPage = () => {
                 id="email"
                 name="email"
                 type="email"
+                autoComplete="email"
                 value={formData.email}
                 onChange={handleChange}
                 required
@@ -237,6 +239,7 @@ const ContactPage = () => {
               <Input
                 id="subject"
                 name="subject"
+                autoComplete="off"
                 value={formData.subject}
                 onChange={handleChange}
                 required

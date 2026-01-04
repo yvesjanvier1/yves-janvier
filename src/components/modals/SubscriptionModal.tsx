@@ -154,16 +154,21 @@ export const SubscriptionModal = ({ isOpen, onClose, privacyConsent }: Subscript
               {/* Form */}
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
+                  <label htmlFor="subscription-email" className="sr-only">
+                    Email address for newsletter subscription
+                  </label>
                   <Input
                     ref={emailInputRef}
+                    id="subscription-email"
+                    name="email"
                     type="email"
+                    autoComplete="email"
                     placeholder="Enter your email address"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full"
                     required
                     disabled={isSubmitting}
-                    aria-label="Email address for newsletter subscription"
                   />
                 </div>
 

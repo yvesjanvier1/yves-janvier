@@ -40,9 +40,15 @@ const ProjectFilters = ({
       
       {/* Search input */}
       <div className="relative">
+        <label htmlFor="project-search" className="sr-only">
+          Search projects
+        </label>
         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
+          id="project-search"
+          name="search"
           type="search"
+          autoComplete="off"
           placeholder="Search projects..."
           value={searchValue}
           onChange={(e) => onSearchChange(e.target.value)}

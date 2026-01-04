@@ -105,8 +105,13 @@ export const NewsletterSubscription = ({
         
         <div className={`${isFooterVariant ? 'flex flex-col sm:flex-row sm:space-x-2 sm:space-y-0 space-y-2' : ''}`}>
           <div className={`${isFooterVariant ? 'flex-1' : 'w-full'}`}>
+            <label htmlFor="newsletter-email" className="sr-only">
+              Email address for newsletter subscription
+            </label>
             <Input
+              id="newsletter-email"
               type="email"
+              autoComplete="email"
               placeholder="Enter your email"
               {...register('email', { 
                 required: 'Email is required',
@@ -117,10 +122,10 @@ export const NewsletterSubscription = ({
               })}
               className="transition-all duration-300 focus:scale-105 focus:shadow-lg focus:shadow-primary/20"
               disabled={isLoading}
-              aria-label="Email address for newsletter subscription"
+              aria-describedby={errors.email ? 'newsletter-email-error' : undefined}
             />
             {errors.email && (
-              <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
+              <p id="newsletter-email-error" className="text-red-500 text-xs mt-1">{errors.email.message}</p>
             )}
           </div>
           
