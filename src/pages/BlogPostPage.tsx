@@ -14,6 +14,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 
 interface BlogPost {
   id: string;
+  slug: string;
   title: string;
   content: string;
   excerpt?: string;
@@ -43,41 +44,37 @@ const BlogPostPage = () => {
       try {
         setIsLoading(true);
         setError(null);
-        await (supabase.rpc as any)('set_current_locale', { _locale: language });
-        console.log(`BlogPostPage: Fetching blog post with id/slug: ${id}`);
+        console.log(`BlogPostPage: Fetching blog post with id/slug: ${id}, locale: ${language}`);
         
-        // First try to fetch by slug
-        let { data, error } = await supabase
-          .from("blog_posts")
-          .select("*")
-          .eq("slug", id)
-          .eq("published", true)
-          .maybeSingle();
+        // Use RPC to set locale and fetch posts in the same transaction
+        const { data: posts, error: rpcError } = await (supabase.rpc as any)('set_locale_and_get_blog_posts', {
+          _locale: language,
+          _limit: 100,
+          _offset: 0,
+          _tag: null,
+          _search: null
+        });
 
-        if (!data && !error) {
-          console.log("BlogPostPage: No post found by slug, trying by ID if UUID");
+        if (rpcError) {
+          console.error("BlogPostPage: RPC error:", rpcError);
+          throw rpcError;
+        }
+
+        // Find the post by slug or ID from the returned posts
+        let foundPost = posts?.find((p: BlogPost) => p.slug === id);
+        
+        if (!foundPost) {
           const isUuid = /^[0-9a-fA-F-]{36}$/.test(id);
           if (isUuid) {
-            ({ data, error } = await supabase
-              .from("blog_posts")
-              .select("*")
-              .eq("id", id)
-              .eq("published", true)
-              .maybeSingle());
+            foundPost = posts?.find((p: BlogPost) => p.id === id);
           }
         }
 
-        if (error) {
-          console.error("BlogPostPage: Supabase error:", error);
-          throw error;
-        }
+        console.log("BlogPostPage: Blog post data:", foundPost);
 
-        console.log("BlogPostPage: Blog post data:", data);
-
-        if (data) {
-          setPost(data);
+        if (foundPost) {
+          setPost(foundPost);
         } else {
-          // No post found
           console.error("BlogPostPage: No blog post found with this ID/slug");
           setError("Blog post not found");
           toast.error("Blog post not found");
