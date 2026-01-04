@@ -40,7 +40,15 @@ const validateLanguage = (lang: any): Language => {
 };
 
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
-  const [language, setLanguage] = useState<Language>('fr');
+  const [language, setLanguage] = useState<Language>(() => {
+    if (typeof window === 'undefined') return 'fr';
+
+    const savedLanguage = localStorage.getItem('i18n-lang') || localStorage.getItem('language');
+    if (savedLanguage) return validateLanguage(savedLanguage);
+
+    return detectBrowserLanguage();
+  });
+
   const [translations, setTranslations] = useState<Record<string, Record<string, string>>>({});
 
   useEffect(() => {
@@ -67,17 +75,19 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
 
     loadTranslations();
 
-    // Initialize language from localStorage or browser detection
+    // Ensure localStorage has a value (without changing the current language)
     const savedLanguage = localStorage.getItem('i18n-lang') || localStorage.getItem('language');
-    if (savedLanguage) {
-      const validLang = validateLanguage(savedLanguage);
-      setLanguage(validLang);
-    } else {
-      const detectedLanguage = detectBrowserLanguage();
-      setLanguage(detectedLanguage);
-      localStorage.setItem('i18n-lang', detectedLanguage);
+    if (!savedLanguage) {
+      localStorage.setItem('i18n-lang', language);
     }
   }, []);
+
+  useEffect(() => {
+    // Update document language attribute for accessibility and SEO
+    if (typeof document !== 'undefined') {
+      document.documentElement.lang = language;
+    }
+  }, [language]);
 
   const handleSetLanguage = (lang: Language) => {
     const validLang = validateLanguage(lang);
