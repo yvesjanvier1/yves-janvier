@@ -134,6 +134,13 @@ export function BlogForm({ id, initialData, isLoading, onSubmit }: BlogFormProps
     toast.success("Article content populated! Review and edit as needed.");
   };
 
+  const handleCoverImageGenerated = (imageUrl: string) => {
+    setFormData(prev => ({
+      ...prev,
+      cover_image: imageUrl,
+    }));
+  };
+
   if (isLoading) {
     return <div className="text-center py-10">Loading post data...</div>;
   }
@@ -153,6 +160,7 @@ export function BlogForm({ id, initialData, isLoading, onSubmit }: BlogFormProps
           addTag={addTag}
           removeTag={removeTag}
           validationErrors={validationErrors}
+          onCoverImageGenerated={handleCoverImageGenerated}
         />
         
         <div className="flex justify-end gap-2">

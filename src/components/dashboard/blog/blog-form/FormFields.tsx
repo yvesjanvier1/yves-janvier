@@ -1,10 +1,10 @@
-
 import React from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { FormField } from "@/components/ui/form-field";
 import { TagInput } from "@/components/ui/tag-input";
+import { CoverImageGenerator } from "../CoverImageGenerator";
 import RichTextEditor from "../RichTextEditor";
 import "../RichTextEditor.css";
 
@@ -27,6 +27,7 @@ interface FormFieldsProps {
   addTag: (tag: string) => void;
   removeTag: (tag: string) => void;
   validationErrors?: Record<string, string>;
+  onCoverImageGenerated?: (imageUrl: string) => void;
 }
 
 export function FormFields({
@@ -37,7 +38,8 @@ export function FormFields({
   handleTitleChange,
   addTag,
   removeTag,
-  validationErrors = {}
+  validationErrors = {},
+  onCoverImageGenerated
 }: FormFieldsProps) {
   
   const handleContentChange = (value: string) => {
@@ -112,18 +114,40 @@ export function FormFields({
       </FormField>
       
       <FormField id="cover_image" label="Cover Image URL">
-        <Input
-          id="cover_image"
-          name="cover_image"
-          value={formData.cover_image}
-          onChange={handleChange}
-          placeholder="https://example.com/image.jpg"
-          type="url"
-          className={validationErrors.cover_image ? 'border-destructive' : ''}
-        />
-        {validationErrors.cover_image && (
-          <p className="text-sm text-destructive mt-1">{validationErrors.cover_image}</p>
-        )}
+        <div className="space-y-2">
+          <div className="flex gap-2">
+            <Input
+              id="cover_image"
+              name="cover_image"
+              value={formData.cover_image}
+              onChange={handleChange}
+              placeholder="https://example.com/image.jpg"
+              type="url"
+              className={`flex-1 ${validationErrors.cover_image ? 'border-destructive' : ''}`}
+            />
+            {onCoverImageGenerated && (
+              <CoverImageGenerator 
+                title={formData.title} 
+                onImageGenerated={onCoverImageGenerated} 
+              />
+            )}
+          </div>
+          {formData.cover_image && (
+            <div className="relative rounded-lg overflow-hidden border bg-muted">
+              <img 
+                src={formData.cover_image} 
+                alt="Cover preview" 
+                className="w-full h-32 object-cover"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+              />
+            </div>
+          )}
+          {validationErrors.cover_image && (
+            <p className="text-sm text-destructive">{validationErrors.cover_image}</p>
+          )}
+        </div>
       </FormField>
       
       <FormField id="tags" label="Tags">
