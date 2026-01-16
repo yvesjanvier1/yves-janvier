@@ -1,9 +1,9 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FormFields } from "./blog-form/FormFields";
+import { ArticleGenerator } from "./ArticleGenerator";
 import { blogPostSchema, sanitizeError } from "@/lib/security";
 import { sanitizeSlug } from "@/lib/supabase-helpers";
 import { z } from "zod";
@@ -122,12 +122,27 @@ export function BlogForm({ id, initialData, isLoading, onSubmit }: BlogFormProps
     }
   };
 
+  const handleArticleGenerated = (article: { title: string; excerpt: string; content: string; tags: string[] }) => {
+    setFormData(prev => ({
+      ...prev,
+      title: article.title,
+      slug: sanitizeSlug(article.title),
+      content: article.content,
+      excerpt: article.excerpt,
+      tags: article.tags.slice(0, 10), // Max 10 tags
+    }));
+    toast.success("Article content populated! Review and edit as needed.");
+  };
+
   if (isLoading) {
     return <div className="text-center py-10">Loading post data...</div>;
   }
 
   return (
     <Card className="p-6">
+      <div className="flex justify-end mb-4">
+        <ArticleGenerator onArticleGenerated={handleArticleGenerated} />
+      </div>
       <form onSubmit={handleSubmit} className="space-y-6">
         <FormFields 
           formData={formData}
