@@ -92,6 +92,11 @@ export function formatBlogPostData(data: BlogPostInput) {
     sanitizedContent = data.content;
   }
 
+  // Process tags - ensure clean strings without special characters that could break Postgres
+  const cleanTags = sanitizeStringArray(data.tags || []).map(tag => 
+    tag.replace(/^#/, '').trim() // Remove leading # from tags
+  ).filter(Boolean);
+
   const formatted = {
     title: data.title.trim(),
     slug: data.slug ? sanitizeSlug(data.slug) : sanitizeSlug(data.title),
@@ -99,7 +104,7 @@ export function formatBlogPostData(data: BlogPostInput) {
     excerpt: data.excerpt?.trim() || null,
     cover_image: data.cover_image?.trim() || null,
     published: normalizeBoolean(data.published),
-    tags: sanitizeStringArray(data.tags || []),
+    tags: cleanTags,
     locale: data.locale || "fr",
   };
   
