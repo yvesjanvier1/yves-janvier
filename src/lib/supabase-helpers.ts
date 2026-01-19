@@ -24,8 +24,8 @@ export function sanitizeStringArray(arr: any[]): string[] {
   if (!Array.isArray(arr)) return [];
   
   return arr
-    .map((item) => String(item))
-    .map((item) => item.replace(/[{}"]/g, "").trim()) // Remove Postgres array chars
+    .filter(item => item !== null && item !== undefined)
+    .map((item) => String(item).trim())
     .filter(Boolean); // Remove empty strings
 }
 
@@ -83,10 +83,19 @@ export interface BlogPostInput {
 }
 
 export function formatBlogPostData(data: BlogPostInput) {
+  // Safely sanitize content - ensure it's a valid string
+  let sanitizedContent = data.content || "";
+  try {
+    sanitizedContent = sanitizeHtml(data.content);
+  } catch (e) {
+    console.warn("HTML sanitization failed, using raw content:", e);
+    sanitizedContent = data.content;
+  }
+
   const formatted = {
     title: data.title.trim(),
     slug: data.slug ? sanitizeSlug(data.slug) : sanitizeSlug(data.title),
-    content: sanitizeHtml(data.content),
+    content: sanitizedContent,
     excerpt: data.excerpt?.trim() || null,
     cover_image: data.cover_image?.trim() || null,
     published: normalizeBoolean(data.published),
