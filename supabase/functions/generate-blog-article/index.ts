@@ -18,6 +18,21 @@ const TECH_TOPICS = [
   "tech industry news and innovations"
 ];
 
+const LANGUAGE_CONFIG: Record<string, { name: string; instruction: string }> = {
+  fr: {
+    name: "French",
+    instruction: "Write the entire article in French (Français). All headings, content, and tags must be in French."
+  },
+  en: {
+    name: "English",
+    instruction: "Write the entire article in English. All headings, content, and tags must be in English."
+  },
+  ht: {
+    name: "Haitian Creole",
+    instruction: "Write the entire article in Haitian Creole (Kreyòl Ayisyen). All headings, content, and tags must be in Haitian Creole."
+  }
+};
+
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
@@ -25,7 +40,7 @@ serve(async (req) => {
   }
 
   try {
-    const { topic, customTopic } = await req.json();
+    const { topic, customTopic, language = "fr" } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
@@ -34,15 +49,19 @@ serve(async (req) => {
     }
 
     const selectedTopic = customTopic || topic || TECH_TOPICS[Math.floor(Math.random() * TECH_TOPICS.length)];
+    const languageConfig = LANGUAGE_CONFIG[language] || LANGUAGE_CONFIG.fr;
     
-    console.log(`Generating article for topic: ${selectedTopic}`);
+    console.log(`Generating article for topic: ${selectedTopic} in ${languageConfig.name}`);
 
     const systemPrompt = `You are an expert technology writer who creates engaging, informative blog posts. 
 Your writing style is professional yet accessible, with practical insights and examples.
 Focus on current trends and actionable advice. Write in a way that appeals to both technical and non-technical readers.
-Always structure your articles with clear headings and sections.`;
+Always structure your articles with clear headings and sections.
+IMPORTANT: ${languageConfig.instruction}`;
 
     const userPrompt = `Write a comprehensive blog article about "${selectedTopic}" for a technology-focused blog.
+
+${languageConfig.instruction}
 
 The article should include:
 1. An engaging introduction that hooks the reader
@@ -54,9 +73,9 @@ Format the content in HTML with proper semantic tags (h2, h3, p, ul, li, strong,
 Keep the total length between 800-1200 words.
 
 Also provide:
-- A compelling title (max 60 characters)
-- A brief excerpt/summary (max 160 characters)
-- 3-5 relevant tags
+- A compelling title (max 60 characters) - IN ${languageConfig.name.toUpperCase()}
+- A brief excerpt/summary (max 160 characters) - IN ${languageConfig.name.toUpperCase()}
+- 3-5 relevant tags - IN ${languageConfig.name.toUpperCase()}
 
 Respond in this exact JSON format:
 {

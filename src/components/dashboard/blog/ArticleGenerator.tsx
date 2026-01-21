@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Sparkles, Loader2 } from "lucide-react";
+import { Sparkles, Loader2, Globe } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -46,10 +46,17 @@ const TOPIC_OPTIONS = [
   { value: "random", label: "Surprise Me! (Random Topic)" },
 ];
 
+const LANGUAGE_OPTIONS = [
+  { value: "fr", label: "Français", flag: "🇫🇷" },
+  { value: "en", label: "English", flag: "🇺🇸" },
+  { value: "ht", label: "Kreyòl Ayisyen", flag: "🇭🇹" },
+];
+
 export function ArticleGenerator({ onArticleGenerated }: ArticleGeneratorProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState("random");
+  const [selectedLanguage, setSelectedLanguage] = useState("fr");
   const [customTopic, setCustomTopic] = useState("");
 
   const handleGenerate = async () => {
@@ -74,7 +81,8 @@ export function ArticleGenerator({ onArticleGenerated }: ArticleGeneratorProps) 
       const { data, error } = await supabase.functions.invoke('generate-blog-article', {
         body: { 
           topic: topic || undefined,
-          customTopic: customTopic || undefined 
+          customTopic: customTopic || undefined,
+          language: selectedLanguage
         }
       });
 
@@ -129,6 +137,28 @@ export function ArticleGenerator({ onArticleGenerated }: ArticleGeneratorProps) 
         </DialogHeader>
         
         <div className="grid gap-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="language" className="flex items-center gap-2">
+              <Globe className="h-4 w-4" />
+              Language / Langue
+            </Label>
+            <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
+              <SelectTrigger id="language">
+                <SelectValue placeholder="Select language" />
+              </SelectTrigger>
+              <SelectContent>
+                {LANGUAGE_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    <span className="flex items-center gap-2">
+                      <span>{option.flag}</span>
+                      <span>{option.label}</span>
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="topic">Select Topic Category</Label>
             <Select value={selectedTopic} onValueChange={setSelectedTopic}>
