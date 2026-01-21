@@ -9,10 +9,21 @@ import { ProjectSkeleton } from "./project-skeleton";
 
 export const FeaturedProjects = () => {
   const { t } = useLanguage();
-  const { data: projects, isLoading, error, refetch } = usePortfolioProjects({ 
+  
+  // First try to get featured projects
+  const { data: featuredProjects, isLoading: isFeaturedLoading } = usePortfolioProjects({ 
     limit: 3, 
     featured: true 
   });
+  
+  // Fallback to latest projects if no featured ones exist
+  const { data: latestProjects, isLoading: isLatestLoading, error, refetch } = usePortfolioProjects({ 
+    limit: 3,
+    enabled: !isFeaturedLoading && (!featuredProjects || featuredProjects.length === 0)
+  });
+  
+  const isLoading = isFeaturedLoading || isLatestLoading;
+  const projects = (featuredProjects && featuredProjects.length > 0) ? featuredProjects : latestProjects;
 
   if (error) {
     return (
