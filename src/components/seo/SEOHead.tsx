@@ -1,5 +1,6 @@
-
 import { useEffect } from 'react';
+
+const BASE_URL = 'https://yves-janvier.lovable.app';
 
 interface SEOHeadProps {
   title?: string;
@@ -17,13 +18,24 @@ const SEOHead = ({
   title = "Yves Janvier - Data & Tech Expert",
   description = "Data & Tech Expert specializing in transforming complex data into actionable insights and building innovative tech solutions.",
   image = "/placeholder.svg",
-  url = typeof window !== 'undefined' ? window.location.href : '',
+  url,
   type = 'website',
   publishedTime,
   modifiedTime,
   author = "Yves Janvier",
   tags = []
 }: SEOHeadProps) => {
+  
+  // Ensure absolute URLs for Open Graph
+  const getAbsoluteUrl = (path: string) => {
+    if (!path) return BASE_URL;
+    if (path.startsWith('http')) return path;
+    return `${BASE_URL}${path.startsWith('/') ? '' : '/'}${path}`;
+  };
+
+  const absoluteUrl = url || (typeof window !== 'undefined' ? window.location.href : BASE_URL);
+  const absoluteImage = getAbsoluteUrl(image);
+
   useEffect(() => {
     // Update document title
     document.title = title;
@@ -49,21 +61,26 @@ const SEOHead = ({
       updateMetaTag('keywords', tags.join(', '));
     }
 
-    // Open Graph tags
+    // Open Graph tags - must use absolute URLs
     updateMetaTag('og:title', title, true);
     updateMetaTag('og:description', description, true);
-    updateMetaTag('og:image', image, true);
-    updateMetaTag('og:url', url, true);
+    updateMetaTag('og:image', absoluteImage, true);
+    updateMetaTag('og:image:width', '1200', true);
+    updateMetaTag('og:image:height', '630', true);
+    updateMetaTag('og:image:alt', title, true);
+    updateMetaTag('og:url', absoluteUrl, true);
     updateMetaTag('og:type', type, true);
     updateMetaTag('og:site_name', 'Yves Janvier', true);
+    updateMetaTag('og:locale', 'fr_FR', true);
 
-    // Twitter Card tags
+    // Twitter Card tags - must use absolute URLs
     updateMetaTag('twitter:card', 'summary_large_image', true);
     updateMetaTag('twitter:site', '@yvesjanvier01', true);
     updateMetaTag('twitter:creator', '@yvesjanvier01', true);
     updateMetaTag('twitter:title', title, true);
     updateMetaTag('twitter:description', description, true);
-    updateMetaTag('twitter:image', image, true);
+    updateMetaTag('twitter:image', absoluteImage, true);
+    updateMetaTag('twitter:image:alt', title, true);
 
     // Article specific tags
     if (type === 'article') {
@@ -74,6 +91,9 @@ const SEOHead = ({
         updateMetaTag('article:modified_time', modifiedTime, true);
       }
       updateMetaTag('article:author', author, true);
+      
+      // Remove old article tags before adding new ones
+      document.querySelectorAll('meta[property="article:tag"]').forEach(el => el.remove());
       tags.forEach(tag => {
         const meta = document.createElement('meta');
         meta.setAttribute('property', 'article:tag');
@@ -89,9 +109,9 @@ const SEOHead = ({
       canonicalLink.setAttribute('rel', 'canonical');
       document.head.appendChild(canonicalLink);
     }
-    canonicalLink.setAttribute('href', url);
+    canonicalLink.setAttribute('href', absoluteUrl);
 
-  }, [title, description, image, url, type, publishedTime, modifiedTime, author, tags]);
+  }, [title, description, absoluteImage, absoluteUrl, type, publishedTime, modifiedTime, author, tags]);
 
   return null;
 };
