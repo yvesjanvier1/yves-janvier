@@ -1,6 +1,7 @@
-
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Linkedin, MessageCircle } from "lucide-react";
+import { Linkedin, MessageCircle, Copy, Check } from "lucide-react";
+import { toast } from "sonner";
 
 interface SocialShareProps {
   title: string;
@@ -9,6 +10,8 @@ interface SocialShareProps {
 }
 
 const SocialShare = ({ title, url, description }: SocialShareProps) => {
+  const [copied, setCopied] = useState(false);
+  
   const encodedTitle = encodeURIComponent(title);
   const encodedUrl = encodeURIComponent(url);
   const encodedDescription = encodeURIComponent(description || title);
@@ -23,10 +26,35 @@ const SocialShare = ({ title, url, description }: SocialShareProps) => {
     window.open(shareLinks[platform], '_blank', 'noopener,noreferrer,width=600,height=400');
   };
 
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      toast.success("Link copied to clipboard!");
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      toast.error("Failed to copy link");
+    }
+  };
+
   return (
     <div className="flex items-center gap-3 py-4">
       <span className="text-sm font-medium text-muted-foreground">Share:</span>
       <div className="flex gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleCopyLink}
+          className="flex items-center gap-2 hover:bg-primary/10"
+          aria-label="Copy link to clipboard"
+        >
+          {copied ? (
+            <Check className="h-4 w-4 text-green-500" />
+          ) : (
+            <Copy className="h-4 w-4" />
+          )}
+          {copied ? "Copied!" : "Copy"}
+        </Button>
         <Button
           variant="outline"
           size="sm"
