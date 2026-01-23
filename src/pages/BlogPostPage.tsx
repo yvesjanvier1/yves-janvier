@@ -35,7 +35,9 @@ const BlogPostPage = () => {
 
   const { language } = useLanguage();
 
-  const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
+  // Construct the full canonical URL for sharing
+  const baseUrl = 'https://yves-janvier.lovable.app';
+  const getShareUrl = () => post ? `${baseUrl}/blog/${post.slug}` : '';
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -188,7 +190,7 @@ const BlogPostPage = () => {
         publishedTime={post.created_at}
         modifiedTime={post.updated_at}
         tags={post.tags}
-        url={currentUrl}
+        url={getShareUrl()}
       />
       <div className="container max-w-4xl px-4 py-16 mx-auto">
         <div className="mb-8">
@@ -244,7 +246,7 @@ const BlogPostPage = () => {
           <footer className="mt-12 pt-8 border-t">
             <SocialShare 
               title={post.title}
-              url={currentUrl}
+              url={getShareUrl()}
               description={post.excerpt}
             />
           </footer>
