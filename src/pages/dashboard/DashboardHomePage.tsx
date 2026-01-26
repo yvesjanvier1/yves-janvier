@@ -1,21 +1,22 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { StatsCardGrid } from "@/components/dashboard/home/stats-card-grid";
-import { VisitorsChart } from "@/components/dashboard/home/visitors-chart";
-import { PageViewsChart } from "@/components/dashboard/home/page-views-chart";
-import { TopicsChart } from "@/components/dashboard/home/topics-chart";
-import { RecentActivity } from "@/components/dashboard/home/recent-activity";
+import { DashboardHeader } from "@/components/dashboard/home/DashboardHeader";
+import { KPIGrid } from "@/components/dashboard/home/KPIGrid";
+import { VisitorTrendsChart } from "@/components/dashboard/home/VisitorTrendsChart";
+import { PageViewsBarChart } from "@/components/dashboard/home/PageViewsBarChart";
+import { PopularTopics } from "@/components/dashboard/home/PopularTopics";
+import { ActivityFeed } from "@/components/dashboard/home/ActivityFeed";
 
 const DashboardHomePage = () => {
+  const [dateRange, setDateRange] = useState("30d");
   const [stats, setStats] = useState({
     blogPosts: 0,
     projects: 0,
     messages: 0,
     pageViews: 0,
   });
-  const [blogData, setBlogData] = useState([]);
-  const [pageViewData, setPageViewData] = useState([]);
+  const [blogData, setBlogData] = useState<{ name: string; value: number }[]>([]);
+  const [pageViewData, setPageViewData] = useState<{ name: string; value: number }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -66,8 +67,8 @@ const DashboardHomePage = () => {
           const viewData = analyticsResult.data
             .slice(0, 5)
             .map(item => ({ 
-              name: item.page.replace(/^\//, '').replace(/\/$/, '') || 'Home',
-              value: item.views 
+              name: item.page?.replace(/^\//, '').replace(/\/$/, '') || 'Home',
+              value: item.views || 0
             }));
           setPageViewData(viewData);
         }
@@ -80,7 +81,7 @@ const DashboardHomePage = () => {
     };
 
     fetchDashboardStats();
-  }, []);
+  }, [dateRange]);
 
   // Example data for visitors graph (would ideally come from analytics)
   const visitorData = [
@@ -94,22 +95,26 @@ const DashboardHomePage = () => {
   ];
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Dashboard Overview</h1>
+    <div className="space-y-6 max-w-7xl mx-auto">
+      {/* Header with date range selector */}
+      <DashboardHeader 
+        dateRange={dateRange} 
+        onDateRangeChange={setDateRange} 
+      />
       
-      {/* Stats Overview */}
-      <StatsCardGrid stats={stats} isLoading={isLoading} />
+      {/* KPI Cards */}
+      <KPIGrid stats={stats} isLoading={isLoading} />
       
-      {/* Charts */}
+      {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <VisitorsChart data={visitorData} />
-        <PageViewsChart data={pageViewData} isLoading={isLoading} />
+        <VisitorTrendsChart data={visitorData} />
+        <PageViewsBarChart data={pageViewData} isLoading={isLoading} />
       </div>
       
-      {/* Additional Cards */}
+      {/* Topics and Activity Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <TopicsChart data={blogData} isLoading={isLoading} />
-        <RecentActivity stats={stats} isLoading={isLoading} />
+        <PopularTopics data={blogData} isLoading={isLoading} />
+        <ActivityFeed stats={stats} isLoading={isLoading} />
       </div>
     </div>
   );
