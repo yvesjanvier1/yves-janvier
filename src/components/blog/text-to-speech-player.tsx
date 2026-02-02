@@ -1,8 +1,17 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Play, Pause, Square, Volume2, Loader2, AlertCircle } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Play, Pause, Square, Volume2, Loader2, AlertCircle, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useTranslation } from "react-i18next";
 
 interface TextToSpeechPlayerProps {
   title: string;
@@ -14,11 +23,11 @@ interface TextToSpeechPlayerProps {
 // Map locale codes to Web Speech API language codes
 const getLanguageCode = (locale?: string): string => {
   const langMap: Record<string, string> = {
-    en: "en-US",
-    fr: "fr-FR",
-    ht: "fr-HT", // Haitian Creole - fallback to French-Haiti variant
+    en: "en",
+    fr: "fr",
+    ht: "fr", // Haitian Creole - fallback to French
   };
-  return langMap[locale || "en"] || "en-US";
+  return langMap[locale || "en"] || "en";
 };
 
 // Strip HTML tags and decode entities for clean text
@@ -30,12 +39,32 @@ const stripHtml = (html: string): string => {
 // Constants
 const VOICE_LOAD_TIMEOUT = 3000; // 3 seconds timeout for voice loading
 
+// Format voice name for display
+const formatVoiceName = (voice: SpeechSynthesisVoice): string => {
+  // Remove common prefixes and clean up the name
+  let name = voice.name
+    .replace(/^Microsoft\s+/i, "")
+    .replace(/^Google\s+/i, "")
+    .replace(/\s+Online\s*\(Natural\)/i, "")
+    .replace(/\s+-\s+.+$/, ""); // Remove language suffix like " - English (United States)"
+  
+  // Add a language indicator
+  const langCode = voice.lang.split("-")[0].toUpperCase();
+  return `${name} (${langCode})`;
+};
+
 export function TextToSpeechPlayer({
   title,
   content,
-  locale,
+  locale: propLocale,
   className,
 }: TextToSpeechPlayerProps) {
+  const { language: contextLanguage } = useLanguage();
+  const { t } = useTranslation();
+  
+  // Use prop locale if provided, otherwise fall back to context language
+  const locale = propLocale || contextLanguage;
+
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -43,6 +72,8 @@ export function TextToSpeechPlayer({
   const [hasError, setHasError] = useState(false);
   const [progress, setProgress] = useState(0);
   const [voicesLoaded, setVoicesLoaded] = useState(false);
+  const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [selectedVoiceUri, setSelectedVoiceUri] = useState<string>("");
   
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const textRef = useRef<string>("");
@@ -60,11 +91,29 @@ export function TextToSpeechPlayer({
     const synth = window.speechSynthesis;
 
     const loadVoices = () => {
-      const availableVoices = synth.getVoices();
-      if (availableVoices.length > 0) {
-        voicesRef.current = availableVoices;
+      const voices = synth.getVoices();
+      if (voices.length > 0) {
+        voicesRef.current = voices;
+        
+        // Filter voices for the current language
+        const langPrefix = getLanguageCode(locale);
+        const matchingVoices = voices.filter((v) =>
+          v.lang.toLowerCase().startsWith(langPrefix.toLowerCase())
+        );
+        
+        // If no matching voices, show all voices
+        const voicesToShow = matchingVoices.length > 0 ? matchingVoices : voices;
+        
         if (isMountedRef.current) {
+          setAvailableVoices(voicesToShow);
           setVoicesLoaded(true);
+          
+          // Auto-select the best voice if none selected
+          if (!selectedVoiceUri && voicesToShow.length > 0) {
+            // Prefer local service voices
+            const localVoice = voicesToShow.find((v) => v.localService);
+            setSelectedVoiceUri(localVoice?.voiceURI || voicesToShow[0].voiceURI);
+          }
         }
       }
     };
@@ -78,7 +127,29 @@ export function TextToSpeechPlayer({
     return () => {
       synth.removeEventListener("voiceschanged", loadVoices);
     };
-  }, []);
+  }, [locale, selectedVoiceUri]);
+
+  // Update available voices when language changes
+  useEffect(() => {
+    if (voicesRef.current.length > 0) {
+      const langPrefix = getLanguageCode(locale);
+      const matchingVoices = voicesRef.current.filter((v) =>
+        v.lang.toLowerCase().startsWith(langPrefix.toLowerCase())
+      );
+      
+      const voicesToShow = matchingVoices.length > 0 ? matchingVoices : voicesRef.current;
+      setAvailableVoices(voicesToShow);
+      
+      // Reset selected voice if it's not in the new list
+      const currentVoiceStillValid = voicesToShow.some(
+        (v) => v.voiceURI === selectedVoiceUri
+      );
+      if (!currentVoiceStillValid && voicesToShow.length > 0) {
+        const localVoice = voicesToShow.find((v) => v.localService);
+        setSelectedVoiceUri(localVoice?.voiceURI || voicesToShow[0].voiceURI);
+      }
+    }
+  }, [locale]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -115,46 +186,24 @@ export function TextToSpeechPlayer({
     textRef.current = `${title}. ${cleanContent}`;
   }, [title, content]);
 
-  // Find the best matching voice for the language
-  const findVoiceForLanguage = useCallback((langCode: string): SpeechSynthesisVoice | null => {
-    const voices = voicesRef.current;
-    if (voices.length === 0) return null;
-
-    const langPrefix = langCode.split("-")[0]; // Get base language code (e.g., 'en' from 'en-US')
-
-    // Priority 1: Exact match with local service preferred
-    let voice = voices.find(
-      (v) => v.lang === langCode && v.localService
-    );
-
-    // Priority 2: Exact match (any)
-    if (!voice) {
-      voice = voices.find((v) => v.lang === langCode);
+  // Find the selected voice
+  const getSelectedVoice = useCallback((): SpeechSynthesisVoice | null => {
+    if (selectedVoiceUri) {
+      const voice = voicesRef.current.find((v) => v.voiceURI === selectedVoiceUri);
+      if (voice) return voice;
     }
-
-    // Priority 3: Prefix match with local service preferred
-    if (!voice) {
-      voice = voices.find(
-        (v) => v.lang.startsWith(langPrefix) && v.localService
-      );
+    
+    // Fallback to first available voice
+    if (availableVoices.length > 0) {
+      return availableVoices[0];
     }
-
-    // Priority 4: Any prefix match
-    if (!voice) {
-      voice = voices.find((v) => v.lang.startsWith(langPrefix));
-    }
-
-    // Fallback: First available voice
-    if (!voice && voices.length > 0) {
-      voice = voices[0];
-    }
-
-    return voice || null;
-  }, []);
+    
+    return voicesRef.current[0] || null;
+  }, [selectedVoiceUri, availableVoices]);
 
   const handlePlay = useCallback(() => {
     if (!isSupported) {
-      toast.error("Text-to-speech is not supported in your browser");
+      toast.error(t("tts.notSupported", "Text-to-speech is not supported in your browser"));
       return;
     }
 
@@ -182,13 +231,12 @@ export function TextToSpeechPlayer({
     const startSpeech = () => {
       if (!isMountedRef.current) return;
 
-      const langCode = getLanguageCode(locale);
-      const selectedVoice = findVoiceForLanguage(langCode);
+      const selectedVoice = getSelectedVoice();
 
       if (!selectedVoice) {
         setIsLoading(false);
         setHasError(true);
-        toast.error("No suitable voice found for the selected language");
+        toast.error(t("tts.noVoice", "No suitable voice found for the selected language"));
         return;
       }
 
@@ -231,7 +279,7 @@ export function TextToSpeechPlayer({
           setIsPlaying(false);
           setIsPaused(false);
           setHasError(true);
-          toast.error("Failed to play audio. Please try again.");
+          toast.error(t("tts.error", "Failed to play audio. Please try again."));
           console.error("Speech synthesis error:", event.error);
         }
       };
@@ -272,13 +320,13 @@ export function TextToSpeechPlayer({
             if (voicesRef.current.length === 0) {
               setIsLoading(false);
               setHasError(true);
-              toast.error("Speech synthesis voices failed to load. Please try again.");
+              toast.error(t("tts.loadError", "Speech synthesis voices failed to load. Please try again."));
             }
           }
         }, VOICE_LOAD_TIMEOUT);
       }
     }
-  }, [isSupported, isPaused, locale, voicesLoaded, findVoiceForLanguage]);
+  }, [isSupported, isPaused, voicesLoaded, getSelectedVoice, t]);
 
   const handlePause = useCallback(() => {
     if ("speechSynthesis" in window) {
@@ -301,6 +349,14 @@ export function TextToSpeechPlayer({
     setProgress(0);
   }, []);
 
+  const handleVoiceChange = useCallback((voiceUri: string) => {
+    setSelectedVoiceUri(voiceUri);
+    // If currently playing, restart with new voice
+    if (isPlaying || isPaused) {
+      handleStop();
+    }
+  }, [isPlaying, isPaused, handleStop]);
+
   if (!isSupported) {
     return null;
   }
@@ -310,79 +366,122 @@ export function TextToSpeechPlayer({
   return (
     <div
       className={cn(
-        "flex items-center gap-3 p-4 rounded-lg border bg-card transition-all duration-200",
+        "flex flex-col gap-3 p-4 rounded-lg border bg-card transition-all duration-200",
         isActive && "ring-2 ring-primary/20",
         hasError && "border-destructive/50",
         className
       )}
     >
-      <Volume2 className="h-5 w-5 text-muted-foreground shrink-0" />
-      
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-foreground">
-            Listen to Article
-          </span>
-          {isLoading && (
-            <span className="text-xs text-muted-foreground">Loading voices...</span>
-          )}
-          {hasError && (
-            <span className="text-xs text-destructive flex items-center gap-1">
-              <AlertCircle className="h-3 w-3" />
-              Error
-            </span>
-          )}
-        </div>
+      <div className="flex items-center gap-3">
+        <Volume2 className="h-5 w-5 text-muted-foreground shrink-0" />
         
-        {/* Progress bar */}
-        <div className="mt-2 h-1 w-full bg-muted rounded-full overflow-hidden">
-          <div
-            className={cn(
-              "h-full transition-all duration-300 ease-out",
-              hasError ? "bg-destructive" : "bg-primary"
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-foreground">
+              {t("tts.listenToArticle", "Listen to Article")}
+            </span>
+            {isLoading && (
+              <span className="text-xs text-muted-foreground">
+                {t("tts.loadingVoices", "Loading voices...")}
+              </span>
             )}
-            style={{ width: `${progress}%` }}
-          />
+            {hasError && (
+              <span className="text-xs text-destructive flex items-center gap-1">
+                <AlertCircle className="h-3 w-3" />
+                {t("tts.errorLabel", "Error")}
+              </span>
+            )}
+          </div>
+          
+          {/* Progress bar */}
+          <div className="mt-2 h-1 w-full bg-muted rounded-full overflow-hidden">
+            <div
+              className={cn(
+                "h-full transition-all duration-300 ease-out",
+                hasError ? "bg-destructive" : "bg-primary"
+              )}
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        </div>
+
+        <div className="flex items-center gap-1 shrink-0">
+          {isLoading ? (
+            <Button variant="ghost" size="icon" disabled aria-label={t("tts.loading", "Loading")}>
+              <Loader2 className="h-4 w-4 animate-spin" />
+            </Button>
+          ) : isPlaying ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handlePause}
+              aria-label={t("tts.pause", "Pause")}
+            >
+              <Pause className="h-4 w-4" />
+            </Button>
+          ) : (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handlePlay}
+              aria-label={isPaused ? t("tts.resume", "Resume") : t("tts.play", "Play")}
+              className={hasError ? "text-destructive hover:text-destructive" : ""}
+            >
+              <Play className="h-4 w-4" />
+            </Button>
+          )}
+          
+          {isActive && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleStop}
+              aria-label={t("tts.stop", "Stop")}
+            >
+              <Square className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </div>
 
-      <div className="flex items-center gap-1 shrink-0">
-        {isLoading ? (
-          <Button variant="ghost" size="icon" disabled>
-            <Loader2 className="h-4 w-4 animate-spin" />
-          </Button>
-        ) : isPlaying ? (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handlePause}
-            aria-label="Pause"
+      {/* Voice selector */}
+      {availableVoices.length > 1 && (
+        <div className="flex items-center gap-2 pt-2 border-t border-border/50">
+          <span className="text-xs text-muted-foreground shrink-0">
+            {t("tts.voice", "Voice")}:
+          </span>
+          <Select
+            value={selectedVoiceUri}
+            onValueChange={handleVoiceChange}
+            disabled={isPlaying}
           >
-            <Pause className="h-4 w-4" />
-          </Button>
-        ) : (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handlePlay}
-            aria-label={isPaused ? "Resume" : "Play"}
-            className={hasError ? "text-destructive hover:text-destructive" : ""}
-          >
-            <Play className="h-4 w-4" />
-          </Button>
-        )}
-        
-        {isActive && (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleStop}
-            aria-label="Stop"
-          >
-            <Square className="h-4 w-4" />
-          </Button>
-        )}
-      </div>
+            <SelectTrigger 
+              className="h-8 text-xs flex-1 max-w-[280px]"
+              aria-label={t("tts.selectVoice", "Select voice")}
+            >
+              <SelectValue placeholder={t("tts.selectVoicePlaceholder", "Select a voice")} />
+            </SelectTrigger>
+            <SelectContent>
+              {availableVoices.map((voice) => (
+                <SelectItem
+                  key={voice.voiceURI}
+                  value={voice.voiceURI}
+                  className="text-xs"
+                >
+                  <span className="flex items-center gap-2">
+                    {formatVoiceName(voice)}
+                    {voice.localService && (
+                      <span className="text-[10px] text-muted-foreground bg-muted px-1 rounded">
+                        {t("tts.local", "Local")}
+                      </span>
+                    )}
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
     </div>
   );
 }
