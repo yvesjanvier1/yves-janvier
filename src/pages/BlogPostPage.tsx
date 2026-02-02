@@ -11,6 +11,7 @@ import SocialShare from "@/components/blog/social-share";
 import SEOHead from "@/components/seo/SEOHead";
 import { SecureHtml } from "@/components/ui/secure-html";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { TextToSpeechPlayer } from "@/components/blog/text-to-speech-player";
 
 interface BlogPost {
   id: string;
@@ -243,7 +244,12 @@ const BlogPostPage = () => {
             />
           </div>
 
-          <footer className="mt-12 pt-8 border-t">
+          <footer className="mt-12 pt-8 border-t space-y-6">
+            <TextToSpeechPlayer
+              title={post.title}
+              content={post.content}
+              locale={language}
+            />
             <SocialShare 
               title={post.title}
               url={getShareUrl()}
