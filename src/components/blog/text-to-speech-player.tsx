@@ -39,6 +39,19 @@ const stripHtml = (html: string): string => {
 // Constants
 const VOICE_LOAD_TIMEOUT = 3000; // 3 seconds timeout for voice loading
 
+// Preferred voice names for each language (high-quality voices)
+const PREFERRED_VOICES: Record<string, string[]> = {
+  fr: [
+    "Thomas", "Amelie", "Audrey", "Aurelie", "Denise", "Thomas (Enhanced)", 
+    "Microsoft Paul", "Microsoft Julie", "Google français",
+    "Léa", "Lucien", "Mathieu", "Céline"
+  ],
+  en: [
+    "Samantha", "Daniel", "Karen", "Moira", "Alex", "Google US English",
+    "Microsoft David", "Microsoft Zira", "Google UK English Female"
+  ],
+};
+
 // Format voice name for display
 const formatVoiceName = (voice: SpeechSynthesisVoice): string => {
   // Remove common prefixes and clean up the name
@@ -48,9 +61,48 @@ const formatVoiceName = (voice: SpeechSynthesisVoice): string => {
     .replace(/\s+Online\s*\(Natural\)/i, "")
     .replace(/\s+-\s+.+$/, ""); // Remove language suffix like " - English (United States)"
   
-  // Add a language indicator
-  const langCode = voice.lang.split("-")[0].toUpperCase();
-  return `${name} (${langCode})`;
+  // Add a language indicator with region if available
+  const langParts = voice.lang.split("-");
+  const langCode = langParts[0].toUpperCase();
+  const region = langParts[1] ? ` ${langParts[1].toUpperCase()}` : "";
+  
+  return `${name} (${langCode}${region})`;
+};
+
+// Score a voice for quality (higher is better)
+const scoreVoice = (voice: SpeechSynthesisVoice, langPrefix: string): number => {
+  let score = 0;
+  
+  // Exact language match gets priority
+  if (voice.lang.toLowerCase().startsWith(langPrefix.toLowerCase())) {
+    score += 100;
+  }
+  
+  // Prefer local/offline voices (usually higher quality)
+  if (voice.localService) {
+    score += 50;
+  }
+  
+  // Check if it's a preferred voice
+  const preferredList = PREFERRED_VOICES[langPrefix] || [];
+  const voiceNameLower = voice.name.toLowerCase();
+  preferredList.forEach((pref, index) => {
+    if (voiceNameLower.includes(pref.toLowerCase())) {
+      score += 30 - index; // Earlier in the list = higher score
+    }
+  });
+  
+  // Prefer "Enhanced" or "Natural" voices
+  if (voiceNameLower.includes("enhanced") || voiceNameLower.includes("natural")) {
+    score += 20;
+  }
+  
+  // Prefer voices from the same region (fr-FR over fr-CA for French default)
+  if (langPrefix === "fr" && voice.lang.toLowerCase() === "fr-fr") {
+    score += 10;
+  }
+  
+  return score;
 };
 
 export function TextToSpeechPlayer({
@@ -101,18 +153,23 @@ export function TextToSpeechPlayer({
           v.lang.toLowerCase().startsWith(langPrefix.toLowerCase())
         );
         
-        // If no matching voices, show all voices
-        const voicesToShow = matchingVoices.length > 0 ? matchingVoices : voices;
+        // Sort voices by quality score (best first)
+        const sortedVoices = [...matchingVoices].sort((a, b) => 
+          scoreVoice(b, langPrefix) - scoreVoice(a, langPrefix)
+        );
+        
+        // If no matching voices, show all voices sorted by score
+        const voicesToShow = sortedVoices.length > 0 
+          ? sortedVoices 
+          : [...voices].sort((a, b) => scoreVoice(b, langPrefix) - scoreVoice(a, langPrefix));
         
         if (isMountedRef.current) {
           setAvailableVoices(voicesToShow);
           setVoicesLoaded(true);
           
-          // Auto-select the best voice if none selected
+          // Auto-select the best voice (first in sorted list)
           if (!selectedVoiceUri && voicesToShow.length > 0) {
-            // Prefer local service voices
-            const localVoice = voicesToShow.find((v) => v.localService);
-            setSelectedVoiceUri(localVoice?.voiceURI || voicesToShow[0].voiceURI);
+            setSelectedVoiceUri(voicesToShow[0].voiceURI);
           }
         }
       }
@@ -137,16 +194,23 @@ export function TextToSpeechPlayer({
         v.lang.toLowerCase().startsWith(langPrefix.toLowerCase())
       );
       
-      const voicesToShow = matchingVoices.length > 0 ? matchingVoices : voicesRef.current;
+      // Sort by quality score
+      const sortedVoices = [...matchingVoices].sort((a, b) => 
+        scoreVoice(b, langPrefix) - scoreVoice(a, langPrefix)
+      );
+      
+      const voicesToShow = sortedVoices.length > 0 
+        ? sortedVoices 
+        : [...voicesRef.current].sort((a, b) => scoreVoice(b, langPrefix) - scoreVoice(a, langPrefix));
+      
       setAvailableVoices(voicesToShow);
       
-      // Reset selected voice if it's not in the new list
+      // Reset selected voice if it's not in the new list, pick the best one
       const currentVoiceStillValid = voicesToShow.some(
         (v) => v.voiceURI === selectedVoiceUri
       );
       if (!currentVoiceStillValid && voicesToShow.length > 0) {
-        const localVoice = voicesToShow.find((v) => v.localService);
-        setSelectedVoiceUri(localVoice?.voiceURI || voicesToShow[0].voiceURI);
+        setSelectedVoiceUri(voicesToShow[0].voiceURI);
       }
     }
   }, [locale]);
