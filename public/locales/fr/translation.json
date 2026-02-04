@@ -225,5 +225,22 @@
   "language.haitian": "Kreyòl Ayisyen",
   "theme.light": "Clair",
   "theme.dark": "Sombre",
-  "theme.toggle": "Changer le thème"
+  "theme.toggle": "Changer le thème",
+
+  "tts.listenToArticle": "Écouter l'article",
+  "tts.loadingVoices": "Chargement des voix...",
+  "tts.errorLabel": "Erreur",
+  "tts.loading": "Chargement",
+  "tts.pause": "Pause",
+  "tts.resume": "Reprendre",
+  "tts.play": "Lecture",
+  "tts.stop": "Arrêter",
+  "tts.voice": "Voix",
+  "tts.selectVoice": "Sélectionner une voix",
+  "tts.selectVoicePlaceholder": "Choisir une voix",
+  "tts.local": "Local",
+  "tts.notSupported": "La synthèse vocale n'est pas supportée par votre navigateur",
+  "tts.noVoice": "Aucune voix disponible pour la langue sélectionnée",
+  "tts.error": "Échec de la lecture audio. Veuillez réessayer.",
+  "tts.loadError": "Le chargement des voix a échoué. Veuillez réessayer."
 }

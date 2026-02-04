@@ -398,5 +398,22 @@
   "unsubscribe.title": "Unsubscribe",
   "unsubscribe.success": "You have been successfully unsubscribed.",
   "unsubscribe.error": "There was an error processing your request.",
-  "unsubscribe.resubscribe": "Changed your mind? Subscribe again"
+  "unsubscribe.resubscribe": "Changed your mind? Subscribe again",
+
+  "tts.listenToArticle": "Listen to Article",
+  "tts.loadingVoices": "Loading voices...",
+  "tts.errorLabel": "Error",
+  "tts.loading": "Loading",
+  "tts.pause": "Pause",
+  "tts.resume": "Resume",
+  "tts.play": "Play",
+  "tts.stop": "Stop",
+  "tts.voice": "Voice",
+  "tts.selectVoice": "Select voice",
+  "tts.selectVoicePlaceholder": "Select a voice",
+  "tts.local": "Local",
+  "tts.notSupported": "Text-to-speech is not supported in your browser",
+  "tts.noVoice": "No suitable voice found for the selected language",
+  "tts.error": "Failed to play audio. Please try again.",
+  "tts.loadError": "Speech synthesis voices failed to load. Please try again."
 }

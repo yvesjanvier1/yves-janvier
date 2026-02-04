@@ -198,5 +198,22 @@
   "language.haitian": "Kreyòl Ayisyen",
   "theme.light": "Limyè",
   "theme.dark": "Fènwa",
-  "theme.toggle": "Chanje tèm"
+  "theme.toggle": "Chanje tèm",
+
+  "tts.listenToArticle": "Tande atik la",
+  "tts.loadingVoices": "Ap chaje vwa yo...",
+  "tts.errorLabel": "Erè",
+  "tts.loading": "Ap chaje",
+  "tts.pause": "Poz",
+  "tts.resume": "Kontinye",
+  "tts.play": "Jwe",
+  "tts.stop": "Kanpe",
+  "tts.voice": "Vwa",
+  "tts.selectVoice": "Chwazi yon vwa",
+  "tts.selectVoicePlaceholder": "Chwazi yon vwa",
+  "tts.local": "Lokal",
+  "tts.notSupported": "Navigatè ou a pa sipòte sentèz vwa",
+  "tts.noVoice": "Pa gen vwa ki disponib pou lang lan",
+  "tts.error": "Echèk lekti odyo. Tanpri eseye ankò.",
+  "tts.loadError": "Echèk chajman vwa yo. Tanpri eseye ankò."
 }
