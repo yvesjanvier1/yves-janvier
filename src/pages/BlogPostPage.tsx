@@ -181,16 +181,26 @@ const BlogPostPage = () => {
     );
   }
 
+  // Prepare clean description - prefer excerpt, fallback to content
+  const seoDescription = post.excerpt || post.content;
+  
+  // Ensure cover image is absolute URL for social previews
+  const getCoverImageUrl = () => {
+    if (!post.cover_image) return undefined;
+    if (post.cover_image.startsWith('http')) return post.cover_image;
+    return `${baseUrl}${post.cover_image.startsWith('/') ? '' : '/'}${post.cover_image}`;
+  };
+
   return (
     <>
       <SEOHead 
         title={`${post.title} - Yves Janvier`}
-        description={post.excerpt || post.content.substring(0, 160) + "..."}
-        image={post.cover_image}
+        description={seoDescription}
+        image={getCoverImageUrl()}
         type="article"
         publishedTime={post.created_at}
         modifiedTime={post.updated_at}
-        tags={post.tags}
+        tags={post.tags || []}
         url={getShareUrl()}
       />
       <div className="container max-w-4xl px-4 py-16 mx-auto">
