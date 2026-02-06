@@ -124,6 +124,7 @@ export function TextToSpeechPlayer({
   const [hasError, setHasError] = useState(false);
   const [progress, setProgress] = useState(0);
   const [voicesLoaded, setVoicesLoaded] = useState(false);
+  const [isLoadingVoices, setIsLoadingVoices] = useState(true);
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [selectedVoiceUri, setSelectedVoiceUri] = useState<string>("");
   
@@ -131,16 +132,19 @@ export function TextToSpeechPlayer({
   const textRef = useRef<string>("");
   const voicesRef = useRef<SpeechSynthesisVoice[]>([]);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const voiceLoadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isMountedRef = useRef(true);
 
   // Check browser support and load voices
   useEffect(() => {
     if (!("speechSynthesis" in window)) {
       setIsSupported(false);
+      setIsLoadingVoices(false);
       return;
     }
 
     const synth = window.speechSynthesis;
+    setIsLoadingVoices(true);
 
     const loadVoices = () => {
       const voices = synth.getVoices();
@@ -166,6 +170,13 @@ export function TextToSpeechPlayer({
         if (isMountedRef.current) {
           setAvailableVoices(voicesToShow);
           setVoicesLoaded(true);
+          setIsLoadingVoices(false);
+          
+          // Clear voice load timeout since we successfully loaded
+          if (voiceLoadTimeoutRef.current) {
+            clearTimeout(voiceLoadTimeoutRef.current);
+            voiceLoadTimeoutRef.current = null;
+          }
           
           // Auto-select the best voice (first in sorted list)
           if (!selectedVoiceUri && voicesToShow.length > 0) {
@@ -180,9 +191,24 @@ export function TextToSpeechPlayer({
 
     // Listen for voices to be loaded (required for Chrome and others)
     synth.addEventListener("voiceschanged", loadVoices);
+    
+    // Set a timeout to stop the loading state even if no voices are found
+    voiceLoadTimeoutRef.current = setTimeout(() => {
+      if (isMountedRef.current) {
+        setIsLoadingVoices(false);
+        // If still no voices after timeout, try one more time
+        const voices = synth.getVoices();
+        if (voices.length === 0) {
+          console.warn("No speech synthesis voices available after timeout");
+        }
+      }
+    }, VOICE_LOAD_TIMEOUT);
 
     return () => {
       synth.removeEventListener("voiceschanged", loadVoices);
+      if (voiceLoadTimeoutRef.current) {
+        clearTimeout(voiceLoadTimeoutRef.current);
+      }
     };
   }, [locale, selectedVoiceUri]);
 
@@ -223,6 +249,9 @@ export function TextToSpeechPlayer({
       isMountedRef.current = false;
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
+      }
+      if (voiceLoadTimeoutRef.current) {
+        clearTimeout(voiceLoadTimeoutRef.current);
       }
       if ("speechSynthesis" in window) {
         window.speechSynthesis.cancel();
@@ -508,42 +537,53 @@ export function TextToSpeechPlayer({
         </div>
       </div>
 
-      {/* Voice selector */}
-      {availableVoices.length > 1 && (
+      {/* Voice selector - show when loading or when voices are available */}
+      {(isLoadingVoices || availableVoices.length >= 1) && (
         <div className="flex items-center gap-2 pt-2 border-t border-border/50">
           <span className="text-xs text-muted-foreground shrink-0">
             {t("tts.voice", "Voice")}:
           </span>
-          <Select
-            value={selectedVoiceUri}
-            onValueChange={handleVoiceChange}
-            disabled={isPlaying}
-          >
-            <SelectTrigger 
-              className="h-8 text-xs flex-1 max-w-[280px]"
-              aria-label={t("tts.selectVoice", "Select voice")}
+          {isLoadingVoices ? (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Loader2 className="h-3 w-3 animate-spin" />
+              {t("tts.loadingVoices", "Loading voices...")}
+            </div>
+          ) : availableVoices.length === 0 ? (
+            <span className="text-xs text-muted-foreground">
+              {t("tts.noVoicesAvailable", "No voices available for this language")}
+            </span>
+          ) : (
+            <Select
+              value={selectedVoiceUri}
+              onValueChange={handleVoiceChange}
+              disabled={isPlaying}
             >
-              <SelectValue placeholder={t("tts.selectVoicePlaceholder", "Select a voice")} />
-            </SelectTrigger>
-            <SelectContent>
-              {availableVoices.map((voice) => (
-                <SelectItem
-                  key={voice.voiceURI}
-                  value={voice.voiceURI}
-                  className="text-xs"
-                >
-                  <span className="flex items-center gap-2">
-                    {formatVoiceName(voice)}
-                    {voice.localService && (
-                      <span className="text-[10px] text-muted-foreground bg-muted px-1 rounded">
-                        {t("tts.local", "Local")}
-                      </span>
-                    )}
-                  </span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+              <SelectTrigger 
+                className="h-8 text-xs flex-1 max-w-[280px] bg-background"
+                aria-label={t("tts.selectVoice", "Select voice")}
+              >
+                <SelectValue placeholder={t("tts.selectVoicePlaceholder", "Select a voice")} />
+              </SelectTrigger>
+              <SelectContent className="bg-popover z-50">
+                {availableVoices.map((voice) => (
+                  <SelectItem
+                    key={voice.voiceURI}
+                    value={voice.voiceURI}
+                    className="text-xs"
+                  >
+                    <span className="flex items-center gap-2">
+                      {formatVoiceName(voice)}
+                      {voice.localService && (
+                        <span className="text-[10px] text-muted-foreground bg-muted px-1 rounded">
+                          {t("tts.local", "Local")}
+                        </span>
+                      )}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
       )}
     </div>
