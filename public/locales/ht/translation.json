@@ -215,5 +215,6 @@
   "tts.notSupported": "Navigatè ou a pa sipòte sentèz vwa",
   "tts.noVoice": "Pa gen vwa ki disponib pou lang lan",
   "tts.error": "Echèk lekti odyo. Tanpri eseye ankò.",
-  "tts.loadError": "Echèk chajman vwa yo. Tanpri eseye ankò."
+  "tts.loadError": "Echèk chajman vwa yo. Tanpri eseye ankò.",
+  "tts.noVoicesAvailable": "Pa gen vwa disponib pou lang sa a"
 }

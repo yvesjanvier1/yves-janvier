@@ -242,5 +242,6 @@
   "tts.notSupported": "La synthèse vocale n'est pas supportée par votre navigateur",
   "tts.noVoice": "Aucune voix disponible pour la langue sélectionnée",
   "tts.error": "Échec de la lecture audio. Veuillez réessayer.",
-  "tts.loadError": "Le chargement des voix a échoué. Veuillez réessayer."
+  "tts.loadError": "Le chargement des voix a échoué. Veuillez réessayer.",
+  "tts.noVoicesAvailable": "Aucune voix disponible pour cette langue"
 }

@@ -11,8 +11,6 @@ import { Play, Pause, Square, Volume2, Loader2, AlertCircle, ChevronDown } from 
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useTranslation } from "react-i18next";
-
 interface TextToSpeechPlayerProps {
   title: string;
   content: string;
@@ -111,8 +109,7 @@ export function TextToSpeechPlayer({
   locale: propLocale,
   className,
 }: TextToSpeechPlayerProps) {
-  const { language: contextLanguage } = useLanguage();
-  const { t } = useTranslation();
+  const { language: contextLanguage, t } = useLanguage();
   
   // Use prop locale if provided, otherwise fall back to context language
   const locale = propLocale || contextLanguage;
@@ -301,7 +298,7 @@ export function TextToSpeechPlayer({
 
   const handlePlay = useCallback(() => {
     if (!isSupported) {
-      toast.error(t("tts.notSupported", "Text-to-speech is not supported in your browser"));
+      toast.error(t("tts.notSupported"));
       return;
     }
 
@@ -334,7 +331,7 @@ export function TextToSpeechPlayer({
       if (!selectedVoice) {
         setIsLoading(false);
         setHasError(true);
-        toast.error(t("tts.noVoice", "No suitable voice found for the selected language"));
+        toast.error(t("tts.noVoice"));
         return;
       }
 
@@ -377,7 +374,7 @@ export function TextToSpeechPlayer({
           setIsPlaying(false);
           setIsPaused(false);
           setHasError(true);
-          toast.error(t("tts.error", "Failed to play audio. Please try again."));
+          toast.error(t("tts.error"));
           console.error("Speech synthesis error:", event.error);
         }
       };
@@ -418,7 +415,7 @@ export function TextToSpeechPlayer({
             if (voicesRef.current.length === 0) {
               setIsLoading(false);
               setHasError(true);
-              toast.error(t("tts.loadError", "Speech synthesis voices failed to load. Please try again."));
+              toast.error(t("tts.loadError"));
             }
           }
         }, VOICE_LOAD_TIMEOUT);
@@ -476,17 +473,17 @@ export function TextToSpeechPlayer({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-foreground">
-              {t("tts.listenToArticle", "Listen to Article")}
+              {t("tts.listenToArticle")}
             </span>
             {isLoading && (
               <span className="text-xs text-muted-foreground">
-                {t("tts.loadingVoices", "Loading voices...")}
+                {t("tts.loadingVoices")}
               </span>
             )}
             {hasError && (
               <span className="text-xs text-destructive flex items-center gap-1">
                 <AlertCircle className="h-3 w-3" />
-                {t("tts.errorLabel", "Error")}
+                {t("tts.errorLabel")}
               </span>
             )}
           </div>
@@ -505,7 +502,7 @@ export function TextToSpeechPlayer({
 
         <div className="flex items-center gap-1 shrink-0">
           {isLoading ? (
-            <Button variant="ghost" size="icon" disabled aria-label={t("tts.loading", "Loading")}>
+            <Button variant="ghost" size="icon" disabled aria-label={t("tts.loading")}>
               <Loader2 className="h-4 w-4 animate-spin" />
             </Button>
           ) : isPlaying ? (
@@ -513,7 +510,7 @@ export function TextToSpeechPlayer({
               variant="ghost"
               size="icon"
               onClick={handlePause}
-              aria-label={t("tts.pause", "Pause")}
+              aria-label={t("tts.pause")}
             >
               <Pause className="h-4 w-4" />
             </Button>
@@ -522,7 +519,7 @@ export function TextToSpeechPlayer({
               variant="ghost"
               size="icon"
               onClick={handlePlay}
-              aria-label={isPaused ? t("tts.resume", "Resume") : t("tts.play", "Play")}
+              aria-label={isPaused ? t("tts.resume") : t("tts.play")}
               className={hasError ? "text-destructive hover:text-destructive" : ""}
             >
               <Play className="h-4 w-4" />
@@ -534,7 +531,7 @@ export function TextToSpeechPlayer({
               variant="ghost"
               size="icon"
               onClick={handleStop}
-              aria-label={t("tts.stop", "Stop")}
+              aria-label={t("tts.stop")}
             >
               <Square className="h-4 w-4" />
             </Button>
@@ -546,16 +543,16 @@ export function TextToSpeechPlayer({
       {(isLoadingVoices || availableVoices.length >= 1) && (
         <div className="flex items-center gap-2 pt-2 border-t border-border/50">
           <span className="text-xs text-muted-foreground shrink-0">
-            {t("tts.voice", "Voice")}:
+            {t("tts.voice")}:
           </span>
           {isLoadingVoices ? (
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <Loader2 className="h-3 w-3 animate-spin" />
-              {t("tts.loadingVoices", "Loading voices...")}
+              {t("tts.loadingVoices")}
             </div>
           ) : availableVoices.length === 0 ? (
             <span className="text-xs text-muted-foreground">
-              {t("tts.noVoicesAvailable", "No voices available for this language")}
+              {t("tts.noVoicesAvailable")}
             </span>
           ) : (
             <Select
@@ -565,9 +562,9 @@ export function TextToSpeechPlayer({
             >
               <SelectTrigger 
                 className="h-8 text-xs flex-1 max-w-[280px] bg-background"
-                aria-label={t("tts.selectVoice", "Select voice")}
+                aria-label={t("tts.selectVoice")}
               >
-                <SelectValue placeholder={t("tts.selectVoicePlaceholder", "Select a voice")} />
+                <SelectValue placeholder={t("tts.selectVoicePlaceholder")} />
               </SelectTrigger>
               <SelectContent className="bg-popover z-50">
                 {availableVoices.map((voice) => (
@@ -580,7 +577,7 @@ export function TextToSpeechPlayer({
                       {formatVoiceName(voice)}
                       {voice.localService && (
                         <span className="text-[10px] text-muted-foreground bg-muted px-1 rounded">
-                          {t("tts.local", "Local")}
+                          {t("tts.local")}
                         </span>
                       )}
                     </span>

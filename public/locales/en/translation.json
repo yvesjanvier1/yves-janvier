@@ -415,5 +415,6 @@
   "tts.notSupported": "Text-to-speech is not supported in your browser",
   "tts.noVoice": "No suitable voice found for the selected language",
   "tts.error": "Failed to play audio. Please try again.",
-  "tts.loadError": "Speech synthesis voices failed to load. Please try again."
+  "tts.loadError": "Speech synthesis voices failed to load. Please try again.",
+  "tts.noVoicesAvailable": "No voices available for this language"
 }
