@@ -178,10 +178,15 @@ export function TextToSpeechPlayer({
             voiceLoadTimeoutRef.current = null;
           }
           
-          // Auto-select the best voice (first in sorted list)
-          if (!selectedVoiceUri && voicesToShow.length > 0) {
+          // Auto-select the best voice (first in sorted list) for current language
+          if (voicesToShow.length > 0) {
             setSelectedVoiceUri(voicesToShow[0].voiceURI);
           }
+        }
+      } else {
+        // No voices yet, but mark loading as done after timeout
+        if (isMountedRef.current) {
+          setIsLoadingVoices(false);
         }
       }
     };
@@ -210,7 +215,7 @@ export function TextToSpeechPlayer({
         clearTimeout(voiceLoadTimeoutRef.current);
       }
     };
-  }, [locale, selectedVoiceUri]);
+  }, [locale]);
 
   // Update available voices when language changes
   useEffect(() => {
