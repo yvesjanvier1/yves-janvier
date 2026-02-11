@@ -216,6 +216,12 @@ const BlogPostPage = () => {
         <article className="prose dark:prose-invert max-w-none">
           <header className="mb-8">
             <h1 className="text-4xl font-bold mb-4">{post.title}</h1>
+
+            <TextToSpeechPlayer
+              title={post.title}
+              content={post.content}
+              locale={language}
+            />
             
             <div className="flex flex-wrap gap-2 mb-6">
               {post.tags && post.tags.map((tag) => (
@@ -255,12 +261,7 @@ const BlogPostPage = () => {
           </div>
 
           <footer className="mt-12 pt-8 border-t space-y-6">
-            <TextToSpeechPlayer
-              title={post.title}
-              content={post.content}
-              locale={language}
-            />
-            <SocialShare 
+            <SocialShare
               title={post.title}
               url={getShareUrl()}
               description={post.excerpt}
