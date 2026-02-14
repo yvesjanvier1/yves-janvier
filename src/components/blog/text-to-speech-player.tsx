@@ -7,10 +7,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Play, Pause, Square, Volume2, Loader2, AlertCircle, ChevronDown } from "lucide-react";
+import { Play, Pause, Square, Volume2, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
+
 interface TextToSpeechPlayerProps {
   title: string;
   content: string;
@@ -18,89 +19,21 @@ interface TextToSpeechPlayerProps {
   className?: string;
 }
 
-// Map locale codes to Web Speech API language codes
-const getLanguageCode = (locale?: string): string => {
-  const langMap: Record<string, string> = {
-    en: "en",
-    fr: "fr",
-    ht: "fr", // Haitian Creole - fallback to French
-  };
-  return langMap[locale || "en"] || "en";
-};
+interface GoogleVoice {
+  name: string;
+  label: string;
+  ssmlGender: string;
+  languageCodes: string[];
+}
+
+const SUPABASE_URL = "https://qfnqmdmsapovxdjwdhsx.supabase.co";
+const SUPABASE_ANON_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFmbnFtZG1zYXBvdnhkandkaHN4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYyOTIwMDgsImV4cCI6MjA2MTg2ODAwOH0.COLWed6k7Mw7kAevxuJtZtJv_Z0YTu4p9GN1NBTH_kY";
 
 // Strip HTML tags and decode entities for clean text
 const stripHtml = (html: string): string => {
   const doc = new DOMParser().parseFromString(html, "text/html");
   return doc.body.textContent || "";
-};
-
-// Constants
-const VOICE_LOAD_TIMEOUT = 3000; // 3 seconds timeout for voice loading
-
-// Preferred voice names for each language (high-quality voices)
-const PREFERRED_VOICES: Record<string, string[]> = {
-  fr: [
-    "Thomas", "Amelie", "Audrey", "Aurelie", "Denise", "Thomas (Enhanced)", 
-    "Microsoft Paul", "Microsoft Julie", "Google français",
-    "Léa", "Lucien", "Mathieu", "Céline"
-  ],
-  en: [
-    "Samantha", "Daniel", "Karen", "Moira", "Alex", "Google US English",
-    "Microsoft David", "Microsoft Zira", "Google UK English Female"
-  ],
-};
-
-// Format voice name for display
-const formatVoiceName = (voice: SpeechSynthesisVoice): string => {
-  // Remove common prefixes and clean up the name
-  let name = voice.name
-    .replace(/^Microsoft\s+/i, "")
-    .replace(/^Google\s+/i, "")
-    .replace(/\s+Online\s*\(Natural\)/i, "")
-    .replace(/\s+-\s+.+$/, ""); // Remove language suffix like " - English (United States)"
-  
-  // Add a language indicator with region if available
-  const langParts = voice.lang.split("-");
-  const langCode = langParts[0].toUpperCase();
-  const region = langParts[1] ? ` ${langParts[1].toUpperCase()}` : "";
-  
-  return `${name} (${langCode}${region})`;
-};
-
-// Score a voice for quality (higher is better)
-const scoreVoice = (voice: SpeechSynthesisVoice, langPrefix: string): number => {
-  let score = 0;
-  
-  // Exact language match gets priority
-  if (voice.lang.toLowerCase().startsWith(langPrefix.toLowerCase())) {
-    score += 100;
-  }
-  
-  // Prefer local/offline voices (usually higher quality)
-  if (voice.localService) {
-    score += 50;
-  }
-  
-  // Check if it's a preferred voice
-  const preferredList = PREFERRED_VOICES[langPrefix] || [];
-  const voiceNameLower = voice.name.toLowerCase();
-  preferredList.forEach((pref, index) => {
-    if (voiceNameLower.includes(pref.toLowerCase())) {
-      score += 30 - index; // Earlier in the list = higher score
-    }
-  });
-  
-  // Prefer "Enhanced" or "Natural" voices
-  if (voiceNameLower.includes("enhanced") || voiceNameLower.includes("natural")) {
-    score += 20;
-  }
-  
-  // Prefer voices from the same region (fr-FR over fr-CA for French default)
-  if (langPrefix === "fr" && voice.lang.toLowerCase() === "fr-fr") {
-    score += 10;
-  }
-  
-  return score;
 };
 
 export function TextToSpeechPlayer({
@@ -110,249 +43,157 @@ export function TextToSpeechPlayer({
   className,
 }: TextToSpeechPlayerProps) {
   const { language: contextLanguage, t } = useLanguage();
-  
-  // Use prop locale if provided, otherwise fall back to context language
   const locale = propLocale || contextLanguage;
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isSupported, setIsSupported] = useState(true);
+  const [isLoadingVoices, setIsLoadingVoices] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [voicesLoaded, setVoicesLoaded] = useState(false);
-  const [isLoadingVoices, setIsLoadingVoices] = useState(true);
-  const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
-  const [selectedVoiceUri, setSelectedVoiceUri] = useState<string>("");
-  
-  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
-  const textRef = useRef<string>("");
-  const voicesRef = useRef<SpeechSynthesisVoice[]>([]);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const voiceLoadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [availableVoices, setAvailableVoices] = useState<GoogleVoice[]>([]);
+  const [selectedVoice, setSelectedVoice] = useState<string>("");
+
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const isMountedRef = useRef(true);
 
-  // Check browser support and load voices
+  // Fetch available voices from Google Cloud TTS
   useEffect(() => {
-    if (!("speechSynthesis" in window)) {
-      setIsSupported(false);
-      setIsLoadingVoices(false);
-      return;
-    }
-
-    const synth = window.speechSynthesis;
-    setIsLoadingVoices(true);
-
-    const loadVoices = () => {
-      const voices = synth.getVoices();
-      if (voices.length > 0) {
-        voicesRef.current = voices;
-        
-        // Filter voices for the current language
-        const langPrefix = getLanguageCode(locale);
-        const matchingVoices = voices.filter((v) =>
-          v.lang.toLowerCase().startsWith(langPrefix.toLowerCase())
-        );
-        
-        // Sort voices by quality score (best first)
-        const sortedVoices = [...matchingVoices].sort((a, b) => 
-          scoreVoice(b, langPrefix) - scoreVoice(a, langPrefix)
-        );
-        
-        // If no matching voices, show all voices sorted by score
-        const voicesToShow = sortedVoices.length > 0 
-          ? sortedVoices 
-          : [...voices].sort((a, b) => scoreVoice(b, langPrefix) - scoreVoice(a, langPrefix));
-        
-        if (isMountedRef.current) {
-          setAvailableVoices(voicesToShow);
-          setVoicesLoaded(true);
-          setIsLoadingVoices(false);
-          
-          // Clear voice load timeout since we successfully loaded
-          if (voiceLoadTimeoutRef.current) {
-            clearTimeout(voiceLoadTimeoutRef.current);
-            voiceLoadTimeoutRef.current = null;
+    const fetchVoices = async () => {
+      setIsLoadingVoices(true);
+      try {
+        const response = await fetch(
+          `${SUPABASE_URL}/functions/v1/google-tts-voices?languageCode=${locale}`,
+          {
+            headers: {
+              apikey: SUPABASE_ANON_KEY,
+              Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+            },
           }
-          
-          // Auto-select the best voice (first in sorted list) for current language
-          if (voicesToShow.length > 0) {
-            setSelectedVoiceUri(voicesToShow[0].voiceURI);
+        );
+
+        if (!response.ok) throw new Error("Failed to fetch voices");
+
+        const data = await response.json();
+        const voices: GoogleVoice[] = data.voices || [];
+
+        // Prioritize Neural2/Wavenet voices
+        const sorted = [...voices].sort((a, b) => {
+          const scoreA = a.name.includes("Neural2") ? 3 : a.name.includes("Wavenet") ? 2 : a.name.includes("Studio") ? 4 : 1;
+          const scoreB = b.name.includes("Neural2") ? 3 : b.name.includes("Wavenet") ? 2 : b.name.includes("Studio") ? 4 : 1;
+          return scoreB - scoreA;
+        });
+
+        if (isMountedRef.current) {
+          setAvailableVoices(sorted);
+          if (sorted.length > 0) {
+            setSelectedVoice(sorted[0].name);
           }
         }
-      } else {
-        // No voices yet, but mark loading as done after timeout
+      } catch (err) {
+        console.error("Failed to fetch Google TTS voices:", err);
+        if (isMountedRef.current) {
+          setAvailableVoices([]);
+        }
+      } finally {
         if (isMountedRef.current) {
           setIsLoadingVoices(false);
         }
       }
     };
 
-    // Try to load voices immediately (works in some browsers)
-    loadVoices();
-
-    // Listen for voices to be loaded (required for Chrome and others)
-    synth.addEventListener("voiceschanged", loadVoices);
-    
-    // Set a timeout to stop the loading state even if no voices are found
-    voiceLoadTimeoutRef.current = setTimeout(() => {
-      if (isMountedRef.current) {
-        setIsLoadingVoices(false);
-        // If still no voices after timeout, try one more time
-        const voices = synth.getVoices();
-        if (voices.length === 0) {
-          console.warn("No speech synthesis voices available after timeout");
-        }
-      }
-    }, VOICE_LOAD_TIMEOUT);
-
-    return () => {
-      synth.removeEventListener("voiceschanged", loadVoices);
-      if (voiceLoadTimeoutRef.current) {
-        clearTimeout(voiceLoadTimeoutRef.current);
-      }
-    };
+    fetchVoices();
   }, [locale]);
 
-  // Update available voices when language changes
-  useEffect(() => {
-    if (voicesRef.current.length > 0) {
-      const langPrefix = getLanguageCode(locale);
-      const matchingVoices = voicesRef.current.filter((v) =>
-        v.lang.toLowerCase().startsWith(langPrefix.toLowerCase())
-      );
-      
-      // Sort by quality score
-      const sortedVoices = [...matchingVoices].sort((a, b) => 
-        scoreVoice(b, langPrefix) - scoreVoice(a, langPrefix)
-      );
-      
-      const voicesToShow = sortedVoices.length > 0 
-        ? sortedVoices 
-        : [...voicesRef.current].sort((a, b) => scoreVoice(b, langPrefix) - scoreVoice(a, langPrefix));
-      
-      setAvailableVoices(voicesToShow);
-      
-      // Reset selected voice if it's not in the new list, pick the best one
-      const currentVoiceStillValid = voicesToShow.some(
-        (v) => v.voiceURI === selectedVoiceUri
-      );
-      if (!currentVoiceStillValid && voicesToShow.length > 0) {
-        setSelectedVoiceUri(voicesToShow[0].voiceURI);
-      }
-    }
-  }, [locale]);
-
-  // Cleanup on unmount
+  // Cleanup
   useEffect(() => {
     isMountedRef.current = true;
-    
     return () => {
       isMountedRef.current = false;
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-      if (voiceLoadTimeoutRef.current) {
-        clearTimeout(voiceLoadTimeoutRef.current);
-      }
-      if ("speechSynthesis" in window) {
-        window.speechSynthesis.cancel();
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
       }
     };
   }, []);
 
-  // Abort speech when page visibility changes (respects performance preferences)
+  // Stop on visibility change
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden && (isPlaying || isPaused)) {
         handleStop();
       }
     };
-
     document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, [isPlaying, isPaused]);
 
-  // Prepare text content
-  useEffect(() => {
-    const cleanContent = stripHtml(content);
-    textRef.current = `${title}. ${cleanContent}`;
-  }, [title, content]);
-
-  // Find the selected voice
-  const getSelectedVoice = useCallback((): SpeechSynthesisVoice | null => {
-    if (selectedVoiceUri) {
-      const voice = voicesRef.current.find((v) => v.voiceURI === selectedVoiceUri);
-      if (voice) return voice;
-    }
-    
-    // Fallback to first available voice
-    if (availableVoices.length > 0) {
-      return availableVoices[0];
-    }
-    
-    return voicesRef.current[0] || null;
-  }, [selectedVoiceUri, availableVoices]);
-
-  const handlePlay = useCallback(() => {
-    if (!isSupported) {
-      toast.error(t("tts.notSupported"));
-      return;
-    }
-
-    const synth = window.speechSynthesis;
-
-    // If paused, resume
-    if (isPaused) {
-      synth.resume();
+  const handlePlay = useCallback(async () => {
+    // Resume if paused
+    if (isPaused && audioRef.current) {
+      audioRef.current.play();
       setIsPaused(false);
       setIsPlaying(true);
       return;
     }
 
-    // Cancel any existing speech
-    synth.cancel();
+    // Stop any current playback
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+
     setIsLoading(true);
     setHasError(false);
 
-    // Clear any existing timeout
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
+    try {
+      const cleanText = stripHtml(content);
+      const fullText = `${title}. ${cleanText}`;
 
-    // Function to start speech synthesis
-    const startSpeech = () => {
-      if (!isMountedRef.current) return;
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/google-tts`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({
+          text: fullText,
+          languageCode: locale,
+          voiceName: selectedVoice || undefined,
+        }),
+      });
 
-      const selectedVoice = getSelectedVoice();
-
-      if (!selectedVoice) {
-        setIsLoading(false);
-        setHasError(true);
-        toast.error(t("tts.noVoice"));
-        return;
+      if (!response.ok) {
+        throw new Error(`TTS request failed: ${response.status}`);
       }
 
-      // Create new utterance
-      const utterance = new SpeechSynthesisUtterance(textRef.current);
-      utterance.voice = selectedVoice;
-      utterance.lang = selectedVoice.lang;
-      utterance.rate = 0.95;
-      utterance.pitch = 1;
+      const data = await response.json();
 
-      // Event handlers
-      utterance.onstart = () => {
+      if (!data.audioContent) {
+        throw new Error("No audio content returned");
+      }
+
+      // Play using data URI
+      const audioUrl = `data:audio/mpeg;base64,${data.audioContent}`;
+      const audio = new Audio(audioUrl);
+      audioRef.current = audio;
+
+      audio.onplay = () => {
         if (isMountedRef.current) {
           setIsLoading(false);
           setIsPlaying(true);
           setProgress(0);
-          setHasError(false);
         }
       };
 
-      utterance.onend = () => {
+      audio.ontimeupdate = () => {
+        if (isMountedRef.current && audio.duration) {
+          setProgress((audio.currentTime / audio.duration) * 100);
+        }
+      };
+
+      audio.onended = () => {
         if (isMountedRef.current) {
           setIsPlaying(false);
           setIsPaused(false);
@@ -363,80 +204,40 @@ export function TextToSpeechPlayer({
         }
       };
 
-      utterance.onerror = (event) => {
-        // Ignore "interrupted" errors - these are expected when stopping/canceling
-        if (event.error === "interrupted" || event.error === "canceled") {
-          return;
-        }
-
+      audio.onerror = () => {
         if (isMountedRef.current) {
           setIsLoading(false);
           setIsPlaying(false);
-          setIsPaused(false);
           setHasError(true);
           toast.error(t("tts.error"));
-          console.error("Speech synthesis error:", event.error);
         }
       };
 
-      // Approximate progress tracking
-      const totalLength = textRef.current.length;
-      utterance.onboundary = (event) => {
-        if (event.charIndex && isMountedRef.current) {
-          setProgress(Math.min((event.charIndex / totalLength) * 100, 99));
-        }
-      };
-
-      utteranceRef.current = utterance;
-      synth.speak(utterance);
-    };
-
-    // If voices are already loaded, start immediately
-    if (voicesLoaded && voicesRef.current.length > 0) {
-      startSpeech();
-    } else {
-      // Wait for voices with timeout
-      const checkVoices = () => {
-        const voices = synth.getVoices();
-        if (voices.length > 0) {
-          voicesRef.current = voices;
-          setVoicesLoaded(true);
-          startSpeech();
-        }
-      };
-
-      // Check immediately
-      checkVoices();
-
-      // If still no voices, set up timeout
-      if (voicesRef.current.length === 0) {
-        timeoutRef.current = setTimeout(() => {
-          if (isMountedRef.current) {
-            if (voicesRef.current.length === 0) {
-              setIsLoading(false);
-              setHasError(true);
-              toast.error(t("tts.loadError"));
-            }
-          }
-        }, VOICE_LOAD_TIMEOUT);
+      await audio.play();
+    } catch (err) {
+      console.error("Google TTS playback error:", err);
+      if (isMountedRef.current) {
+        setIsLoading(false);
+        setIsPlaying(false);
+        setHasError(true);
+        toast.error(t("tts.error"));
       }
     }
-  }, [isSupported, isPaused, voicesLoaded, getSelectedVoice, t]);
+  }, [isPaused, content, title, locale, selectedVoice, t]);
 
   const handlePause = useCallback(() => {
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.pause();
+    if (audioRef.current) {
+      audioRef.current.pause();
       setIsPaused(true);
       setIsPlaying(false);
     }
   }, []);
 
   const handleStop = useCallback(() => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      audioRef.current = null;
     }
     setIsPlaying(false);
     setIsPaused(false);
@@ -444,17 +245,15 @@ export function TextToSpeechPlayer({
     setProgress(0);
   }, []);
 
-  const handleVoiceChange = useCallback((voiceUri: string) => {
-    setSelectedVoiceUri(voiceUri);
-    // If currently playing, restart with new voice
-    if (isPlaying || isPaused) {
-      handleStop();
-    }
-  }, [isPlaying, isPaused, handleStop]);
-
-  if (!isSupported) {
-    return null;
-  }
+  const handleVoiceChange = useCallback(
+    (voiceName: string) => {
+      setSelectedVoice(voiceName);
+      if (isPlaying || isPaused) {
+        handleStop();
+      }
+    },
+    [isPlaying, isPaused, handleStop]
+  );
 
   const isActive = isPlaying || isPaused;
 
@@ -469,7 +268,7 @@ export function TextToSpeechPlayer({
     >
       <div className="flex items-center gap-3">
         <Volume2 className="h-5 w-5 text-muted-foreground shrink-0" />
-        
+
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-foreground">
@@ -487,7 +286,7 @@ export function TextToSpeechPlayer({
               </span>
             )}
           </div>
-          
+
           {/* Progress bar */}
           <div className="mt-2 h-1 w-full bg-muted rounded-full overflow-hidden">
             <div
@@ -525,7 +324,7 @@ export function TextToSpeechPlayer({
               <Play className="h-4 w-4" />
             </Button>
           )}
-          
+
           {isActive && (
             <Button
               variant="ghost"
@@ -539,7 +338,7 @@ export function TextToSpeechPlayer({
         </div>
       </div>
 
-      {/* Voice selector - show when loading or when voices are available */}
+      {/* Voice selector */}
       {(isLoadingVoices || availableVoices.length >= 1) && (
         <div className="flex items-center gap-2 pt-2 border-t border-border/50">
           <span className="text-xs text-muted-foreground shrink-0">
@@ -556,11 +355,11 @@ export function TextToSpeechPlayer({
             </span>
           ) : (
             <Select
-              value={selectedVoiceUri}
+              value={selectedVoice}
               onValueChange={handleVoiceChange}
               disabled={isPlaying}
             >
-              <SelectTrigger 
+              <SelectTrigger
                 className="h-8 text-xs flex-1 max-w-[280px] bg-background"
                 aria-label={t("tts.selectVoice")}
               >
@@ -569,18 +368,11 @@ export function TextToSpeechPlayer({
               <SelectContent className="bg-popover z-50">
                 {availableVoices.map((voice) => (
                   <SelectItem
-                    key={voice.voiceURI}
-                    value={voice.voiceURI}
+                    key={voice.name}
+                    value={voice.name}
                     className="text-xs"
                   >
-                    <span className="flex items-center gap-2">
-                      {formatVoiceName(voice)}
-                      {voice.localService && (
-                        <span className="text-[10px] text-muted-foreground bg-muted px-1 rounded">
-                          {t("tts.local")}
-                        </span>
-                      )}
-                    </span>
+                    {voice.label}
                   </SelectItem>
                 ))}
               </SelectContent>
