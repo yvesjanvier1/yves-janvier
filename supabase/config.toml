@@ -28,3 +28,9 @@ verify_jwt = false
 
 [functions.generate-cover-image]
 verify_jwt = false
+
+[functions.google-tts]
+verify_jwt = false
+
+[functions.google-tts-voices]
+verify_jwt = false
