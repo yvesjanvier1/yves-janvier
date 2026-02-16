@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -56,6 +57,7 @@ export function TextToSpeechPlayer({
   const [hasError, setHasError] = useState(false);
   const [progress, setProgress] = useState(0);
   const [selectedVoice, setSelectedVoice] = useState(VOICES[0].id);
+  const [activeEngine, setActiveEngine] = useState<"elevenlabs" | "browser" | null>(null);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const isMountedRef = useRef(true);
@@ -144,6 +146,7 @@ export function TextToSpeechPlayer({
       };
 
       await audio.play();
+      if (isMountedRef.current) setActiveEngine("elevenlabs");
       return true;
     } catch (err) {
       console.warn("ElevenLabs TTS error, falling back to browser TTS:", err);
@@ -177,6 +180,7 @@ export function TextToSpeechPlayer({
         setIsLoading(false);
         setIsPlaying(true);
         setProgress(0);
+        setActiveEngine("browser");
         toast.info(t("tts.browserFallback") || "Using browser voice (ElevenLabs unavailable)");
       }
     };
@@ -269,6 +273,7 @@ export function TextToSpeechPlayer({
     setIsPaused(false);
     setIsLoading(false);
     setProgress(0);
+    setActiveEngine(null);
   }, []);
 
   const handleVoiceChange = useCallback(
@@ -304,6 +309,11 @@ export function TextToSpeechPlayer({
               <span className="text-xs text-muted-foreground">
                 {t("tts.loadingVoices")}
               </span>
+            )}
+            {activeEngine && (
+              <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 font-normal">
+                {activeEngine === "elevenlabs" ? "ElevenLabs" : "Browser"}
+              </Badge>
             )}
             {hasError && (
               <span className="text-xs text-destructive flex items-center gap-1">
