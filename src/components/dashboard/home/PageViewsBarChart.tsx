@@ -10,7 +10,7 @@ import {
 } from "recharts";
 
 interface PageViewsBarChartProps {
-  data: { name: string; value: number }[];
+  data: { name: string; value: number; visitors?: number }[];
   isLoading: boolean;
 }
 
@@ -18,10 +18,15 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-popover border border-border rounded-lg shadow-lg px-3 py-2">
-        <p className="text-xs font-medium text-foreground capitalize">{label || 'Home'}</p>
+        <p className="text-xs font-medium text-foreground capitalize mb-1">/{label || 'home'}</p>
         <p className="text-sm font-semibold text-primary">
           {payload[0].value.toLocaleString()} views
         </p>
+        {payload[0].payload.visitors != null && (
+          <p className="text-xs text-muted-foreground">
+            {payload[0].payload.visitors.toLocaleString()} unique visitors
+          </p>
+        )}
       </div>
     );
   }
@@ -29,13 +34,18 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export function PageViewsBarChart({ data, isLoading }: PageViewsBarChartProps) {
+  // Color gradient from primary to lighter
+  const getBarColor = (index: number, total: number) => {
+    const opacity = 1 - (index / Math.max(total, 1)) * 0.5;
+    return `hsl(var(--primary) / ${opacity})`;
+  };
+
   return (
     <div className="rounded-xl border border-border bg-card p-5">
-      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="space-y-1">
           <h3 className="text-base font-semibold text-foreground">
-            Page Views by Page
+            Top Pages
           </h3>
           <p className="text-xs text-muted-foreground">
             Traffic distribution across pages
@@ -46,7 +56,6 @@ export function PageViewsBarChart({ data, isLoading }: PageViewsBarChartProps) {
         </div>
       </div>
       
-      {/* Chart */}
       <div className="h-[280px] w-full">
         {isLoading ? (
           <div className="h-full flex items-center justify-center">
@@ -85,7 +94,7 @@ export function PageViewsBarChart({ data, isLoading }: PageViewsBarChartProps) {
                 {data.map((_, index) => (
                   <Cell 
                     key={`cell-${index}`} 
-                    fill={index === 0 ? 'hsl(var(--primary))' : 'hsl(var(--primary) / 0.6)'}
+                    fill={getBarColor(index, data.length)}
                   />
                 ))}
               </Bar>
