@@ -155,6 +155,48 @@ export type Database = {
         }
         Relationships: []
       }
+      content_suggestions: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          id: string
+          relevance_score: number | null
+          source_context: string | null
+          status: string
+          tags: string[] | null
+          target_platforms: string[] | null
+          topic: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          relevance_score?: number | null
+          source_context?: string | null
+          status?: string
+          tags?: string[] | null
+          target_platforms?: string[] | null
+          topic: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          relevance_score?: number | null
+          source_context?: string | null
+          status?: string
+          tags?: string[] | null
+          target_platforms?: string[] | null
+          topic?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       experience: {
         Row: {
           company: string

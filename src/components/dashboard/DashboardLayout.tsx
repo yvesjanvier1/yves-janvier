@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger } from "@/components/ui/sidebar";
-import { LayoutDashboard, FileText, Briefcase, MessageSquare, BarChart2, User, LogOut, MessageCircle, UserRound, BookOpen, TrendingUp, FolderOpen, Clock } from "lucide-react";
+import { LayoutDashboard, FileText, Briefcase, MessageSquare, BarChart2, User, LogOut, MessageCircle, UserRound, BookOpen, TrendingUp, FolderOpen, Clock, Sparkles } from "lucide-react";
 import { useAuth } from "./AuthProvider";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/ui/logo";
@@ -131,6 +131,15 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                   <NavLink to="/dashboard/messages">
                     <MessageSquare className="w-5 h-5 mr-2" />
                     <span>Messages</span>
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={isRouteActive("/dashboard/content-agent")}>
+                  <NavLink to="/dashboard/content-agent">
+                    <Sparkles className="w-5 h-5 mr-2" />
+                    <span>Content Agent</span>
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
