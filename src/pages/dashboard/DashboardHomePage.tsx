@@ -36,6 +36,29 @@ const DashboardHomePage = () => {
           dateFilter = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
         }
 
+        // Build filtered queries using dateFilter
+        let pageViewsQuery = supabase.from("page_views").select("*", { count: "exact", head: true });
+        let messagesQuery = supabase.from("contact_messages").select("*", { count: "exact", head: true });
+        let unreadQuery = supabase.from("contact_messages").select("*", { count: "exact", head: true }).eq("read", false);
+        let subscribersQuery = supabase.from("newsletter_subscriptions").select("*", { count: "exact", head: true }).eq("is_active", true);
+        let blogPostsQuery = supabase.from("blog_posts").select("*", { count: "exact", head: true });
+        let projectsQuery = supabase.from("portfolio_projects").select("*", { count: "exact", head: true });
+        let monthlyViewsQuery = supabase.from("page_views").select("created_at, visitor_id");
+        let activityBlogQuery = supabase.from("blog_posts").select("title, created_at").order("created_at", { ascending: false }).limit(5);
+        let blogTagsQuery = supabase.from("blog_posts").select("tags").not("tags", "is", null);
+
+        if (dateFilter) {
+          pageViewsQuery = pageViewsQuery.gte("created_at", dateFilter);
+          messagesQuery = messagesQuery.gte("created_at", dateFilter);
+          unreadQuery = unreadQuery.gte("created_at", dateFilter);
+          subscribersQuery = subscribersQuery.gte("created_at", dateFilter);
+          blogPostsQuery = blogPostsQuery.gte("created_at", dateFilter);
+          projectsQuery = projectsQuery.gte("created_at", dateFilter);
+          monthlyViewsQuery = monthlyViewsQuery.gte("created_at", dateFilter);
+          activityBlogQuery = supabase.from("blog_posts").select("title, created_at").gte("created_at", dateFilter).order("created_at", { ascending: false }).limit(5);
+          blogTagsQuery = supabase.from("blog_posts").select("tags").not("tags", "is", null).gte("created_at", dateFilter);
+        }
+
         // Parallel fetches
         const [
           blogPostsResult,
@@ -49,18 +72,16 @@ const DashboardHomePage = () => {
           activityResult,
           monthlyViewsResult,
         ] = await Promise.all([
-          supabase.from("blog_posts").select("*", { count: "exact", head: true }),
-          supabase.from("portfolio_projects").select("*", { count: "exact", head: true }),
-          supabase.from("contact_messages").select("*", { count: "exact", head: true }),
-          supabase.from("page_views").select("*", { count: "exact", head: true }),
-          supabase.from("contact_messages").select("*", { count: "exact", head: true }).eq("read", false),
-          supabase.from("newsletter_subscriptions").select("*", { count: "exact", head: true }).eq("is_active", true),
+          blogPostsQuery,
+          projectsQuery,
+          messagesQuery,
+          pageViewsQuery,
+          unreadQuery,
+          subscribersQuery,
           supabase.from("analytics_summary").select("*").order("views", { ascending: false }).limit(8),
-          supabase.from("blog_posts").select("tags").not("tags", "is", null),
-          // Recent activity: union of latest items
-          supabase.from("blog_posts").select("title, created_at").order("created_at", { ascending: false }).limit(5),
-          // Monthly page views for trend chart
-          supabase.from("page_views").select("created_at, visitor_id"),
+          blogTagsQuery,
+          activityBlogQuery,
+          monthlyViewsQuery,
         ]);
 
         setStats({
@@ -155,9 +176,15 @@ const DashboardHomePage = () => {
         }
 
         // Also fetch recent projects and messages
+        let projActivityQuery = supabase.from("portfolio_projects").select("title, created_at").order("created_at", { ascending: false }).limit(3);
+        let msgActivityQuery = supabase.from("contact_messages").select("name, subject, created_at").order("created_at", { ascending: false }).limit(3);
+        if (dateFilter) {
+          projActivityQuery = projActivityQuery.gte("created_at", dateFilter);
+          msgActivityQuery = msgActivityQuery.gte("created_at", dateFilter);
+        }
         const [projectsActivity, messagesActivity] = await Promise.all([
-          supabase.from("portfolio_projects").select("title, created_at").order("created_at", { ascending: false }).limit(3),
-          supabase.from("contact_messages").select("name, subject, created_at").order("created_at", { ascending: false }).limit(3),
+          projActivityQuery,
+          msgActivityQuery,
         ]);
 
         if (projectsActivity.data) {
