@@ -37,6 +37,7 @@ const ResourceFormPage = lazy(() => import("@/pages/dashboard/ResourceFormPage")
 const AboutManagePage = lazy(() => import("@/pages/dashboard/AboutManagePage"));
 const MessagesPage = lazy(() => import("@/pages/dashboard/MessagesPage"));
 const AnalyticsPage = lazy(() => import("@/pages/dashboard/AnalyticsPage"));
+const ContentAgentPage = lazy(() => import("@/pages/dashboard/ContentAgentPage"));
 
 // Loading component for Suspense
 const DashboardLoading = () => (
@@ -132,6 +133,9 @@ const AppRouter = () => {
                 
                 {/* Analytics */}
                 <Route path="analytics" element={<AnalyticsPage />} />
+                
+                {/* Content Agent */}
+                <Route path="content-agent" element={<ContentAgentPage />} />
                 
                 {/* Dashboard 404 fallback - redirect to dashboard home */}
                 <Route path="*" element={<DashboardHomePage />} />
