@@ -118,15 +118,30 @@ const DashboardHomePage = () => {
             if (row.visitor_id) monthlyMap[key].visitors.add(row.visitor_id);
           });
 
-          const sortedMonths = Object.keys(monthlyMap).sort();
-          const trendData = sortedMonths.map((key) => {
-            const [year, monthIdx] = key.split('-');
-            return {
-              name: `${monthNames[parseInt(monthIdx)]} ${year.slice(2)}`,
-              views: monthlyMap[key].views,
-              visitors: monthlyMap[key].visitors.size,
-            };
-          });
+          // Build continuous month range from earliest data to current month
+          const allKeys = Object.keys(monthlyMap).sort();
+          const now = new Date();
+          const currentKey = `${now.getFullYear()}-${String(now.getMonth()).padStart(2, '0')}`;
+          const startKey = allKeys.length > 0 ? allKeys[0] : currentKey;
+          
+          const [startYear, startMonth] = startKey.split('-').map(Number);
+          const endYear = now.getFullYear();
+          const endMonth = now.getMonth();
+          
+          const trendData: { name: string; views: number; visitors: number }[] = [];
+          let y = startYear;
+          let m = startMonth;
+          while (y < endYear || (y === endYear && m <= endMonth)) {
+            const key = `${y}-${String(m).padStart(2, '0')}`;
+            const entry = monthlyMap[key];
+            trendData.push({
+              name: `${monthNames[m]} ${y}`,
+              views: entry ? entry.views : 0,
+              visitors: entry ? entry.visitors.size : 0,
+            });
+            m++;
+            if (m > 11) { m = 0; y++; }
+          }
           setVisitorData(trendData);
         }
 
