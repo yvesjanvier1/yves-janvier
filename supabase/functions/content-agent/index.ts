@@ -26,9 +26,12 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } },
     });
+    // Service role client for storage uploads
+    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
 
     const token = authHeader.replace("Bearer ", "");
     const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
@@ -39,163 +42,17 @@ serve(async (req) => {
       });
     }
 
-    const { action, niche, existingTopics, count } = await req.json();
+    const body = await req.json();
+    const { action } = body;
 
+    // ─── ACTION: DISCOVER TOPICS ───
     if (action === "discover") {
-      // Fetch existing blog post titles to avoid duplicates
-      const { data: existingPosts } = await supabase
-        .from("blog_posts")
-        .select("title, tags")
-        .order("created_at", { ascending: false })
-        .limit(20);
+      return await handleDiscover(supabase, LOVABLE_API_KEY, body);
+    }
 
-      const existingTitles = existingPosts?.map((p: any) => p.title).join(", ") || "None";
-      const existingTags = [
-        ...new Set(existingPosts?.flatMap((p: any) => p.tags || []) || []),
-      ].join(", ");
-
-      const systemPrompt = `You are an expert content strategist and trend analyst. Your job is to discover the most relevant, trending, and educational topics for a blog that covers multiple subjects. Consider:
-- Current trends and what people are searching for
-- Educational value and audience engagement potential
-- Topics that work well across platforms (blog, Instagram, LinkedIn, WhatsApp)
-- Content that can be repurposed into visual formats (quote cards, infographics, carousels)
-
-The blog already covers these tags: ${existingTags || "various topics"}
-Recent posts include: ${existingTitles}
-
-Avoid suggesting topics too similar to existing content.`;
-
-      const userPrompt = `Suggest ${count || 5} fresh, trending content topics${niche ? ` focused on "${niche}"` : " across various niches"}.
-
-For each topic, provide:
-1. A compelling topic title
-2. A brief description (2-3 sentences) explaining why this topic is relevant now
-3. A relevance score (1-100) based on trending potential and audience interest
-4. A category (e.g., "Technology", "Business", "Personal Development", "Marketing", "Design", "Health", "Finance")
-5. Suggested tags (3-5 relevant tags)
-6. Which platforms it works best for (blog, instagram, linkedin, whatsapp)`;
-
-      const response = await fetch(
-        "https://ai.gateway.lovable.dev/v1/chat/completions",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${LOVABLE_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: "google/gemini-3-flash-preview",
-            messages: [
-              { role: "system", content: systemPrompt },
-              { role: "user", content: userPrompt },
-            ],
-            tools: [
-              {
-                type: "function",
-                function: {
-                  name: "suggest_topics",
-                  description: "Return topic suggestions for the content agent",
-                  parameters: {
-                    type: "object",
-                    properties: {
-                      suggestions: {
-                        type: "array",
-                        items: {
-                          type: "object",
-                          properties: {
-                            topic: { type: "string" },
-                            description: { type: "string" },
-                            relevance_score: { type: "number" },
-                            category: { type: "string" },
-                            tags: {
-                              type: "array",
-                              items: { type: "string" },
-                            },
-                            target_platforms: {
-                              type: "array",
-                              items: { type: "string" },
-                            },
-                          },
-                          required: [
-                            "topic",
-                            "description",
-                            "relevance_score",
-                            "category",
-                            "tags",
-                            "target_platforms",
-                          ],
-                          additionalProperties: false,
-                        },
-                      },
-                    },
-                    required: ["suggestions"],
-                    additionalProperties: false,
-                  },
-                },
-              },
-            ],
-            tool_choice: {
-              type: "function",
-              function: { name: "suggest_topics" },
-            },
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        if (response.status === 429) {
-          return new Response(
-            JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
-            { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
-        if (response.status === 402) {
-          return new Response(
-            JSON.stringify({ error: "AI credits exhausted. Please add credits." }),
-            { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
-        const errorText = await response.text();
-        console.error("AI gateway error:", response.status, errorText);
-        throw new Error(`AI gateway error: ${response.status}`);
-      }
-
-      const aiData = await response.json();
-      const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
-
-      if (!toolCall?.function?.arguments) {
-        throw new Error("Invalid AI response format");
-      }
-
-      const parsed = JSON.parse(toolCall.function.arguments);
-      const suggestions = parsed.suggestions;
-
-      // Save suggestions to database
-      const { data: saved, error: saveError } = await supabase
-        .from("content_suggestions")
-        .insert(
-          suggestions.map((s: any) => ({
-            topic: s.topic,
-            description: s.description,
-            relevance_score: s.relevance_score,
-            category: s.category,
-            tags: s.tags,
-            target_platforms: s.target_platforms,
-            source_context: niche || "general",
-            status: "pending",
-          }))
-        )
-        .select();
-
-      if (saveError) {
-        console.error("Error saving suggestions:", saveError);
-        throw new Error("Failed to save suggestions");
-      }
-
-      return new Response(
-        JSON.stringify({ success: true, suggestions: saved }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    // ─── ACTION: GENERATE VISUAL CONTENT ───
+    if (action === "generate-visual") {
+      return await handleGenerateVisual(supabase, supabaseAdmin, LOVABLE_API_KEY, body);
     }
 
     return new Response(
@@ -211,3 +68,306 @@ For each topic, provide:
     );
   }
 });
+
+// ─── DISCOVER HANDLER ───
+async function handleDiscover(supabase: any, apiKey: string, body: any) {
+  const { niche, count } = body;
+
+  const { data: existingPosts } = await supabase
+    .from("blog_posts")
+    .select("title, tags")
+    .order("created_at", { ascending: false })
+    .limit(20);
+
+  const existingTitles = existingPosts?.map((p: any) => p.title).join(", ") || "None";
+  const existingTags = [
+    ...new Set(existingPosts?.flatMap((p: any) => p.tags || []) || []),
+  ].join(", ");
+
+  const systemPrompt = `You are an expert content strategist and trend analyst. Your job is to discover the most relevant, trending, and educational topics for a blog that covers multiple subjects. Consider:
+- Current trends and what people are searching for
+- Educational value and audience engagement potential
+- Topics that work well across platforms (blog, Instagram, LinkedIn, WhatsApp)
+- Content that can be repurposed into visual formats (quote cards, infographics, carousels)
+
+The blog already covers these tags: ${existingTags || "various topics"}
+Recent posts include: ${existingTitles}
+
+Avoid suggesting topics too similar to existing content.`;
+
+  const userPrompt = `Suggest ${count || 5} fresh, trending content topics${niche ? ` focused on "${niche}"` : " across various niches"}.
+
+For each topic, provide:
+1. A compelling topic title
+2. A brief description (2-3 sentences) explaining why this topic is relevant now
+3. A relevance score (1-100) based on trending potential and audience interest
+4. A category (e.g., "Technology", "Business", "Personal Development", "Marketing", "Design", "Health", "Finance")
+5. Suggested tags (3-5 relevant tags)
+6. Which platforms it works best for (blog, instagram, linkedin, whatsapp)`;
+
+  const response = await callAI(apiKey, {
+    model: "google/gemini-3-flash-preview",
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt },
+    ],
+    tools: [{
+      type: "function",
+      function: {
+        name: "suggest_topics",
+        description: "Return topic suggestions for the content agent",
+        parameters: {
+          type: "object",
+          properties: {
+            suggestions: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  topic: { type: "string" },
+                  description: { type: "string" },
+                  relevance_score: { type: "number" },
+                  category: { type: "string" },
+                  tags: { type: "array", items: { type: "string" } },
+                  target_platforms: { type: "array", items: { type: "string" } },
+                },
+                required: ["topic", "description", "relevance_score", "category", "tags", "target_platforms"],
+                additionalProperties: false,
+              },
+            },
+          },
+          required: ["suggestions"],
+          additionalProperties: false,
+        },
+      },
+    }],
+    tool_choice: { type: "function", function: { name: "suggest_topics" } },
+  });
+
+  if (!response.ok) {
+    return handleAIError(response);
+  }
+
+  const aiData = await response.json();
+  const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
+  if (!toolCall?.function?.arguments) throw new Error("Invalid AI response format");
+
+  const parsed = JSON.parse(toolCall.function.arguments);
+
+  const { data: saved, error: saveError } = await supabase
+    .from("content_suggestions")
+    .insert(
+      parsed.suggestions.map((s: any) => ({
+        topic: s.topic,
+        description: s.description,
+        relevance_score: s.relevance_score,
+        category: s.category,
+        tags: s.tags,
+        target_platforms: s.target_platforms,
+        source_context: niche || "general",
+        status: "pending",
+      }))
+    )
+    .select();
+
+  if (saveError) throw new Error("Failed to save suggestions");
+
+  return new Response(
+    JSON.stringify({ success: true, suggestions: saved }),
+    { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+  );
+}
+
+// ─── GENERATE VISUAL HANDLER ───
+async function handleGenerateVisual(supabase: any, supabaseAdmin: any, apiKey: string, body: any) {
+  const { suggestionId, topic, description, contentType, platform, tags } = body;
+
+  console.log(`Generating visual: type=${contentType}, platform=${platform}, topic=${topic}`);
+
+  // Build platform-specific dimensions and style guidance
+  const platformSpecs: Record<string, string> = {
+    instagram: "Square format (1080x1080). Bold, vibrant, scroll-stopping. Large readable text. Use brand colors.",
+    linkedin: "Landscape format (1200x627). Professional, clean, corporate-friendly. Subtle gradients.",
+    whatsapp: "Square format (800x800). Simple, high-contrast, readable at small sizes. Minimal text.",
+  };
+
+  const contentTypePrompts: Record<string, string> = {
+    quote_card: `Create a professional quote card image with an inspiring or educational quote about "${topic}". Include:
+- A powerful one-line quote or key insight related to the topic
+- Clean, modern typography with the quote text prominently displayed
+- A subtle branded footer area (leave space for a name/handle)
+- Visually appealing background (gradient, abstract pattern, or subtle texture)
+- ${platformSpecs[platform] || platformSpecs.instagram}
+Do NOT include any real person's name. The quote should be generic wisdom about the topic.`,
+
+    infographic: `Create a clean infographic-style image about "${topic}". Include:
+- A clear title at the top
+- 3-5 key data points or facts visualized with icons and short text
+- Clean layout with sections clearly separated
+- Professional color scheme with good contrast
+- ${platformSpecs[platform] || platformSpecs.instagram}
+Use placeholder numbers/stats that look realistic. Focus on visual clarity.`,
+
+    carousel: `Create ONE slide for a carousel post about "${topic}". This should be the TITLE/COVER slide. Include:
+- A bold, attention-grabbing title
+- A subtitle or hook line that makes people want to swipe
+- Visual elements (icons, shapes, patterns) that suggest there's more content
+- "Swipe →" indicator
+- ${platformSpecs[platform] || platformSpecs.instagram}
+Make it bold and engaging to encourage swiping.`,
+  };
+
+  const imagePrompt = contentTypePrompts[contentType] || contentTypePrompts.quote_card;
+
+  // Generate image
+  const imageResponse = await callAI(apiKey, {
+    model: "google/gemini-2.5-flash-image",
+    messages: [{ role: "user", content: imagePrompt }],
+    modalities: ["image", "text"],
+  });
+
+  if (!imageResponse.ok) {
+    return handleAIError(imageResponse);
+  }
+
+  const imageData = await imageResponse.json();
+  const base64ImageUrl = imageData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+
+  if (!base64ImageUrl) {
+    throw new Error("No image generated by AI");
+  }
+
+  // Upload image to storage
+  const base64Data = base64ImageUrl.replace(/^data:image\/\w+;base64,/, "");
+  const imageBuffer = Uint8Array.from(atob(base64Data), (c) => c.charCodeAt(0));
+
+  const timestamp = Date.now();
+  const randomId = crypto.randomUUID().substring(0, 8);
+  const fileName = `visual-${contentType}-${platform}-${timestamp}-${randomId}.png`;
+
+  const { error: uploadError } = await supabaseAdmin.storage
+    .from("blog-images")
+    .upload(fileName, imageBuffer, { contentType: "image/png", upsert: false });
+
+  if (uploadError) {
+    console.error("Storage upload error:", uploadError);
+    throw new Error("Failed to save image");
+  }
+
+  const { data: publicUrlData } = supabaseAdmin.storage
+    .from("blog-images")
+    .getPublicUrl(fileName);
+
+  const publicUrl = publicUrlData.publicUrl;
+  console.log("Visual uploaded:", publicUrl);
+
+  // Generate caption and hashtags
+  const captionResponse = await callAI(apiKey, {
+    model: "google/gemini-3-flash-preview",
+    messages: [
+      {
+        role: "system",
+        content: "You are a social media expert. Generate engaging captions and hashtags.",
+      },
+      {
+        role: "user",
+        content: `Generate a ${platform} caption and hashtags for a ${contentType.replace("_", " ")} about "${topic}". Description: ${description || ""}`,
+      },
+    ],
+    tools: [{
+      type: "function",
+      function: {
+        name: "generate_caption",
+        description: "Return caption and hashtags for social media post",
+        parameters: {
+          type: "object",
+          properties: {
+            caption: { type: "string", description: "Engaging caption for the post (2-4 sentences)" },
+            hashtags: { type: "array", items: { type: "string" }, description: "5-10 relevant hashtags without # prefix" },
+          },
+          required: ["caption", "hashtags"],
+          additionalProperties: false,
+        },
+      },
+    }],
+    tool_choice: { type: "function", function: { name: "generate_caption" } },
+  });
+
+  let caption = "";
+  let hashtags: string[] = [];
+
+  if (captionResponse.ok) {
+    const captionData = await captionResponse.json();
+    const captionTool = captionData.choices?.[0]?.message?.tool_calls?.[0];
+    if (captionTool?.function?.arguments) {
+      const parsed = JSON.parse(captionTool.function.arguments);
+      caption = parsed.caption || "";
+      hashtags = (parsed.hashtags || []).map((h: string) => h.startsWith("#") ? h : `#${h}`);
+    }
+  }
+
+  // Save to content_queue
+  const { data: saved, error: saveError } = await supabase
+    .from("content_queue")
+    .insert({
+      suggestion_id: suggestionId || null,
+      title: topic,
+      content_type: contentType,
+      platform,
+      image_url: publicUrl,
+      text_content: description || "",
+      caption,
+      hashtags,
+      status: "draft",
+    })
+    .select()
+    .single();
+
+  if (saveError) {
+    console.error("Error saving to queue:", saveError);
+    throw new Error("Failed to save content to queue");
+  }
+
+  // Mark suggestion as used if provided
+  if (suggestionId) {
+    await supabase
+      .from("content_suggestions")
+      .update({ status: "used" })
+      .eq("id", suggestionId);
+  }
+
+  return new Response(
+    JSON.stringify({ success: true, content: saved }),
+    { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+  );
+}
+
+// ─── HELPERS ───
+async function callAI(apiKey: string, body: any) {
+  return fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+}
+
+async function handleAIError(response: Response) {
+  if (response.status === 429) {
+    return new Response(
+      JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
+      { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+  if (response.status === 402) {
+    return new Response(
+      JSON.stringify({ error: "AI credits exhausted. Please add credits." }),
+      { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+  const errorText = await response.text();
+  console.error("AI gateway error:", response.status, errorText);
+  throw new Error(`AI gateway error: ${response.status}`);
+}

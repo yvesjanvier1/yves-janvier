@@ -155,6 +155,59 @@ export type Database = {
         }
         Relationships: []
       }
+      content_queue: {
+        Row: {
+          caption: string | null
+          content_type: string
+          created_at: string
+          hashtags: string[] | null
+          id: string
+          image_url: string | null
+          platform: string
+          status: string
+          suggestion_id: string | null
+          text_content: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          caption?: string | null
+          content_type?: string
+          created_at?: string
+          hashtags?: string[] | null
+          id?: string
+          image_url?: string | null
+          platform?: string
+          status?: string
+          suggestion_id?: string | null
+          text_content?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          caption?: string | null
+          content_type?: string
+          created_at?: string
+          hashtags?: string[] | null
+          id?: string
+          image_url?: string | null
+          platform?: string
+          status?: string
+          suggestion_id?: string | null
+          text_content?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_queue_suggestion_id_fkey"
+            columns: ["suggestion_id"]
+            isOneToOne: false
+            referencedRelation: "content_suggestions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       content_suggestions: {
         Row: {
           category: string | null
