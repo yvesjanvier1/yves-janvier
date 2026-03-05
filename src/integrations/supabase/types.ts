@@ -158,12 +158,16 @@ export type Database = {
       content_queue: {
         Row: {
           caption: string | null
+          carousel_group_id: string | null
           content_type: string
           created_at: string
           hashtags: string[] | null
           id: string
           image_url: string | null
           platform: string
+          published_at: string | null
+          scheduled_at: string | null
+          slide_number: number | null
           status: string
           suggestion_id: string | null
           text_content: string | null
@@ -172,12 +176,16 @@ export type Database = {
         }
         Insert: {
           caption?: string | null
+          carousel_group_id?: string | null
           content_type?: string
           created_at?: string
           hashtags?: string[] | null
           id?: string
           image_url?: string | null
           platform?: string
+          published_at?: string | null
+          scheduled_at?: string | null
+          slide_number?: number | null
           status?: string
           suggestion_id?: string | null
           text_content?: string | null
@@ -186,12 +194,16 @@ export type Database = {
         }
         Update: {
           caption?: string | null
+          carousel_group_id?: string | null
           content_type?: string
           created_at?: string
           hashtags?: string[] | null
           id?: string
           image_url?: string | null
           platform?: string
+          published_at?: string | null
+          scheduled_at?: string | null
+          slide_number?: number | null
           status?: string
           suggestion_id?: string | null
           text_content?: string | null
