@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,10 +11,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import {
   Sparkles, Loader2, TrendingUp, Check, X, Trash2, ArrowRight,
   Instagram, Linkedin, MessageCircle, FileText, Image, Download,
-  Quote, BarChart3, Layers, Eye
+  Quote, BarChart3, Layers, Eye, CalendarIcon, Clock, Share2,
+  Copy, ExternalLink
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -42,6 +47,10 @@ interface ContentQueueItem {
   hashtags: string[];
   status: string;
   created_at: string;
+  scheduled_at: string | null;
+  published_at: string | null;
+  slide_number: number | null;
+  carousel_group_id: string | null;
 }
 
 const platformIcons: Record<string, React.ReactNode> = {
@@ -55,6 +64,12 @@ const contentTypeIcons: Record<string, React.ReactNode> = {
   quote_card: <Quote className="h-4 w-4" />,
   infographic: <BarChart3 className="h-4 w-4" />,
   carousel: <Layers className="h-4 w-4" />,
+};
+
+const contentTypeLabel: Record<string, string> = {
+  quote_card: "Quote Card",
+  infographic: "Infographic",
+  carousel: "Carousel",
 };
 
 const ContentAgentPage = () => {
@@ -71,9 +86,20 @@ const ContentAgentPage = () => {
   const [genContentType, setGenContentType] = useState("quote_card");
   const [genPlatform, setGenPlatform] = useState("instagram");
   const [genTopic, setGenTopic] = useState("");
+  const [genSlideCount, setGenSlideCount] = useState("4");
+  const [genScheduledDate, setGenScheduledDate] = useState<Date | undefined>();
+  const [genScheduledTime, setGenScheduledTime] = useState("09:00");
 
-  // Preview state
+  // Preview & share state
   const [previewItem, setPreviewItem] = useState<ContentQueueItem | null>(null);
+  const [shareDialog, setShareDialog] = useState(false);
+  const [shareItem, setShareItem] = useState<ContentQueueItem | null>(null);
+
+  // Schedule edit state
+  const [scheduleDialog, setScheduleDialog] = useState(false);
+  const [scheduleItem, setScheduleItem] = useState<ContentQueueItem | null>(null);
+  const [scheduleDate, setScheduleDate] = useState<Date | undefined>();
+  const [scheduleTime, setScheduleTime] = useState("09:00");
 
   // ─── Queries ───
   const { data: suggestions = [], isLoading } = useQuery({
@@ -102,6 +128,23 @@ const ContentAgentPage = () => {
     },
   });
 
+  // Group carousels
+  const groupedContent = (() => {
+    const groups: Record<string, ContentQueueItem[]> = {};
+    const singles: ContentQueueItem[] = [];
+    contentQueue.forEach((item) => {
+      if (item.carousel_group_id) {
+        if (!groups[item.carousel_group_id]) groups[item.carousel_group_id] = [];
+        groups[item.carousel_group_id].push(item);
+      } else {
+        singles.push(item);
+      }
+    });
+    // Sort carousel slides
+    Object.values(groups).forEach((g) => g.sort((a, b) => (a.slide_number || 0) - (b.slide_number || 0)));
+    return { groups, singles };
+  })();
+
   // ─── Mutations ───
   const discoverMutation = useMutation({
     mutationFn: async () => {
@@ -121,15 +164,25 @@ const ContentAgentPage = () => {
 
   const generateVisualMutation = useMutation({
     mutationFn: async () => {
+      const scheduledAt = genScheduledDate
+        ? new Date(`${format(genScheduledDate, "yyyy-MM-dd")}T${genScheduledTime}:00`).toISOString()
+        : null;
+
+      const isCarouselMulti = genContentType === "carousel_multi";
+      const action = isCarouselMulti ? "generate-carousel" : "generate-visual";
+      const contentType = isCarouselMulti ? "carousel" : genContentType;
+
       const { data, error } = await supabase.functions.invoke("content-agent", {
         body: {
-          action: "generate-visual",
+          action,
           suggestionId: selectedSuggestion?.id || null,
           topic: selectedSuggestion?.topic || genTopic,
           description: selectedSuggestion?.description || "",
-          contentType: genContentType,
+          contentType,
           platform: genPlatform,
           tags: selectedSuggestion?.tags || [],
+          slideCount: isCarouselMulti ? parseInt(genSlideCount) : undefined,
+          scheduledAt,
         },
       });
       if (error) throw error;
@@ -137,10 +190,11 @@ const ContentAgentPage = () => {
       return data;
     },
     onSuccess: (data) => {
-      toast.success("Visual content generated!");
+      toast.success(data.slides ? `${data.slides.length}-slide carousel generated!` : "Visual content generated!");
       setGenerateDialog(false);
       setSelectedSuggestion(null);
       setGenTopic("");
+      setGenScheduledDate(undefined);
       queryClient.invalidateQueries({ queryKey: ["content_queue"] });
       queryClient.invalidateQueries({ queryKey: ["content_suggestions"] });
       if (data?.content) setPreviewItem(data.content);
@@ -178,6 +232,63 @@ const ContentAgentPage = () => {
     },
   });
 
+  const deleteCarouselGroupMutation = useMutation({
+    mutationFn: async (groupId: string) => {
+      const { error } = await supabase.from("content_queue").delete().eq("carousel_group_id", groupId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Carousel deleted");
+      queryClient.invalidateQueries({ queryKey: ["content_queue"] });
+    },
+  });
+
+  const scheduleItemMutation = useMutation({
+    mutationFn: async ({ id, scheduledAt, groupId }: { id: string; scheduledAt: string; groupId?: string | null }) => {
+      if (groupId) {
+        const { error } = await supabase
+          .from("content_queue")
+          .update({ scheduled_at: scheduledAt, status: "scheduled" })
+          .eq("carousel_group_id", groupId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("content_queue")
+          .update({ scheduled_at: scheduledAt, status: "scheduled" })
+          .eq("id", id);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      toast.success("Content scheduled!");
+      setScheduleDialog(false);
+      setScheduleItem(null);
+      queryClient.invalidateQueries({ queryKey: ["content_queue"] });
+    },
+  });
+
+  const markPublishedMutation = useMutation({
+    mutationFn: async ({ id, groupId }: { id: string; groupId?: string | null }) => {
+      if (groupId) {
+        const { error } = await supabase
+          .from("content_queue")
+          .update({ published_at: new Date().toISOString(), status: "published" })
+          .eq("carousel_group_id", groupId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("content_queue")
+          .update({ published_at: new Date().toISOString(), status: "published" })
+          .eq("id", id);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      toast.success("Marked as published!");
+      queryClient.invalidateQueries({ queryKey: ["content_queue"] });
+    },
+  });
+
   // ─── Handlers ───
   const handleCreateBlogPost = (suggestion: ContentSuggestion) => {
     navigate(`/dashboard/blog/new?title=${encodeURIComponent(suggestion.topic)}&tags=${encodeURIComponent(suggestion.tags?.join(",") || "")}`);
@@ -187,7 +298,48 @@ const ContentAgentPage = () => {
   const openGenerateDialog = (suggestion?: ContentSuggestion) => {
     setSelectedSuggestion(suggestion || null);
     setGenTopic(suggestion?.topic || "");
+    setGenScheduledDate(undefined);
     setGenerateDialog(true);
+  };
+
+  const openScheduleDialog = (item: ContentQueueItem) => {
+    setScheduleItem(item);
+    setScheduleDate(item.scheduled_at ? new Date(item.scheduled_at) : undefined);
+    setScheduleTime(item.scheduled_at ? format(new Date(item.scheduled_at), "HH:mm") : "09:00");
+    setScheduleDialog(true);
+  };
+
+  const handleScheduleSave = () => {
+    if (!scheduleDate || !scheduleItem) return;
+    const scheduledAt = new Date(`${format(scheduleDate, "yyyy-MM-dd")}T${scheduleTime}:00`).toISOString();
+    scheduleItemMutation.mutate({ id: scheduleItem.id, scheduledAt, groupId: scheduleItem.carousel_group_id });
+  };
+
+  const buildShareUrl = (item: ContentQueueItem, platform: string) => {
+    const text = `${item.caption || item.title}\n\n${item.hashtags?.join(" ") || ""}`;
+    const encodedText = encodeURIComponent(text);
+    const imageUrl = encodeURIComponent(item.image_url || "");
+
+    switch (platform) {
+      case "linkedin":
+        return `https://www.linkedin.com/sharing/share-offsite/?url=${imageUrl}&summary=${encodedText}`;
+      case "whatsapp":
+        return `https://api.whatsapp.com/send?text=${encodedText}%0A%0A${imageUrl}`;
+      case "instagram":
+        return null; // Instagram doesn't have a web share URL - copy caption instead
+      default:
+        return null;
+    }
+  };
+
+  const openShareDialog = (item: ContentQueueItem) => {
+    setShareItem(item);
+    setShareDialog(true);
+  };
+
+  const copyFullCaption = (item: ContentQueueItem) => {
+    navigator.clipboard.writeText(`${item.caption || ""}\n\n${item.hashtags?.join(" ") || ""}`);
+    toast.success("Caption & hashtags copied!");
   };
 
   const getScoreColor = (score: number) => {
@@ -205,11 +357,22 @@ const ContentAgentPage = () => {
     }
   };
 
-  const contentTypeLabel: Record<string, string> = {
-    quote_card: "Quote Card",
-    infographic: "Infographic",
-    carousel: "Carousel Slide",
+  const getQueueStatusBadge = (item: ContentQueueItem) => {
+    if (item.status === "published") return <Badge className="bg-green-600 text-xs">Published</Badge>;
+    if (item.status === "scheduled" && item.scheduled_at) {
+      return (
+        <Badge variant="outline" className="text-xs gap-1">
+          <Clock className="h-3 w-3" />
+          {format(new Date(item.scheduled_at), "MMM d, HH:mm")}
+        </Badge>
+      );
+    }
+    return <Badge variant="secondary" className="text-xs">Draft</Badge>;
   };
+
+  // Count scheduled & published
+  const scheduledCount = contentQueue.filter((i) => i.status === "scheduled").length;
+  const publishedCount = contentQueue.filter((i) => i.status === "published").length;
 
   return (
     <div className="space-y-6">
@@ -220,7 +383,7 @@ const ContentAgentPage = () => {
           Content Agent
         </h1>
         <p className="text-muted-foreground mt-1">
-          AI-powered topic discovery and visual content generation for all platforms
+          AI-powered topic discovery, visual content generation, scheduling & sharing
         </p>
       </div>
 
@@ -232,13 +395,16 @@ const ContentAgentPage = () => {
           </TabsTrigger>
           <TabsTrigger value="visuals" className="gap-2">
             <Image className="h-4 w-4" />
-            Visual Content ({contentQueue.length})
+            Content ({contentQueue.length})
+          </TabsTrigger>
+          <TabsTrigger value="schedule" className="gap-2">
+            <CalendarIcon className="h-4 w-4" />
+            Schedule ({scheduledCount})
           </TabsTrigger>
         </TabsList>
 
         {/* ═══ DISCOVER TAB ═══ */}
         <TabsContent value="discover" className="space-y-6">
-          {/* Discovery Form */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -258,9 +424,7 @@ const ContentAgentPage = () => {
                   className="flex-1"
                 />
                 <Select value={count} onValueChange={setCount}>
-                  <SelectTrigger className="w-[130px]">
-                    <SelectValue />
-                  </SelectTrigger>
+                  <SelectTrigger className="w-[130px]"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="3">3 topics</SelectItem>
                     <SelectItem value="5">5 topics</SelectItem>
@@ -279,18 +443,14 @@ const ContentAgentPage = () => {
             </CardContent>
           </Card>
 
-          {/* Filter & Results */}
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold">Suggestions ({suggestions.length})</h2>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" className="gap-1" onClick={() => openGenerateDialog()}>
-                <Image className="h-4 w-4" />
-                Generate from custom topic
+                <Image className="h-4 w-4" />Generate from custom topic
               </Button>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[150px]">
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger className="w-[150px]"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All</SelectItem>
                   <SelectItem value="pending">Pending</SelectItem>
@@ -380,10 +540,9 @@ const ContentAgentPage = () => {
         {/* ═══ VISUAL CONTENT TAB ═══ */}
         <TabsContent value="visuals" className="space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">Generated Visual Content</h2>
+            <h2 className="text-xl font-semibold">Generated Content</h2>
             <Button className="gap-2" onClick={() => openGenerateDialog()}>
-              <Image className="h-4 w-4" />
-              Generate New Visual
+              <Image className="h-4 w-4" />Generate New
             </Button>
           </div>
 
@@ -396,69 +555,214 @@ const ContentAgentPage = () => {
               <CardContent className="flex flex-col items-center justify-center py-12 text-center">
                 <Image className="h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-medium">No visual content yet</h3>
-                <p className="text-muted-foreground mt-1">
-                  Generate quote cards, infographics, or carousel slides from your topic suggestions
-                </p>
+                <p className="text-muted-foreground mt-1">Generate quote cards, infographics, or carousel slides</p>
               </CardContent>
             </Card>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {contentQueue.map((item) => (
-                <Card key={item.id} className="overflow-hidden hover:shadow-md transition-shadow">
-                  {item.image_url && (
-                    <div className="aspect-square relative group cursor-pointer" onClick={() => setPreviewItem(item)}>
-                      <img src={item.image_url} alt={item.title} className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
-                        <Eye className="h-8 w-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="space-y-6">
+              {/* Carousel groups */}
+              {Object.entries(groupedContent.groups).map(([groupId, slides]) => (
+                <Card key={groupId} className="overflow-hidden">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <Layers className="h-4 w-4" />
+                        {slides[0]?.title?.replace(/ - Slide \d+$/, "")} ({slides.length} slides)
+                      </CardTitle>
+                      <div className="flex items-center gap-2">
+                        {getQueueStatusBadge(slides[0])}
+                        <Badge variant="outline" className="text-xs gap-1">
+                          {platformIcons[slides[0]?.platform]}{slides[0]?.platform}
+                        </Badge>
                       </div>
                     </div>
-                  )}
-                  <CardContent className="p-4 space-y-2">
-                    <div className="flex items-center gap-2">
-                      {contentTypeIcons[item.content_type]}
-                      <span className="font-medium text-sm truncate">{item.title}</span>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex gap-3 overflow-x-auto pb-2">
+                      {slides.map((slide) => (
+                        <div key={slide.id} className="flex-shrink-0 w-40 cursor-pointer" onClick={() => setPreviewItem(slide)}>
+                          {slide.image_url && (
+                            <img src={slide.image_url} alt={slide.title} className="w-40 h-40 object-cover rounded-lg border" />
+                          )}
+                          <p className="text-xs text-muted-foreground mt-1 truncate">Slide {slide.slide_number}</p>
+                        </div>
+                      ))}
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-xs gap-1">
-                        {platformIcons[item.platform]}{item.platform}
-                      </Badge>
-                      <Badge variant="secondary" className="text-xs">
-                        {contentTypeLabel[item.content_type] || item.content_type}
-                      </Badge>
-                    </div>
-                    {item.caption && (
-                      <p className="text-xs text-muted-foreground line-clamp-2">{item.caption}</p>
+                    {slides[0]?.caption && (
+                      <p className="text-sm text-muted-foreground line-clamp-2">{slides[0].caption}</p>
                     )}
-                    <div className="flex items-center gap-1 pt-1">
-                      <Button size="sm" variant="outline" className="gap-1 flex-1" onClick={() => setPreviewItem(item)}>
-                        <Eye className="h-3.5 w-3.5" />Preview
+                    <div className="flex items-center gap-1">
+                      <Button size="sm" variant="outline" className="gap-1" onClick={() => openShareDialog(slides[0])}>
+                        <Share2 className="h-3.5 w-3.5" />Share
                       </Button>
-                      {item.image_url && (
-                        <Button size="sm" variant="outline" className="gap-1" asChild>
-                          <a href={item.image_url} download target="_blank" rel="noopener noreferrer">
-                            <Download className="h-3.5 w-3.5" />
-                          </a>
+                      <Button size="sm" variant="outline" className="gap-1" onClick={() => openScheduleDialog(slides[0])}>
+                        <CalendarIcon className="h-3.5 w-3.5" />Schedule
+                      </Button>
+                      {slides[0].status !== "published" && (
+                        <Button size="sm" variant="outline" className="gap-1" onClick={() => markPublishedMutation.mutate({ id: slides[0].id, groupId: groupId })}>
+                          <Check className="h-3.5 w-3.5" />Published
                         </Button>
                       )}
-                      <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-destructive" onClick={() => deleteQueueItemMutation.mutate(item.id)}>
+                      <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-destructive ml-auto" onClick={() => deleteCarouselGroupMutation.mutate(groupId)}>
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     </div>
                   </CardContent>
                 </Card>
               ))}
+
+              {/* Single items */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {groupedContent.singles.map((item) => (
+                  <Card key={item.id} className="overflow-hidden hover:shadow-md transition-shadow">
+                    {item.image_url && (
+                      <div className="aspect-square relative group cursor-pointer" onClick={() => setPreviewItem(item)}>
+                        <img src={item.image_url} alt={item.title} className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                          <Eye className="h-8 w-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
+                      </div>
+                    )}
+                    <CardContent className="p-4 space-y-2">
+                      <div className="flex items-center gap-2">
+                        {contentTypeIcons[item.content_type]}
+                        <span className="font-medium text-sm truncate">{item.title}</span>
+                      </div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge variant="outline" className="text-xs gap-1">
+                          {platformIcons[item.platform]}{item.platform}
+                        </Badge>
+                        <Badge variant="secondary" className="text-xs">
+                          {contentTypeLabel[item.content_type] || item.content_type}
+                        </Badge>
+                        {getQueueStatusBadge(item)}
+                      </div>
+                      {item.caption && (
+                        <p className="text-xs text-muted-foreground line-clamp-2">{item.caption}</p>
+                      )}
+                      <div className="flex items-center gap-1 pt-1">
+                        <Button size="sm" variant="outline" className="gap-1" onClick={() => openShareDialog(item)}>
+                          <Share2 className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button size="sm" variant="outline" className="gap-1" onClick={() => openScheduleDialog(item)}>
+                          <CalendarIcon className="h-3.5 w-3.5" />
+                        </Button>
+                        {item.status !== "published" && (
+                          <Button size="sm" variant="outline" className="gap-1" onClick={() => markPublishedMutation.mutate({ id: item.id })}>
+                            <Check className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                        {item.image_url && (
+                          <Button size="sm" variant="outline" className="gap-1" asChild>
+                            <a href={item.image_url} download target="_blank" rel="noopener noreferrer">
+                              <Download className="h-3.5 w-3.5" />
+                            </a>
+                          </Button>
+                        )}
+                        <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-destructive ml-auto" onClick={() => deleteQueueItemMutation.mutate(item.id)}>
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             </div>
           )}
         </TabsContent>
+
+        {/* ═══ SCHEDULE TAB ═══ */}
+        <TabsContent value="schedule" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card>
+              <CardContent className="p-4 text-center">
+                <p className="text-2xl font-bold">{contentQueue.length}</p>
+                <p className="text-sm text-muted-foreground">Total Content</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 text-center">
+                <p className="text-2xl font-bold text-primary">{scheduledCount}</p>
+                <p className="text-sm text-muted-foreground">Scheduled</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 text-center">
+                <p className="text-2xl font-bold text-green-600">{publishedCount}</p>
+                <p className="text-sm text-muted-foreground">Published</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <h2 className="text-xl font-semibold">Upcoming Schedule</h2>
+
+          {(() => {
+            const scheduled = contentQueue
+              .filter((i) => i.scheduled_at && i.status === "scheduled")
+              .sort((a, b) => new Date(a.scheduled_at!).getTime() - new Date(b.scheduled_at!).getTime());
+
+            if (scheduled.length === 0) {
+              return (
+                <Card>
+                  <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                    <CalendarIcon className="h-12 w-12 text-muted-foreground mb-4" />
+                    <h3 className="text-lg font-medium">No scheduled content</h3>
+                    <p className="text-muted-foreground mt-1">Schedule content from the Visual Content tab</p>
+                  </CardContent>
+                </Card>
+              );
+            }
+
+            return (
+              <div className="space-y-3">
+                {scheduled.map((item) => (
+                  <Card key={item.id} className="hover:shadow-sm transition-shadow">
+                    <CardContent className="p-4 flex items-center gap-4">
+                      {item.image_url && (
+                        <img src={item.image_url} alt={item.title} className="w-16 h-16 object-cover rounded-lg" />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate">{item.title}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge variant="outline" className="text-xs gap-1">
+                            {platformIcons[item.platform]}{item.platform}
+                          </Badge>
+                          <Badge variant="secondary" className="text-xs">
+                            {contentTypeLabel[item.content_type] || item.content_type}
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium text-sm">
+                          {format(new Date(item.scheduled_at!), "MMM d, yyyy")}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {format(new Date(item.scheduled_at!), "HH:mm")}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Button size="sm" variant="outline" className="gap-1" onClick={() => openShareDialog(item)}>
+                          <Share2 className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button size="sm" variant="outline" className="gap-1" onClick={() => markPublishedMutation.mutate({ id: item.id, groupId: item.carousel_group_id })}>
+                          <Check className="h-3.5 w-3.5" />Done
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            );
+          })()}
+        </TabsContent>
       </Tabs>
 
-      {/* ═══ GENERATE VISUAL DIALOG ═══ */}
+      {/* ═══ GENERATE DIALOG ═══ */}
       <Dialog open={generateDialog} onOpenChange={setGenerateDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Image className="h-5 w-5" />
-              Generate Visual Content
+              <Image className="h-5 w-5" />Generate Visual Content
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
@@ -470,53 +774,65 @@ const ContentAgentPage = () => {
             ) : (
               <div>
                 <label className="text-sm font-medium">Topic</label>
-                <Input
-                  placeholder="Enter a topic for visual content..."
-                  value={genTopic}
-                  onChange={(e) => setGenTopic(e.target.value)}
-                  className="mt-1"
-                />
+                <Input placeholder="Enter a topic..." value={genTopic} onChange={(e) => setGenTopic(e.target.value)} className="mt-1" />
               </div>
             )}
 
             <div>
               <label className="text-sm font-medium">Content Type</label>
               <Select value={genContentType} onValueChange={setGenContentType}>
-                <SelectTrigger className="mt-1">
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="quote_card">
-                    <span className="flex items-center gap-2"><Quote className="h-4 w-4" />Quote Card</span>
-                  </SelectItem>
-                  <SelectItem value="infographic">
-                    <span className="flex items-center gap-2"><BarChart3 className="h-4 w-4" />Infographic</span>
-                  </SelectItem>
-                  <SelectItem value="carousel">
-                    <span className="flex items-center gap-2"><Layers className="h-4 w-4" />Carousel Slide</span>
-                  </SelectItem>
+                  <SelectItem value="quote_card"><span className="flex items-center gap-2"><Quote className="h-4 w-4" />Quote Card</span></SelectItem>
+                  <SelectItem value="infographic"><span className="flex items-center gap-2"><BarChart3 className="h-4 w-4" />Infographic</span></SelectItem>
+                  <SelectItem value="carousel"><span className="flex items-center gap-2"><Layers className="h-4 w-4" />Carousel (1 slide)</span></SelectItem>
+                  <SelectItem value="carousel_multi"><span className="flex items-center gap-2"><Layers className="h-4 w-4" />Carousel (multi-slide)</span></SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {genContentType === "carousel_multi" && (
+              <div>
+                <label className="text-sm font-medium">Number of slides</label>
+                <Select value={genSlideCount} onValueChange={setGenSlideCount}>
+                  <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="3">3 slides</SelectItem>
+                    <SelectItem value="4">4 slides</SelectItem>
+                    <SelectItem value="5">5 slides</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            <div>
+              <label className="text-sm font-medium">Platform</label>
+              <Select value={genPlatform} onValueChange={setGenPlatform}>
+                <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="instagram"><span className="flex items-center gap-2"><Instagram className="h-4 w-4" />Instagram</span></SelectItem>
+                  <SelectItem value="linkedin"><span className="flex items-center gap-2"><Linkedin className="h-4 w-4" />LinkedIn</span></SelectItem>
+                  <SelectItem value="whatsapp"><span className="flex items-center gap-2"><MessageCircle className="h-4 w-4" />WhatsApp</span></SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div>
-              <label className="text-sm font-medium">Platform</label>
-              <Select value={genPlatform} onValueChange={setGenPlatform}>
-                <SelectTrigger className="mt-1">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="instagram">
-                    <span className="flex items-center gap-2"><Instagram className="h-4 w-4" />Instagram</span>
-                  </SelectItem>
-                  <SelectItem value="linkedin">
-                    <span className="flex items-center gap-2"><Linkedin className="h-4 w-4" />LinkedIn</span>
-                  </SelectItem>
-                  <SelectItem value="whatsapp">
-                    <span className="flex items-center gap-2"><MessageCircle className="h-4 w-4" />WhatsApp</span>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+              <label className="text-sm font-medium">Schedule (optional)</label>
+              <div className="flex gap-2 mt-1">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className={cn("flex-1 justify-start text-left font-normal", !genScheduledDate && "text-muted-foreground")}>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {genScheduledDate ? format(genScheduledDate, "PPP") : "Pick a date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar mode="single" selected={genScheduledDate} onSelect={setGenScheduledDate} disabled={(date) => date < new Date()} className={cn("p-3 pointer-events-auto")} />
+                  </PopoverContent>
+                </Popover>
+                <Input type="time" value={genScheduledTime} onChange={(e) => setGenScheduledTime(e.target.value)} className="w-[110px]" />
+              </div>
             </div>
 
             <Button
@@ -525,12 +841,101 @@ const ContentAgentPage = () => {
               disabled={generateVisualMutation.isPending || (!selectedSuggestion && !genTopic.trim())}
             >
               {generateVisualMutation.isPending ? (
-                <><Loader2 className="h-4 w-4 animate-spin" />Generating (~30s)...</>
+                <><Loader2 className="h-4 w-4 animate-spin" />{genContentType === "carousel_multi" ? "Generating slides..." : "Generating (~30s)..."}</>
               ) : (
-                <><Sparkles className="h-4 w-4" />Generate Visual</>
+                <><Sparkles className="h-4 w-4" />Generate{genContentType === "carousel_multi" ? ` ${genSlideCount} Slides` : ""}</>
               )}
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ═══ SCHEDULE DIALOG ═══ */}
+      <Dialog open={scheduleDialog} onOpenChange={setScheduleDialog}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CalendarIcon className="h-5 w-5" />Schedule Content
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Calendar mode="single" selected={scheduleDate} onSelect={setScheduleDate} disabled={(date) => date < new Date()} className={cn("p-3 pointer-events-auto mx-auto")} />
+            <div>
+              <label className="text-sm font-medium">Time</label>
+              <Input type="time" value={scheduleTime} onChange={(e) => setScheduleTime(e.target.value)} className="mt-1" />
+            </div>
+            <Button className="w-full gap-2" onClick={handleScheduleSave} disabled={!scheduleDate || scheduleItemMutation.isPending}>
+              {scheduleItemMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CalendarIcon className="h-4 w-4" />}
+              Schedule
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ═══ SHARE DIALOG ═══ */}
+      <Dialog open={shareDialog} onOpenChange={setShareDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Share2 className="h-5 w-5" />Share Content
+            </DialogTitle>
+          </DialogHeader>
+          {shareItem && (
+            <div className="space-y-4">
+              {shareItem.image_url && (
+                <img src={shareItem.image_url} alt={shareItem.title} className="w-full rounded-lg max-h-60 object-cover" />
+              )}
+
+              <div className="space-y-2">
+                <Button variant="outline" className="w-full justify-start gap-3" onClick={() => copyFullCaption(shareItem)}>
+                  <Copy className="h-4 w-4" />Copy Caption + Hashtags
+                </Button>
+
+                {shareItem.image_url && (
+                  <Button variant="outline" className="w-full justify-start gap-3" asChild>
+                    <a href={shareItem.image_url} download target="_blank" rel="noopener noreferrer">
+                      <Download className="h-4 w-4" />Download Image
+                    </a>
+                  </Button>
+                )}
+
+                <div className="border-t pt-3 space-y-2">
+                  <p className="text-sm font-medium">Share to platform</p>
+                  
+                  <Button variant="outline" className="w-full justify-start gap-3" onClick={() => {
+                    copyFullCaption(shareItem);
+                    toast.info("Caption copied! Open Instagram and paste it.");
+                  }}>
+                    <Instagram className="h-4 w-4" />Instagram (copy caption first)
+                  </Button>
+
+                  {(() => {
+                    const linkedinUrl = buildShareUrl(shareItem, "linkedin");
+                    return linkedinUrl ? (
+                      <Button variant="outline" className="w-full justify-start gap-3" asChild>
+                        <a href={linkedinUrl} target="_blank" rel="noopener noreferrer">
+                          <Linkedin className="h-4 w-4" />Share on LinkedIn
+                          <ExternalLink className="h-3 w-3 ml-auto" />
+                        </a>
+                      </Button>
+                    ) : null;
+                  })()}
+
+                  {(() => {
+                    const whatsappUrl = buildShareUrl(shareItem, "whatsapp");
+                    return whatsappUrl ? (
+                      <Button variant="outline" className="w-full justify-start gap-3" asChild>
+                        <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
+                          <MessageCircle className="h-4 w-4" />Share on WhatsApp
+                          <ExternalLink className="h-3 w-3 ml-auto" />
+                        </a>
+                      </Button>
+                    ) : null;
+                  })()}
+                </div>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 
@@ -548,13 +953,14 @@ const ContentAgentPage = () => {
               {previewItem.image_url && (
                 <img src={previewItem.image_url} alt={previewItem.title} className="w-full rounded-lg" />
               )}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <Badge variant="outline" className="gap-1">
                   {platformIcons[previewItem.platform]}{previewItem.platform}
                 </Badge>
                 <Badge variant="secondary">
                   {contentTypeLabel[previewItem.content_type] || previewItem.content_type}
                 </Badge>
+                {getQueueStatusBadge(previewItem)}
               </div>
               {previewItem.caption && (
                 <div>
@@ -568,28 +974,20 @@ const ContentAgentPage = () => {
                   <p className="text-sm text-primary mt-1">{previewItem.hashtags.join(" ")}</p>
                 </div>
               )}
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
+                <Button variant="outline" className="gap-2" onClick={() => { openShareDialog(previewItem); setPreviewItem(null); }}>
+                  <Share2 className="h-4 w-4" />Share
+                </Button>
                 {previewItem.image_url && (
-                  <Button variant="outline" className="gap-2 flex-1" asChild>
+                  <Button variant="outline" className="gap-2" asChild>
                     <a href={previewItem.image_url} download target="_blank" rel="noopener noreferrer">
-                      <Download className="h-4 w-4" />Download Image
+                      <Download className="h-4 w-4" />Download
                     </a>
                   </Button>
                 )}
-                {previewItem.caption && (
-                  <Button
-                    variant="outline"
-                    className="gap-2 flex-1"
-                    onClick={() => {
-                      navigator.clipboard.writeText(
-                        `${previewItem.caption}\n\n${previewItem.hashtags?.join(" ") || ""}`
-                      );
-                      toast.success("Caption copied to clipboard!");
-                    }}
-                  >
-                    Copy Caption
-                  </Button>
-                )}
+                <Button variant="outline" className="gap-2" onClick={() => copyFullCaption(previewItem)}>
+                  <Copy className="h-4 w-4" />Copy Caption
+                </Button>
               </div>
             </div>
           )}
