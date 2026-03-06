@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -13,14 +13,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import {
   Sparkles, Loader2, TrendingUp, Check, X, Trash2, ArrowRight,
   Instagram, Linkedin, MessageCircle, FileText, Image, Download,
   Quote, BarChart3, Layers, Eye, CalendarIcon, Clock, Share2,
-  Copy, ExternalLink
+  Copy, ExternalLink, Zap, RefreshCw, PieChart, Activity
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { PieChart as RechartsPie, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
 interface ContentSuggestion {
   id: string;
@@ -72,6 +74,19 @@ const contentTypeLabel: Record<string, string> = {
   carousel: "Carousel",
 };
 
+const PLATFORM_COLORS: Record<string, string> = {
+  instagram: "hsl(340, 75%, 54%)",
+  linkedin: "hsl(210, 80%, 45%)",
+  whatsapp: "hsl(142, 70%, 45%)",
+  blog: "hsl(250, 60%, 55%)",
+};
+
+const STATUS_COLORS: Record<string, string> = {
+  draft: "hsl(220, 15%, 55%)",
+  scheduled: "hsl(40, 90%, 50%)",
+  published: "hsl(142, 70%, 45%)",
+};
+
 const ContentAgentPage = () => {
   const [niche, setNiche] = useState("");
   const [count, setCount] = useState("5");
@@ -101,6 +116,18 @@ const ContentAgentPage = () => {
   const [scheduleDate, setScheduleDate] = useState<Date | undefined>();
   const [scheduleTime, setScheduleTime] = useState("09:00");
 
+  // Automation state
+  const [pipelineNiche, setPipelineNiche] = useState("");
+  const [pipelineContentType, setPipelineContentType] = useState("quote_card");
+  const [pipelinePlatforms, setPipelinePlatforms] = useState<string[]>(["instagram", "linkedin"]);
+  const [pipelineAutoSchedule, setPipelineAutoSchedule] = useState(true);
+
+  // Republish state
+  const [republishDialog, setRepublishDialog] = useState(false);
+  const [republishItem, setRepublishItem] = useState<ContentQueueItem | null>(null);
+  const [republishPlatform, setRepublishPlatform] = useState("linkedin");
+  const [republishContentType, setRepublishContentType] = useState("quote_card");
+
   // ─── Queries ───
   const { data: suggestions = [], isLoading } = useQuery({
     queryKey: ["content_suggestions", statusFilter],
@@ -129,7 +156,7 @@ const ContentAgentPage = () => {
   });
 
   // Group carousels
-  const groupedContent = (() => {
+  const groupedContent = useMemo(() => {
     const groups: Record<string, ContentQueueItem[]> = {};
     const singles: ContentQueueItem[] = [];
     contentQueue.forEach((item) => {
@@ -140,10 +167,77 @@ const ContentAgentPage = () => {
         singles.push(item);
       }
     });
-    // Sort carousel slides
     Object.values(groups).forEach((g) => g.sort((a, b) => (a.slide_number || 0) - (b.slide_number || 0)));
     return { groups, singles };
-  })();
+  }, [contentQueue]);
+
+  // ─── Analytics data ───
+  const analytics = useMemo(() => {
+    const byPlatform: Record<string, number> = {};
+    const byStatus: Record<string, number> = {};
+    const byType: Record<string, number> = {};
+    const byWeek: Record<string, number> = {};
+
+    contentQueue.forEach((item) => {
+      byPlatform[item.platform] = (byPlatform[item.platform] || 0) + 1;
+      byStatus[item.status] = (byStatus[item.status] || 0) + 1;
+      byType[item.content_type] = (byType[item.content_type] || 0) + 1;
+
+      const week = format(new Date(item.created_at), "MMM d");
+      byWeek[week] = (byWeek[week] || 0) + 1;
+    });
+
+    const platformData = Object.entries(byPlatform).map(([name, value]) => ({
+      name, value, color: PLATFORM_COLORS[name] || "hsl(0,0%,50%)",
+    }));
+    const statusData = Object.entries(byStatus).map(([name, value]) => ({
+      name, value, color: STATUS_COLORS[name] || "hsl(0,0%,50%)",
+    }));
+    const typeData = Object.entries(byType).map(([name, value]) => ({
+      name: contentTypeLabel[name] || name, value,
+    }));
+    const weeklyData = Object.entries(byWeek).map(([name, value]) => ({ name, count: value }));
+
+    // Find top-performing content (published content that could be republished)
+    const publishedContent = contentQueue.filter((i) => i.status === "published");
+    // Content that exists on only one platform is a republish candidate
+    const topicMap: Record<string, ContentQueueItem[]> = {};
+    contentQueue.forEach((item) => {
+      const topic = item.title.replace(/ - Slide \d+$/, "");
+      if (!topicMap[topic]) topicMap[topic] = [];
+      topicMap[topic].push(item);
+    });
+
+    const republishCandidates = Object.entries(topicMap)
+      .filter(([, items]) => {
+        const platforms = new Set(items.map((i) => i.platform));
+        return items.some((i) => i.status === "published") && platforms.size < 3;
+      })
+      .map(([topic, items]) => ({
+        topic,
+        currentPlatforms: [...new Set(items.map((i) => i.platform))],
+        missingPlatforms: ["instagram", "linkedin", "whatsapp"].filter(
+          (p) => !items.some((i) => i.platform === p)
+        ),
+        bestItem: items.find((i) => i.status === "published") || items[0],
+      }));
+
+    return {
+      total: contentQueue.length,
+      published: contentQueue.filter((i) => i.status === "published").length,
+      scheduled: contentQueue.filter((i) => i.status === "scheduled").length,
+      drafts: contentQueue.filter((i) => i.status === "draft").length,
+      platformData,
+      statusData,
+      typeData,
+      weeklyData,
+      republishCandidates,
+      publishedContent,
+      suggestionsTotal: suggestions.length,
+      suggestionsApproved: suggestions.filter((s) => s.status === "approved").length,
+      suggestionsUsed: suggestions.filter((s) => s.status === "used").length,
+    };
+  }, [contentQueue, suggestions]);
 
   // ─── Mutations ───
   const discoverMutation = useMutation({
@@ -200,6 +294,55 @@ const ContentAgentPage = () => {
       if (data?.content) setPreviewItem(data.content);
     },
     onError: (error: any) => toast.error(error.message || "Failed to generate visual"),
+  });
+
+  const pipelineMutation = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.functions.invoke("content-agent", {
+        body: {
+          action: "auto-pipeline",
+          niche: pipelineNiche.trim() || undefined,
+          contentType: pipelineContentType,
+          platforms: pipelinePlatforms,
+          autoSchedule: pipelineAutoSchedule,
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
+    },
+    onSuccess: (data) => {
+      const summary = data.pipelineSummary;
+      toast.success(`Pipeline complete! Topic: "${summary.selectedTopic}" → ${summary.contentGenerated} visuals generated`);
+      queryClient.invalidateQueries({ queryKey: ["content_queue"] });
+      queryClient.invalidateQueries({ queryKey: ["content_suggestions"] });
+    },
+    onError: (error: any) => toast.error(error.message || "Pipeline failed"),
+  });
+
+  const republishMutation = useMutation({
+    mutationFn: async () => {
+      if (!republishItem) throw new Error("No content selected");
+      const { data, error } = await supabase.functions.invoke("content-agent", {
+        body: {
+          action: "republish",
+          contentId: republishItem.id,
+          targetPlatform: republishPlatform,
+          targetContentType: republishContentType,
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
+    },
+    onSuccess: (data) => {
+      toast.success(`Content republished to ${republishPlatform}!`);
+      setRepublishDialog(false);
+      setRepublishItem(null);
+      queryClient.invalidateQueries({ queryKey: ["content_queue"] });
+      if (data?.republished) setPreviewItem(data.republished);
+    },
+    onError: (error: any) => toast.error(error.message || "Republish failed"),
   });
 
   const updateStatusMutation = useMutation({
@@ -326,7 +469,7 @@ const ContentAgentPage = () => {
       case "whatsapp":
         return `https://api.whatsapp.com/send?text=${encodedText}%0A%0A${imageUrl}`;
       case "instagram":
-        return null; // Instagram doesn't have a web share URL - copy caption instead
+        return null;
       default:
         return null;
     }
@@ -337,9 +480,23 @@ const ContentAgentPage = () => {
     setShareDialog(true);
   };
 
+  const openRepublishDialog = (item: ContentQueueItem) => {
+    setRepublishItem(item);
+    const otherPlatforms = ["instagram", "linkedin", "whatsapp"].filter((p) => p !== item.platform);
+    setRepublishPlatform(otherPlatforms[0] || "linkedin");
+    setRepublishContentType(item.content_type === "carousel" ? "quote_card" : item.content_type);
+    setRepublishDialog(true);
+  };
+
   const copyFullCaption = (item: ContentQueueItem) => {
     navigator.clipboard.writeText(`${item.caption || ""}\n\n${item.hashtags?.join(" ") || ""}`);
     toast.success("Caption & hashtags copied!");
+  };
+
+  const togglePipelinePlatform = (platform: string) => {
+    setPipelinePlatforms((prev) =>
+      prev.includes(platform) ? prev.filter((p) => p !== platform) : [...prev, platform]
+    );
   };
 
   const getScoreColor = (score: number) => {
@@ -370,7 +527,6 @@ const ContentAgentPage = () => {
     return <Badge variant="secondary" className="text-xs">Draft</Badge>;
   };
 
-  // Count scheduled & published
   const scheduledCount = contentQueue.filter((i) => i.status === "scheduled").length;
   const publishedCount = contentQueue.filter((i) => i.status === "published").length;
 
@@ -383,23 +539,26 @@ const ContentAgentPage = () => {
           Content Agent
         </h1>
         <p className="text-muted-foreground mt-1">
-          AI-powered topic discovery, visual content generation, scheduling & sharing
+          AI-powered topic discovery, visual content generation, automation & analytics
         </p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
+        <TabsList className="flex-wrap">
           <TabsTrigger value="discover" className="gap-2">
-            <TrendingUp className="h-4 w-4" />
-            Discover
+            <TrendingUp className="h-4 w-4" />Discover
           </TabsTrigger>
           <TabsTrigger value="visuals" className="gap-2">
-            <Image className="h-4 w-4" />
-            Content ({contentQueue.length})
+            <Image className="h-4 w-4" />Content ({contentQueue.length})
           </TabsTrigger>
           <TabsTrigger value="schedule" className="gap-2">
-            <CalendarIcon className="h-4 w-4" />
-            Schedule ({scheduledCount})
+            <CalendarIcon className="h-4 w-4" />Schedule ({scheduledCount})
+          </TabsTrigger>
+          <TabsTrigger value="automation" className="gap-2">
+            <Zap className="h-4 w-4" />Automation
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="gap-2">
+            <PieChart className="h-4 w-4" />Analytics
           </TabsTrigger>
         </TabsList>
 
@@ -408,21 +567,13 @@ const ContentAgentPage = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5" />
-                Discover Topics
+                <TrendingUp className="h-5 w-5" />Discover Topics
               </CardTitle>
-              <CardDescription>
-                Let AI find the most relevant and trending topics for your audience
-              </CardDescription>
+              <CardDescription>Let AI find the most relevant and trending topics for your audience</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex flex-col sm:flex-row gap-3">
-                <Input
-                  placeholder="Enter a niche or leave empty for general topics..."
-                  value={niche}
-                  onChange={(e) => setNiche(e.target.value)}
-                  className="flex-1"
-                />
+                <Input placeholder="Enter a niche or leave empty for general topics..." value={niche} onChange={(e) => setNiche(e.target.value)} className="flex-1" />
                 <Select value={count} onValueChange={setCount}>
                   <SelectTrigger className="w-[130px]"><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -433,11 +584,7 @@ const ContentAgentPage = () => {
                   </SelectContent>
                 </Select>
                 <Button onClick={() => discoverMutation.mutate()} disabled={discoverMutation.isPending} className="gap-2">
-                  {discoverMutation.isPending ? (
-                    <><Loader2 className="h-4 w-4 animate-spin" />Discovering...</>
-                  ) : (
-                    <><Sparkles className="h-4 w-4" />Discover</>
-                  )}
+                  {discoverMutation.isPending ? <><Loader2 className="h-4 w-4 animate-spin" />Discovering...</> : <><Sparkles className="h-4 w-4" />Discover</>}
                 </Button>
               </div>
             </CardContent>
@@ -463,17 +610,13 @@ const ContentAgentPage = () => {
           </div>
 
           {isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            </div>
+            <div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>
           ) : suggestions.length === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-                <Sparkles className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium">No suggestions yet</h3>
-                <p className="text-muted-foreground mt-1">Click "Discover" to generate AI-powered topic suggestions</p>
-              </CardContent>
-            </Card>
+            <Card><CardContent className="flex flex-col items-center justify-center py-12 text-center">
+              <Sparkles className="h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-medium">No suggestions yet</h3>
+              <p className="text-muted-foreground mt-1">Click "Discover" to generate AI-powered topic suggestions</p>
+            </CardContent></Card>
           ) : (
             <div className="grid gap-4">
               {suggestions.map((suggestion) => (
@@ -491,9 +634,7 @@ const ContentAgentPage = () => {
                         <p className="text-muted-foreground mt-1 text-sm">{suggestion.description}</p>
                         <div className="flex flex-wrap items-center gap-2 mt-3">
                           {suggestion.category && <Badge variant="outline">{suggestion.category}</Badge>}
-                          {suggestion.tags?.map((tag) => (
-                            <Badge key={tag} variant="secondary" className="text-xs">{tag}</Badge>
-                          ))}
+                          {suggestion.tags?.map((tag) => <Badge key={tag} variant="secondary" className="text-xs">{tag}</Badge>)}
                         </div>
                         <div className="flex items-center gap-2 mt-2">
                           <span className="text-xs text-muted-foreground">Platforms:</span>
@@ -547,17 +688,13 @@ const ContentAgentPage = () => {
           </div>
 
           {isQueueLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            </div>
+            <div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>
           ) : contentQueue.length === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-                <Image className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium">No visual content yet</h3>
-                <p className="text-muted-foreground mt-1">Generate quote cards, infographics, or carousel slides</p>
-              </CardContent>
-            </Card>
+            <Card><CardContent className="flex flex-col items-center justify-center py-12 text-center">
+              <Image className="h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-medium">No visual content yet</h3>
+              <p className="text-muted-foreground mt-1">Generate quote cards, infographics, or carousel slides</p>
+            </CardContent></Card>
           ) : (
             <div className="space-y-6">
               {/* Carousel groups */}
@@ -571,9 +708,7 @@ const ContentAgentPage = () => {
                       </CardTitle>
                       <div className="flex items-center gap-2">
                         {getQueueStatusBadge(slides[0])}
-                        <Badge variant="outline" className="text-xs gap-1">
-                          {platformIcons[slides[0]?.platform]}{slides[0]?.platform}
-                        </Badge>
+                        <Badge variant="outline" className="text-xs gap-1">{platformIcons[slides[0]?.platform]}{slides[0]?.platform}</Badge>
                       </div>
                     </div>
                   </CardHeader>
@@ -581,31 +716,22 @@ const ContentAgentPage = () => {
                     <div className="flex gap-3 overflow-x-auto pb-2">
                       {slides.map((slide) => (
                         <div key={slide.id} className="flex-shrink-0 w-40 cursor-pointer" onClick={() => setPreviewItem(slide)}>
-                          {slide.image_url && (
-                            <img src={slide.image_url} alt={slide.title} className="w-40 h-40 object-cover rounded-lg border" />
-                          )}
+                          {slide.image_url && <img src={slide.image_url} alt={slide.title} className="w-40 h-40 object-cover rounded-lg border" />}
                           <p className="text-xs text-muted-foreground mt-1 truncate">Slide {slide.slide_number}</p>
                         </div>
                       ))}
                     </div>
-                    {slides[0]?.caption && (
-                      <p className="text-sm text-muted-foreground line-clamp-2">{slides[0].caption}</p>
-                    )}
-                    <div className="flex items-center gap-1">
-                      <Button size="sm" variant="outline" className="gap-1" onClick={() => openShareDialog(slides[0])}>
-                        <Share2 className="h-3.5 w-3.5" />Share
-                      </Button>
-                      <Button size="sm" variant="outline" className="gap-1" onClick={() => openScheduleDialog(slides[0])}>
-                        <CalendarIcon className="h-3.5 w-3.5" />Schedule
-                      </Button>
-                      {slides[0].status !== "published" && (
-                        <Button size="sm" variant="outline" className="gap-1" onClick={() => markPublishedMutation.mutate({ id: slides[0].id, groupId: groupId })}>
-                          <Check className="h-3.5 w-3.5" />Published
-                        </Button>
+                    {slides[0]?.caption && <p className="text-sm text-muted-foreground line-clamp-2">{slides[0].caption}</p>}
+                    <div className="flex items-center gap-1 flex-wrap">
+                      <Button size="sm" variant="outline" className="gap-1" onClick={() => openShareDialog(slides[0])}><Share2 className="h-3.5 w-3.5" />Share</Button>
+                      <Button size="sm" variant="outline" className="gap-1" onClick={() => openScheduleDialog(slides[0])}><CalendarIcon className="h-3.5 w-3.5" />Schedule</Button>
+                      {slides[0].status === "published" && (
+                        <Button size="sm" variant="outline" className="gap-1" onClick={() => openRepublishDialog(slides[0])}><RefreshCw className="h-3.5 w-3.5" />Republish</Button>
                       )}
-                      <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-destructive ml-auto" onClick={() => deleteCarouselGroupMutation.mutate(groupId)}>
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
+                      {slides[0].status !== "published" && (
+                        <Button size="sm" variant="outline" className="gap-1" onClick={() => markPublishedMutation.mutate({ id: slides[0].id, groupId })}><Check className="h-3.5 w-3.5" />Published</Button>
+                      )}
+                      <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-destructive ml-auto" onClick={() => deleteCarouselGroupMutation.mutate(groupId)}><Trash2 className="h-3.5 w-3.5" /></Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -629,39 +755,26 @@ const ContentAgentPage = () => {
                         <span className="font-medium text-sm truncate">{item.title}</span>
                       </div>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <Badge variant="outline" className="text-xs gap-1">
-                          {platformIcons[item.platform]}{item.platform}
-                        </Badge>
-                        <Badge variant="secondary" className="text-xs">
-                          {contentTypeLabel[item.content_type] || item.content_type}
-                        </Badge>
+                        <Badge variant="outline" className="text-xs gap-1">{platformIcons[item.platform]}{item.platform}</Badge>
+                        <Badge variant="secondary" className="text-xs">{contentTypeLabel[item.content_type] || item.content_type}</Badge>
                         {getQueueStatusBadge(item)}
                       </div>
-                      {item.caption && (
-                        <p className="text-xs text-muted-foreground line-clamp-2">{item.caption}</p>
-                      )}
-                      <div className="flex items-center gap-1 pt-1">
-                        <Button size="sm" variant="outline" className="gap-1" onClick={() => openShareDialog(item)}>
-                          <Share2 className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button size="sm" variant="outline" className="gap-1" onClick={() => openScheduleDialog(item)}>
-                          <CalendarIcon className="h-3.5 w-3.5" />
-                        </Button>
+                      {item.caption && <p className="text-xs text-muted-foreground line-clamp-2">{item.caption}</p>}
+                      <div className="flex items-center gap-1 pt-1 flex-wrap">
+                        <Button size="sm" variant="outline" className="gap-1" onClick={() => openShareDialog(item)}><Share2 className="h-3.5 w-3.5" /></Button>
+                        <Button size="sm" variant="outline" className="gap-1" onClick={() => openScheduleDialog(item)}><CalendarIcon className="h-3.5 w-3.5" /></Button>
+                        {item.status === "published" && (
+                          <Button size="sm" variant="outline" className="gap-1" onClick={() => openRepublishDialog(item)}><RefreshCw className="h-3.5 w-3.5" /></Button>
+                        )}
                         {item.status !== "published" && (
-                          <Button size="sm" variant="outline" className="gap-1" onClick={() => markPublishedMutation.mutate({ id: item.id })}>
-                            <Check className="h-3.5 w-3.5" />
-                          </Button>
+                          <Button size="sm" variant="outline" className="gap-1" onClick={() => markPublishedMutation.mutate({ id: item.id })}><Check className="h-3.5 w-3.5" /></Button>
                         )}
                         {item.image_url && (
                           <Button size="sm" variant="outline" className="gap-1" asChild>
-                            <a href={item.image_url} download target="_blank" rel="noopener noreferrer">
-                              <Download className="h-3.5 w-3.5" />
-                            </a>
+                            <a href={item.image_url} download target="_blank" rel="noopener noreferrer"><Download className="h-3.5 w-3.5" /></a>
                           </Button>
                         )}
-                        <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-destructive ml-auto" onClick={() => deleteQueueItemMutation.mutate(item.id)}>
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
+                        <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-destructive ml-auto" onClick={() => deleteQueueItemMutation.mutate(item.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
                       </div>
                     </CardContent>
                   </Card>
@@ -674,24 +787,18 @@ const ContentAgentPage = () => {
         {/* ═══ SCHEDULE TAB ═══ */}
         <TabsContent value="schedule" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card>
-              <CardContent className="p-4 text-center">
-                <p className="text-2xl font-bold">{contentQueue.length}</p>
-                <p className="text-sm text-muted-foreground">Total Content</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 text-center">
-                <p className="text-2xl font-bold text-primary">{scheduledCount}</p>
-                <p className="text-sm text-muted-foreground">Scheduled</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 text-center">
-                <p className="text-2xl font-bold text-green-600">{publishedCount}</p>
-                <p className="text-sm text-muted-foreground">Published</p>
-              </CardContent>
-            </Card>
+            <Card><CardContent className="p-4 text-center">
+              <p className="text-2xl font-bold">{contentQueue.length}</p>
+              <p className="text-sm text-muted-foreground">Total Content</p>
+            </CardContent></Card>
+            <Card><CardContent className="p-4 text-center">
+              <p className="text-2xl font-bold text-primary">{scheduledCount}</p>
+              <p className="text-sm text-muted-foreground">Scheduled</p>
+            </CardContent></Card>
+            <Card><CardContent className="p-4 text-center">
+              <p className="text-2xl font-bold text-green-600">{publishedCount}</p>
+              <p className="text-sm text-muted-foreground">Published</p>
+            </CardContent></Card>
           </div>
 
           <h2 className="text-xl font-semibold">Upcoming Schedule</h2>
@@ -703,13 +810,11 @@ const ContentAgentPage = () => {
 
             if (scheduled.length === 0) {
               return (
-                <Card>
-                  <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-                    <CalendarIcon className="h-12 w-12 text-muted-foreground mb-4" />
-                    <h3 className="text-lg font-medium">No scheduled content</h3>
-                    <p className="text-muted-foreground mt-1">Schedule content from the Visual Content tab</p>
-                  </CardContent>
-                </Card>
+                <Card><CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                  <CalendarIcon className="h-12 w-12 text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-medium">No scheduled content</h3>
+                  <p className="text-muted-foreground mt-1">Schedule content from the Visual Content tab</p>
+                </CardContent></Card>
               );
             }
 
@@ -718,35 +823,21 @@ const ContentAgentPage = () => {
                 {scheduled.map((item) => (
                   <Card key={item.id} className="hover:shadow-sm transition-shadow">
                     <CardContent className="p-4 flex items-center gap-4">
-                      {item.image_url && (
-                        <img src={item.image_url} alt={item.title} className="w-16 h-16 object-cover rounded-lg" />
-                      )}
+                      {item.image_url && <img src={item.image_url} alt={item.title} className="w-16 h-16 object-cover rounded-lg" />}
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-sm truncate">{item.title}</p>
                         <div className="flex items-center gap-2 mt-1">
-                          <Badge variant="outline" className="text-xs gap-1">
-                            {platformIcons[item.platform]}{item.platform}
-                          </Badge>
-                          <Badge variant="secondary" className="text-xs">
-                            {contentTypeLabel[item.content_type] || item.content_type}
-                          </Badge>
+                          <Badge variant="outline" className="text-xs gap-1">{platformIcons[item.platform]}{item.platform}</Badge>
+                          <Badge variant="secondary" className="text-xs">{contentTypeLabel[item.content_type] || item.content_type}</Badge>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="font-medium text-sm">
-                          {format(new Date(item.scheduled_at!), "MMM d, yyyy")}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {format(new Date(item.scheduled_at!), "HH:mm")}
-                        </p>
+                        <p className="font-medium text-sm">{format(new Date(item.scheduled_at!), "MMM d, yyyy")}</p>
+                        <p className="text-xs text-muted-foreground">{format(new Date(item.scheduled_at!), "HH:mm")}</p>
                       </div>
                       <div className="flex items-center gap-1">
-                        <Button size="sm" variant="outline" className="gap-1" onClick={() => openShareDialog(item)}>
-                          <Share2 className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button size="sm" variant="outline" className="gap-1" onClick={() => markPublishedMutation.mutate({ id: item.id, groupId: item.carousel_group_id })}>
-                          <Check className="h-3.5 w-3.5" />Done
-                        </Button>
+                        <Button size="sm" variant="outline" className="gap-1" onClick={() => openShareDialog(item)}><Share2 className="h-3.5 w-3.5" /></Button>
+                        <Button size="sm" variant="outline" className="gap-1" onClick={() => markPublishedMutation.mutate({ id: item.id, groupId: item.carousel_group_id })}><Check className="h-3.5 w-3.5" />Done</Button>
                       </div>
                     </CardContent>
                   </Card>
@@ -755,15 +846,284 @@ const ContentAgentPage = () => {
             );
           })()}
         </TabsContent>
+
+        {/* ═══ AUTOMATION TAB ═══ */}
+        <TabsContent value="automation" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Zap className="h-5 w-5 text-yellow-500" />Automated Pipeline
+              </CardTitle>
+              <CardDescription>
+                One click: Discover trending topics → Pick the best → Generate visuals for each platform → Auto-schedule
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="text-sm font-medium">Niche (optional)</label>
+                <Input placeholder="e.g., AI, Marketing, Design..." value={pipelineNiche} onChange={(e) => setPipelineNiche(e.target.value)} className="mt-1" />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Content Type</label>
+                <Select value={pipelineContentType} onValueChange={setPipelineContentType}>
+                  <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="quote_card">Quote Card</SelectItem>
+                    <SelectItem value="infographic">Infographic</SelectItem>
+                    <SelectItem value="carousel">Carousel (1 slide)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium mb-2 block">Target Platforms</label>
+                <div className="flex gap-3">
+                  {["instagram", "linkedin", "whatsapp"].map((p) => (
+                    <Button
+                      key={p}
+                      variant={pipelinePlatforms.includes(p) ? "default" : "outline"}
+                      size="sm"
+                      className="gap-2"
+                      onClick={() => togglePipelinePlatform(p)}
+                    >
+                      {platformIcons[p]}{p}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="text-sm font-medium">Auto-schedule</label>
+                  <p className="text-xs text-muted-foreground">Schedule 1 post/day starting tomorrow at 9:00 AM</p>
+                </div>
+                <Switch checked={pipelineAutoSchedule} onCheckedChange={setPipelineAutoSchedule} />
+              </div>
+
+              <Button
+                className="w-full gap-2"
+                size="lg"
+                onClick={() => pipelineMutation.mutate()}
+                disabled={pipelineMutation.isPending || pipelinePlatforms.length === 0}
+              >
+                {pipelineMutation.isPending ? (
+                  <><Loader2 className="h-4 w-4 animate-spin" />Running pipeline (~2 min)...</>
+                ) : (
+                  <><Zap className="h-4 w-4" />Run Full Pipeline</>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Republish Candidates */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <RefreshCw className="h-5 w-5 text-blue-500" />Smart Republication
+              </CardTitle>
+              <CardDescription>
+                Published content that can be adapted and republished to other platforms
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {analytics.republishCandidates.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-6">
+                  No republish candidates yet. Publish content on one platform first.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {analytics.republishCandidates.map((candidate) => (
+                    <div key={candidate.topic} className="flex items-center gap-4 p-3 rounded-lg border">
+                      {candidate.bestItem.image_url && (
+                        <img src={candidate.bestItem.image_url} alt="" className="w-12 h-12 rounded-lg object-cover" />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate">{candidate.topic}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-xs text-muted-foreground">On:</span>
+                          {candidate.currentPlatforms.map((p) => (
+                            <span key={p} className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                              {platformIcons[p]}{p}
+                            </span>
+                          ))}
+                          <span className="text-xs text-muted-foreground ml-2">Missing:</span>
+                          {candidate.missingPlatforms.map((p) => (
+                            <span key={p} className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-muted">
+                              {platformIcons[p]}{p}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      <Button size="sm" variant="default" className="gap-1" onClick={() => openRepublishDialog(candidate.bestItem)}>
+                        <RefreshCw className="h-3.5 w-3.5" />Republish
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ═══ ANALYTICS TAB ═══ */}
+        <TabsContent value="analytics" className="space-y-6">
+          {/* KPI Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Card><CardContent className="p-4 text-center">
+              <Activity className="h-5 w-5 mx-auto text-muted-foreground mb-1" />
+              <p className="text-2xl font-bold">{analytics.total}</p>
+              <p className="text-xs text-muted-foreground">Total Content</p>
+            </CardContent></Card>
+            <Card><CardContent className="p-4 text-center">
+              <Check className="h-5 w-5 mx-auto text-green-500 mb-1" />
+              <p className="text-2xl font-bold text-green-600">{analytics.published}</p>
+              <p className="text-xs text-muted-foreground">Published</p>
+            </CardContent></Card>
+            <Card><CardContent className="p-4 text-center">
+              <Clock className="h-5 w-5 mx-auto text-yellow-500 mb-1" />
+              <p className="text-2xl font-bold text-yellow-600">{analytics.scheduled}</p>
+              <p className="text-xs text-muted-foreground">Scheduled</p>
+            </CardContent></Card>
+            <Card><CardContent className="p-4 text-center">
+              <Sparkles className="h-5 w-5 mx-auto text-primary mb-1" />
+              <p className="text-2xl font-bold">{analytics.suggestionsTotal}</p>
+              <p className="text-xs text-muted-foreground">Topics Discovered</p>
+            </CardContent></Card>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Platform Distribution */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Content by Platform</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {analytics.platformData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={220}>
+                    <RechartsPie>
+                      <Pie data={analytics.platformData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label={({ name, value }) => `${name} (${value})`}>
+                        {analytics.platformData.map((entry, i) => (
+                          <Cell key={i} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </RechartsPie>
+                  </ResponsiveContainer>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-10">No data yet</p>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Status Distribution */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Content by Status</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {analytics.statusData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={220}>
+                    <RechartsPie>
+                      <Pie data={analytics.statusData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label={({ name, value }) => `${name} (${value})`}>
+                        {analytics.statusData.map((entry, i) => (
+                          <Cell key={i} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </RechartsPie>
+                  </ResponsiveContainer>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-10">No data yet</p>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Content Type Distribution */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Content by Type</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {analytics.typeData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={220}>
+                    <BarChart data={analytics.typeData}>
+                      <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                      <YAxis allowDecimals={false} />
+                      <Tooltip />
+                      <Bar dataKey="value" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-10">No data yet</p>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Weekly Activity */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Content Creation Timeline</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {analytics.weeklyData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={220}>
+                    <BarChart data={analytics.weeklyData}>
+                      <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                      <YAxis allowDecimals={false} />
+                      <Tooltip />
+                      <Bar dataKey="count" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-10">No data yet</p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Pipeline Stats */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">Pipeline Funnel</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-4 overflow-x-auto pb-2">
+                <div className="flex-1 text-center p-4 rounded-lg bg-muted min-w-[120px]">
+                  <p className="text-2xl font-bold">{analytics.suggestionsTotal}</p>
+                  <p className="text-xs text-muted-foreground">Discovered</p>
+                </div>
+                <ArrowRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                <div className="flex-1 text-center p-4 rounded-lg bg-muted min-w-[120px]">
+                  <p className="text-2xl font-bold">{analytics.suggestionsApproved + analytics.suggestionsUsed}</p>
+                  <p className="text-xs text-muted-foreground">Approved</p>
+                </div>
+                <ArrowRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                <div className="flex-1 text-center p-4 rounded-lg bg-muted min-w-[120px]">
+                  <p className="text-2xl font-bold">{analytics.total}</p>
+                  <p className="text-xs text-muted-foreground">Generated</p>
+                </div>
+                <ArrowRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                <div className="flex-1 text-center p-4 rounded-lg bg-muted min-w-[120px]">
+                  <p className="text-2xl font-bold">{analytics.scheduled}</p>
+                  <p className="text-xs text-muted-foreground">Scheduled</p>
+                </div>
+                <ArrowRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                <div className="flex-1 text-center p-4 rounded-lg bg-green-50 dark:bg-green-900/20 min-w-[120px]">
+                  <p className="text-2xl font-bold text-green-600">{analytics.published}</p>
+                  <p className="text-xs text-muted-foreground">Published</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
 
       {/* ═══ GENERATE DIALOG ═══ */}
       <Dialog open={generateDialog} onOpenChange={setGenerateDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Image className="h-5 w-5" />Generate Visual Content
-            </DialogTitle>
+            <DialogTitle className="flex items-center gap-2"><Image className="h-5 w-5" />Generate Visual Content</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             {selectedSuggestion ? (
@@ -835,11 +1195,7 @@ const ContentAgentPage = () => {
               </div>
             </div>
 
-            <Button
-              className="w-full gap-2"
-              onClick={() => generateVisualMutation.mutate()}
-              disabled={generateVisualMutation.isPending || (!selectedSuggestion && !genTopic.trim())}
-            >
+            <Button className="w-full gap-2" onClick={() => generateVisualMutation.mutate()} disabled={generateVisualMutation.isPending || (!selectedSuggestion && !genTopic.trim())}>
               {generateVisualMutation.isPending ? (
                 <><Loader2 className="h-4 w-4 animate-spin" />{genContentType === "carousel_multi" ? "Generating slides..." : "Generating (~30s)..."}</>
               ) : (
@@ -854,9 +1210,7 @@ const ContentAgentPage = () => {
       <Dialog open={scheduleDialog} onOpenChange={setScheduleDialog}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <CalendarIcon className="h-5 w-5" />Schedule Content
-            </DialogTitle>
+            <DialogTitle className="flex items-center gap-2"><CalendarIcon className="h-5 w-5" />Schedule Content</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <Calendar mode="single" selected={scheduleDate} onSelect={setScheduleDate} disabled={(date) => date < new Date()} className={cn("p-3 pointer-events-auto mx-auto")} />
@@ -876,64 +1230,100 @@ const ContentAgentPage = () => {
       <Dialog open={shareDialog} onOpenChange={setShareDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Share2 className="h-5 w-5" />Share Content
-            </DialogTitle>
+            <DialogTitle className="flex items-center gap-2"><Share2 className="h-5 w-5" />Share Content</DialogTitle>
           </DialogHeader>
           {shareItem && (
             <div className="space-y-4">
-              {shareItem.image_url && (
-                <img src={shareItem.image_url} alt={shareItem.title} className="w-full rounded-lg max-h-60 object-cover" />
-              )}
-
+              {shareItem.image_url && <img src={shareItem.image_url} alt={shareItem.title} className="w-full rounded-lg max-h-60 object-cover" />}
               <div className="space-y-2">
                 <Button variant="outline" className="w-full justify-start gap-3" onClick={() => copyFullCaption(shareItem)}>
                   <Copy className="h-4 w-4" />Copy Caption + Hashtags
                 </Button>
-
                 {shareItem.image_url && (
                   <Button variant="outline" className="w-full justify-start gap-3" asChild>
-                    <a href={shareItem.image_url} download target="_blank" rel="noopener noreferrer">
-                      <Download className="h-4 w-4" />Download Image
-                    </a>
+                    <a href={shareItem.image_url} download target="_blank" rel="noopener noreferrer"><Download className="h-4 w-4" />Download Image</a>
                   </Button>
                 )}
-
                 <div className="border-t pt-3 space-y-2">
                   <p className="text-sm font-medium">Share to platform</p>
-                  
-                  <Button variant="outline" className="w-full justify-start gap-3" onClick={() => {
-                    copyFullCaption(shareItem);
-                    toast.info("Caption copied! Open Instagram and paste it.");
-                  }}>
+                  <Button variant="outline" className="w-full justify-start gap-3" onClick={() => { copyFullCaption(shareItem); toast.info("Caption copied! Open Instagram and paste it."); }}>
                     <Instagram className="h-4 w-4" />Instagram (copy caption first)
                   </Button>
-
                   {(() => {
                     const linkedinUrl = buildShareUrl(shareItem, "linkedin");
                     return linkedinUrl ? (
                       <Button variant="outline" className="w-full justify-start gap-3" asChild>
-                        <a href={linkedinUrl} target="_blank" rel="noopener noreferrer">
-                          <Linkedin className="h-4 w-4" />Share on LinkedIn
-                          <ExternalLink className="h-3 w-3 ml-auto" />
-                        </a>
+                        <a href={linkedinUrl} target="_blank" rel="noopener noreferrer"><Linkedin className="h-4 w-4" />Share on LinkedIn<ExternalLink className="h-3 w-3 ml-auto" /></a>
                       </Button>
                     ) : null;
                   })()}
-
                   {(() => {
                     const whatsappUrl = buildShareUrl(shareItem, "whatsapp");
                     return whatsappUrl ? (
                       <Button variant="outline" className="w-full justify-start gap-3" asChild>
-                        <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
-                          <MessageCircle className="h-4 w-4" />Share on WhatsApp
-                          <ExternalLink className="h-3 w-3 ml-auto" />
-                        </a>
+                        <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"><MessageCircle className="h-4 w-4" />Share on WhatsApp<ExternalLink className="h-3 w-3 ml-auto" /></a>
                       </Button>
                     ) : null;
                   })()}
                 </div>
               </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* ═══ REPUBLISH DIALOG ═══ */}
+      <Dialog open={republishDialog} onOpenChange={setRepublishDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><RefreshCw className="h-5 w-5" />Republish Content</DialogTitle>
+          </DialogHeader>
+          {republishItem && (
+            <div className="space-y-4">
+              <div className="p-3 rounded-lg bg-muted">
+                <p className="font-medium text-sm">{republishItem.title}</p>
+                <p className="text-xs text-muted-foreground mt-1">Originally on {republishItem.platform}</p>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Target Platform</label>
+                <Select value={republishPlatform} onValueChange={setRepublishPlatform}>
+                  <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {["instagram", "linkedin", "whatsapp"]
+                      .filter((p) => p !== republishItem.platform)
+                      .map((p) => (
+                        <SelectItem key={p} value={p}>
+                          <span className="flex items-center gap-2">{platformIcons[p]}{p}</span>
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Content Type</label>
+                <Select value={republishContentType} onValueChange={setRepublishContentType}>
+                  <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="quote_card">Quote Card</SelectItem>
+                    <SelectItem value="infographic">Infographic</SelectItem>
+                    <SelectItem value="carousel">Carousel (1 slide)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <Button
+                className="w-full gap-2"
+                onClick={() => republishMutation.mutate()}
+                disabled={republishMutation.isPending}
+              >
+                {republishMutation.isPending ? (
+                  <><Loader2 className="h-4 w-4 animate-spin" />Republishing (~30s)...</>
+                ) : (
+                  <><RefreshCw className="h-4 w-4" />Republish to {republishPlatform}</>
+                )}
+              </Button>
             </div>
           )}
         </DialogContent>
@@ -950,16 +1340,10 @@ const ContentAgentPage = () => {
           </DialogHeader>
           {previewItem && (
             <div className="space-y-4">
-              {previewItem.image_url && (
-                <img src={previewItem.image_url} alt={previewItem.title} className="w-full rounded-lg" />
-              )}
+              {previewItem.image_url && <img src={previewItem.image_url} alt={previewItem.title} className="w-full rounded-lg" />}
               <div className="flex items-center gap-2 flex-wrap">
-                <Badge variant="outline" className="gap-1">
-                  {platformIcons[previewItem.platform]}{previewItem.platform}
-                </Badge>
-                <Badge variant="secondary">
-                  {contentTypeLabel[previewItem.content_type] || previewItem.content_type}
-                </Badge>
+                <Badge variant="outline" className="gap-1">{platformIcons[previewItem.platform]}{previewItem.platform}</Badge>
+                <Badge variant="secondary">{contentTypeLabel[previewItem.content_type] || previewItem.content_type}</Badge>
                 {getQueueStatusBadge(previewItem)}
               </div>
               {previewItem.caption && (
@@ -975,19 +1359,16 @@ const ContentAgentPage = () => {
                 </div>
               )}
               <div className="flex gap-2 flex-wrap">
-                <Button variant="outline" className="gap-2" onClick={() => { openShareDialog(previewItem); setPreviewItem(null); }}>
-                  <Share2 className="h-4 w-4" />Share
-                </Button>
+                <Button variant="outline" className="gap-2" onClick={() => { openShareDialog(previewItem); setPreviewItem(null); }}><Share2 className="h-4 w-4" />Share</Button>
                 {previewItem.image_url && (
                   <Button variant="outline" className="gap-2" asChild>
-                    <a href={previewItem.image_url} download target="_blank" rel="noopener noreferrer">
-                      <Download className="h-4 w-4" />Download
-                    </a>
+                    <a href={previewItem.image_url} download target="_blank" rel="noopener noreferrer"><Download className="h-4 w-4" />Download</a>
                   </Button>
                 )}
-                <Button variant="outline" className="gap-2" onClick={() => copyFullCaption(previewItem)}>
-                  <Copy className="h-4 w-4" />Copy Caption
-                </Button>
+                <Button variant="outline" className="gap-2" onClick={() => copyFullCaption(previewItem)}><Copy className="h-4 w-4" />Copy Caption</Button>
+                {previewItem.status === "published" && (
+                  <Button variant="outline" className="gap-2" onClick={() => { openRepublishDialog(previewItem); setPreviewItem(null); }}><RefreshCw className="h-4 w-4" />Republish</Button>
+                )}
               </div>
             </div>
           )}
