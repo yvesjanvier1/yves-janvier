@@ -53,6 +53,12 @@ serve(async (req) => {
     if (action === "generate-carousel") {
       return await handleGenerateCarousel(supabase, supabaseAdmin, LOVABLE_API_KEY, body);
     }
+    if (action === "auto-pipeline") {
+      return await handleAutoPipeline(supabase, supabaseAdmin, LOVABLE_API_KEY, body);
+    }
+    if (action === "republish") {
+      return await handleRepublish(supabase, supabaseAdmin, LOVABLE_API_KEY, body);
+    }
 
     return new Response(
       JSON.stringify({ error: "Unknown action" }),
@@ -274,7 +280,6 @@ async function handleGenerateCarousel(supabase: any, supabaseAdmin: any, apiKey:
   const carouselGroupId = crypto.randomUUID();
   const slides: any[] = [];
 
-  // First: generate slide content plan
   const planResponse = await callAI(apiKey, {
     model: "google/gemini-3-flash-preview",
     messages: [
@@ -318,7 +323,6 @@ async function handleGenerateCarousel(supabase: any, supabaseAdmin: any, apiKey:
 
   const slidePlan = JSON.parse(planTool.function.arguments).slides;
 
-  // Generate each slide image
   for (let i = 0; i < slidePlan.length; i++) {
     const slide = slidePlan[i];
     const isFirst = i === 0;
@@ -357,10 +361,8 @@ async function handleGenerateCarousel(supabase: any, supabaseAdmin: any, apiKey:
 
   if (slides.length === 0) throw new Error("Failed to generate any carousel slides");
 
-  // Generate caption
   const { caption, hashtags } = await generateCaptionAndHashtags(apiKey, topic, description, "carousel", platform);
 
-  // Save all slides to content_queue
   const insertData = slides.map((slide) => ({
     suggestion_id: suggestionId || null,
     title: `${topic} - Slide ${slide.slide_number}`,
@@ -389,6 +391,116 @@ async function handleGenerateCarousel(supabase: any, supabaseAdmin: any, apiKey:
 
   return new Response(
     JSON.stringify({ success: true, slides: saved, carouselGroupId }),
+    { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+  );
+}
+
+// ─── AUTO PIPELINE HANDLER ───
+async function handleAutoPipeline(supabase: any, supabaseAdmin: any, apiKey: string, body: any) {
+  const { niche, contentType = "quote_card", platforms = ["instagram", "linkedin"], autoSchedule = true } = body;
+
+  console.log(`Running auto-pipeline: niche=${niche}, type=${contentType}, platforms=${platforms.join(",")}`);
+
+  // Step 1: Discover topics
+  const discoverResult = await handleDiscover(supabase, apiKey, { niche, count: 3 });
+  const discoverData = await discoverResult.json();
+
+  if (!discoverData.success || !discoverData.suggestions?.length) {
+    throw new Error("Pipeline failed at discovery step");
+  }
+
+  // Step 2: Pick best topic (highest relevance_score)
+  const bestSuggestion = discoverData.suggestions.sort(
+    (a: any, b: any) => (b.relevance_score || 0) - (a.relevance_score || 0)
+  )[0];
+
+  // Auto-approve the best suggestion
+  await supabase.from("content_suggestions").update({ status: "approved" }).eq("id", bestSuggestion.id);
+
+  const generatedContent: any[] = [];
+
+  // Step 3: Generate visual for each platform
+  for (let i = 0; i < platforms.length; i++) {
+    const platform = platforms[i];
+    // Schedule with 1-day intervals starting tomorrow
+    const scheduleDate = new Date();
+    scheduleDate.setDate(scheduleDate.getDate() + i + 1);
+    scheduleDate.setHours(9, 0, 0, 0);
+    const scheduledAt = autoSchedule ? scheduleDate.toISOString() : null;
+
+    try {
+      const genBody = {
+        suggestionId: i === 0 ? bestSuggestion.id : null, // Only link first to suggestion
+        topic: bestSuggestion.topic,
+        description: bestSuggestion.description,
+        contentType,
+        platform,
+        tags: bestSuggestion.tags || [],
+        scheduledAt,
+      };
+
+      const genResult = await handleGenerateVisual(supabase, supabaseAdmin, apiKey, genBody);
+      const genData = await genResult.json();
+
+      if (genData.success) {
+        generatedContent.push({ platform, content: genData.content });
+      }
+    } catch (err) {
+      console.error(`Pipeline: failed to generate for ${platform}:`, err);
+    }
+  }
+
+  return new Response(
+    JSON.stringify({
+      success: true,
+      topic: bestSuggestion,
+      generated: generatedContent,
+      pipelineSummary: {
+        topicsDiscovered: discoverData.suggestions.length,
+        selectedTopic: bestSuggestion.topic,
+        contentGenerated: generatedContent.length,
+        platforms: platforms,
+      },
+    }),
+    { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+  );
+}
+
+// ─── REPUBLISH HANDLER ───
+async function handleRepublish(supabase: any, supabaseAdmin: any, apiKey: string, body: any) {
+  const { contentId, targetPlatform, targetContentType } = body;
+
+  console.log(`Republishing content ${contentId} to ${targetPlatform} as ${targetContentType}`);
+
+  // Get original content
+  const { data: original, error: fetchError } = await supabase
+    .from("content_queue")
+    .select("*")
+    .eq("id", contentId)
+    .single();
+
+  if (fetchError || !original) throw new Error("Original content not found");
+
+  // Generate new visual adapted for the target platform
+  const genBody = {
+    suggestionId: original.suggestion_id,
+    topic: original.title.replace(/ - Slide \d+$/, ""),
+    description: original.text_content || original.caption || "",
+    contentType: targetContentType || original.content_type,
+    platform: targetPlatform,
+    tags: original.hashtags?.map((h: string) => h.replace("#", "")) || [],
+    scheduledAt: null,
+  };
+
+  const result = await handleGenerateVisual(supabase, supabaseAdmin, apiKey, genBody);
+  const resultData = await result.json();
+
+  return new Response(
+    JSON.stringify({
+      success: true,
+      original: { id: original.id, platform: original.platform, title: original.title },
+      republished: resultData.content,
+    }),
     { headers: { ...corsHeaders, "Content-Type": "application/json" } }
   );
 }
