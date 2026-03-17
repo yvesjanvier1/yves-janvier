@@ -1355,22 +1355,16 @@ const ContentAgentPage = () => {
                   <Button variant="outline" className="w-full justify-start gap-3" onClick={() => { copyFullCaption(shareItem); toast.info("Caption copied! Open Instagram and paste it."); }}>
                     <Instagram className="h-4 w-4" />Instagram (copy caption first)
                   </Button>
-                  {(() => {
-                    const linkedinUrl = buildShareUrl(shareItem, "linkedin");
-                    return linkedinUrl ? (
-                      <Button variant="outline" className="w-full justify-start gap-3" asChild>
-                        <a href={linkedinUrl} target="_blank" rel="noopener noreferrer"><Linkedin className="h-4 w-4" />Share on LinkedIn<ExternalLink className="h-3 w-3 ml-auto" /></a>
-                      </Button>
-                    ) : null;
-                  })()}
-                  {(() => {
-                    const whatsappUrl = buildShareUrl(shareItem, "whatsapp");
-                    return whatsappUrl ? (
-                      <Button variant="outline" className="w-full justify-start gap-3" asChild>
-                        <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"><MessageCircle className="h-4 w-4" />Share on WhatsApp<ExternalLink className="h-3 w-3 ml-auto" /></a>
-                      </Button>
-                    ) : null;
-                  })()}
+                  {buildShareUrl(shareItem, "linkedin") && (
+                    <Button variant="outline" className="w-full justify-start gap-3" asChild>
+                      <a href={buildShareUrl(shareItem, "linkedin")!} target="_blank" rel="noopener noreferrer"><Linkedin className="h-4 w-4" />Share on LinkedIn<ExternalLink className="h-3 w-3 ml-auto" /></a>
+                    </Button>
+                  )}
+                  {buildShareUrl(shareItem, "whatsapp") && (
+                    <Button variant="outline" className="w-full justify-start gap-3" asChild>
+                      <a href={buildShareUrl(shareItem, "whatsapp")!} target="_blank" rel="noopener noreferrer"><MessageCircle className="h-4 w-4" />Share on WhatsApp<ExternalLink className="h-3 w-3 ml-auto" /></a>
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>
