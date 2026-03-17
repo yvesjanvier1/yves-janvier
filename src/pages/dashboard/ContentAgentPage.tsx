@@ -787,7 +787,7 @@ const ContentAgentPage = () => {
           )}
         </TabsContent>
 
-        {/* ═══ SCHEDULE TAB ═══ */}
+        {/* ═══ SCHEDULE TAB — VISUAL CALENDAR ═══ */}
         <TabsContent value="schedule" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card><CardContent className="p-4 text-center">
@@ -804,8 +804,112 @@ const ContentAgentPage = () => {
             </CardContent></Card>
           </div>
 
-          <h2 className="text-xl font-semibold">Upcoming Schedule</h2>
+          {/* Calendar Navigation */}
+          <Card>
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <Button variant="ghost" size="icon" onClick={() => setCalendarMonth(subMonths(calendarMonth, 1))}>
+                  <ChevronLeft className="h-5 w-5" />
+                </Button>
+                <CardTitle className="text-lg">{format(calendarMonth, "MMMM yyyy", { locale: fr })}</CardTitle>
+                <Button variant="ghost" size="icon" onClick={() => setCalendarMonth(addMonths(calendarMonth, 1))}>
+                  <ChevronRight className="h-5 w-5" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {(() => {
+                const monthStart = startOfMonth(calendarMonth);
+                const monthEnd = endOfMonth(calendarMonth);
+                const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
+                const startDayOfWeek = monthStart.getDay(); // 0=Sun
+                const dayNames = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
 
+                // Build map: dateString -> items
+                const itemsByDate: Record<string, ContentQueueItem[]> = {};
+                contentQueue.forEach((item) => {
+                  const dateStr = item.scheduled_at
+                    ? format(new Date(item.scheduled_at), "yyyy-MM-dd")
+                    : item.published_at
+                    ? format(new Date(item.published_at), "yyyy-MM-dd")
+                    : null;
+                  if (dateStr) {
+                    if (!itemsByDate[dateStr]) itemsByDate[dateStr] = [];
+                    itemsByDate[dateStr].push(item);
+                  }
+                });
+
+                return (
+                  <div>
+                    {/* Day headers */}
+                    <div className="grid grid-cols-7 gap-1 mb-1">
+                      {dayNames.map((d) => (
+                        <div key={d} className="text-center text-xs font-medium text-muted-foreground py-1">{d}</div>
+                      ))}
+                    </div>
+                    {/* Calendar grid */}
+                    <div className="grid grid-cols-7 gap-1">
+                      {/* Empty cells before month start */}
+                      {Array.from({ length: startDayOfWeek }).map((_, i) => (
+                        <div key={`empty-${i}`} className="min-h-[90px] rounded-lg" />
+                      ))}
+                      {days.map((day) => {
+                        const dateStr = format(day, "yyyy-MM-dd");
+                        const dayItems = itemsByDate[dateStr] || [];
+                        const today = isToday(day);
+                        return (
+                          <div
+                            key={dateStr}
+                            className={cn(
+                              "min-h-[90px] rounded-lg border p-1 transition-colors",
+                              today && "border-primary bg-primary/5",
+                              !today && "border-border bg-card hover:bg-accent/30"
+                            )}
+                          >
+                            <div className={cn(
+                              "text-xs font-medium mb-0.5 px-1",
+                              today && "text-primary",
+                              !today && "text-muted-foreground"
+                            )}>
+                              {format(day, "d")}
+                            </div>
+                            <div className="space-y-0.5 overflow-hidden max-h-[68px]">
+                              {dayItems.slice(0, 3).map((item) => (
+                                <div
+                                  key={item.id}
+                                  className={cn(
+                                    "text-[10px] leading-tight px-1 py-0.5 rounded truncate cursor-pointer transition-colors",
+                                    item.status === "published"
+                                      ? "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300"
+                                      : item.status === "scheduled"
+                                      ? "bg-primary/10 text-primary"
+                                      : "bg-muted text-muted-foreground"
+                                  )}
+                                  title={`${item.title} (${item.platform})`}
+                                  onClick={() => setPreviewItem(item)}
+                                >
+                                  <span className="inline-flex items-center gap-0.5">
+                                    {platformIcons[item.platform]}
+                                    {item.title.length > 18 ? item.title.slice(0, 18) + "…" : item.title}
+                                  </span>
+                                </div>
+                              ))}
+                              {dayItems.length > 3 && (
+                                <div className="text-[10px] text-muted-foreground px-1">+{dayItems.length - 3} more</div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
+            </CardContent>
+          </Card>
+
+          {/* Upcoming list below calendar */}
+          <h2 className="text-xl font-semibold">Upcoming Schedule</h2>
           {(() => {
             const scheduled = contentQueue
               .filter((i) => i.scheduled_at && i.status === "scheduled")
@@ -813,10 +917,9 @@ const ContentAgentPage = () => {
 
             if (scheduled.length === 0) {
               return (
-                <Card><CardContent className="flex flex-col items-center justify-center py-12 text-center">
-                  <CalendarIcon className="h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-medium">No scheduled content</h3>
-                  <p className="text-muted-foreground mt-1">Schedule content from the Visual Content tab</p>
+                <Card><CardContent className="flex flex-col items-center justify-center py-8 text-center">
+                  <CalendarIcon className="h-10 w-10 text-muted-foreground mb-3" />
+                  <p className="text-muted-foreground">No scheduled content yet</p>
                 </CardContent></Card>
               );
             }
@@ -835,7 +938,7 @@ const ContentAgentPage = () => {
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="font-medium text-sm">{format(new Date(item.scheduled_at!), "MMM d, yyyy")}</p>
+                        <p className="font-medium text-sm">{format(new Date(item.scheduled_at!), "d MMM yyyy", { locale: fr })}</p>
                         <p className="text-xs text-muted-foreground">{format(new Date(item.scheduled_at!), "HH:mm")}</p>
                       </div>
                       <div className="flex items-center gap-1">
