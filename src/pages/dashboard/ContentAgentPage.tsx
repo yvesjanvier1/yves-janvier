@@ -1293,7 +1293,7 @@ const ContentAgentPage = () => {
                       {genScheduledDate ? format(genScheduledDate, "PPP") : "Pick a date"}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
+                  <PopoverContent className="w-auto p-0 z-[9999]" align="start" side="top" sideOffset={4}>
                     <Calendar mode="single" selected={genScheduledDate} onSelect={setGenScheduledDate} disabled={(date) => date < new Date()} className={cn("p-3 pointer-events-auto")} />
                   </PopoverContent>
                 </Popover>
