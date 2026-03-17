@@ -129,6 +129,7 @@ const ContentAgentPage = () => {
   const [republishItem, setRepublishItem] = useState<ContentQueueItem | null>(null);
   const [republishPlatform, setRepublishPlatform] = useState("linkedin");
   const [republishContentType, setRepublishContentType] = useState("quote_card");
+  const [calendarMonth, setCalendarMonth] = useState(new Date());
 
   // ─── Queries ───
   const { data: suggestions = [], isLoading } = useQuery({
