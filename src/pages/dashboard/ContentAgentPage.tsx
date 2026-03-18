@@ -483,6 +483,39 @@ const ContentAgentPage = () => {
     setShareDialog(true);
   };
 
+  const handleGroupedShare = (item: ContentQueueItem) => {
+    // 1. Open LinkedIn deep-link
+    const linkedinUrl = buildShareUrl(item, "linkedin");
+    if (linkedinUrl) {
+      window.open(linkedinUrl, "_blank", "noopener,noreferrer,width=600,height=400");
+    }
+
+    // 2. Auto-download image for Instagram
+    if (item.image_url) {
+      const a = document.createElement("a");
+      a.href = item.image_url;
+      a.download = `${item.title.replace(/[^a-zA-Z0-9]/g, "_")}.png`;
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    // 3. Copy caption for manual paste
+    navigator.clipboard.writeText(`${item.caption || ""}\n\n${item.hashtags?.join(" ") || ""}`);
+
+    // 4. Open WhatsApp deep-link after a short delay
+    setTimeout(() => {
+      const whatsappUrl = buildShareUrl(item, "whatsapp");
+      if (whatsappUrl) {
+        window.open(whatsappUrl, "_blank", "noopener,noreferrer,width=600,height=400");
+      }
+    }, 1500);
+
+    toast.success("Partage groupé lancé : LinkedIn ouvert, image téléchargée pour Instagram, WhatsApp en cours...");
+  };
+
   const openRepublishDialog = (item: ContentQueueItem) => {
     setRepublishItem(item);
     const otherPlatforms = ["instagram", "linkedin", "whatsapp"].filter((p) => p !== item.platform);
@@ -943,6 +976,7 @@ const ContentAgentPage = () => {
                       </div>
                       <div className="flex items-center gap-1">
                         <Button size="sm" variant="outline" className="gap-1" onClick={() => openShareDialog(item)}><Share2 className="h-3.5 w-3.5" /></Button>
+                        <Button size="sm" variant="default" className="gap-1" onClick={() => handleGroupedShare(item)}><Share2 className="h-3.5 w-3.5" />Partage Groupé</Button>
                         <Button size="sm" variant="outline" className="gap-1" onClick={() => markPublishedMutation.mutate({ id: item.id, groupId: item.carousel_group_id })}><Check className="h-3.5 w-3.5" />Done</Button>
                       </div>
                     </CardContent>
