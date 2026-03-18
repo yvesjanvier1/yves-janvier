@@ -7,6 +7,21 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// ─── FRENCH QUALITY SYSTEM PROMPT (shared across all generation) ───
+const FRENCH_QUALITY_RULES = `
+RÈGLES LINGUISTIQUES STRICTES — FRANÇAIS :
+1. Grammaire : respecte les accords complexes (participes passés, subjonctif, concordance des temps). Aucune faute tolérée.
+2. Ponctuation française : espace insécable AVANT les signes doubles ( ; : ! ? « » ) et après « et avant ».
+3. Typographie : utilise les guillemets français « … » et non "…". Tirets cadratins — pour les incises.
+4. Ton : professionnel, expert tech, assertif mais accessible. Évite le langage familier ou les anglicismes inutiles.
+5. Orthographe : vérifie chaque mot. Aucune faute de frappe. Attention aux accents (é, è, ê, ë, à, ù, ç, ô, î, û).
+6. Texte sur visuels : le texte incrusté dans les images (quote cards, infographies) doit être COURT, COMPLET (jamais tronqué), et parfaitement orthographié. Maximum 15 mots par ligne, 4 lignes maximum.
+7. Concision : privilégie des phrases percutantes et bien construites plutôt que des phrases longues.
+`;
+
+const SOCIAL_MEDIA_SYSTEM_PROMPT = `Tu es un expert en réseaux sociaux et marketing de contenu francophone. ${FRENCH_QUALITY_RULES}
+Génère des textes engageants, professionnels et sans aucune faute.`;
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -89,26 +104,27 @@ async function handleDiscover(supabase: any, apiKey: string, body: any) {
     ...new Set(existingPosts?.flatMap((p: any) => p.tags || []) || []),
   ].join(", ");
 
-  const systemPrompt = `You are an expert content strategist and trend analyst. Your job is to discover the most relevant, trending, and educational topics for a blog that covers multiple subjects. Consider:
-- Current trends and what people are searching for
-- Educational value and audience engagement potential
-- Topics that work well across platforms (blog, Instagram, LinkedIn, WhatsApp)
-- Content that can be repurposed into visual formats (quote cards, infographics, carousels)
+  const systemPrompt = `Tu es un stratège de contenu expert et analyste de tendances. ${FRENCH_QUALITY_RULES}
+Ton travail est de découvrir les sujets les plus pertinents, tendance et éducatifs pour un blog couvrant plusieurs domaines. Considère :
+- Les tendances actuelles et ce que les gens recherchent
+- La valeur éducative et le potentiel d'engagement
+- Les sujets qui fonctionnent bien sur plusieurs plateformes (blog, Instagram, LinkedIn, WhatsApp)
+- Le contenu réutilisable en formats visuels (quote cards, infographies, carrousels)
 
-The blog already covers these tags: ${existingTags || "various topics"}
-Recent posts include: ${existingTitles}
+Le blog couvre déjà ces tags : ${existingTags || "divers sujets"}
+Articles récents : ${existingTitles}
 
-Avoid suggesting topics too similar to existing content.`;
+Évite de suggérer des sujets trop similaires au contenu existant.`;
 
-  const userPrompt = `Suggest ${count || 5} fresh, trending content topics${niche ? ` focused on "${niche}"` : " across various niches"}.
+  const userPrompt = `Suggère ${count || 5} sujets de contenu frais et tendance${niche ? ` centrés sur "${niche}"` : " couvrant divers domaines"}.
 
-For each topic, provide:
-1. A compelling topic title
-2. A brief description (2-3 sentences) explaining why this topic is relevant now
-3. A relevance score (1-100) based on trending potential and audience interest
-4. A category (e.g., "Technology", "Business", "Personal Development", "Marketing", "Design", "Health", "Finance")
-5. Suggested tags (3-5 relevant tags)
-6. Which platforms it works best for (blog, instagram, linkedin, whatsapp)`;
+Pour chaque sujet, fournis :
+1. Un titre de sujet accrocheur (en français impeccable)
+2. Une brève description (2-3 phrases) expliquant pourquoi ce sujet est pertinent maintenant
+3. Un score de pertinence (1-100) basé sur le potentiel tendance et l'intérêt du public
+4. Une catégorie (ex : "Technologie", "Business", "Développement Personnel", "Marketing", "Design", "Santé", "Finance")
+5. Des tags suggérés (3-5 tags pertinents, en français)
+6. Les plateformes idéales (blog, instagram, linkedin, whatsapp)`;
 
   const response = await callAI(apiKey, {
     model: "google/gemini-3-flash-preview",
@@ -188,35 +204,38 @@ async function handleGenerateVisual(supabase: any, supabaseAdmin: any, apiKey: s
   console.log(`Generating visual: type=${contentType}, platform=${platform}, topic=${topic}`);
 
   const platformSpecs: Record<string, string> = {
-    instagram: "Square format (1080x1080). Bold, vibrant, scroll-stopping. Large readable text. Use brand colors.",
-    linkedin: "Landscape format (1200x627). Professional, clean, corporate-friendly. Subtle gradients.",
-    whatsapp: "Square format (800x800). Simple, high-contrast, readable at small sizes. Minimal text.",
+    instagram: "Format carré (1080x1080). Audacieux, vibrant, accrocheur au défilement. Texte large et lisible. Couleurs de marque.",
+    linkedin: "Format paysage (1200x627). Professionnel, épuré, adapté au monde corporate. Dégradés subtils.",
+    whatsapp: "Format carré (800x800). Simple, fort contraste, lisible en petit. Texte minimal.",
   };
 
   const contentTypePrompts: Record<string, string> = {
-    quote_card: `Create a professional quote card image with an inspiring or educational quote about "${topic}". Include:
-- A powerful one-line quote or key insight related to the topic
-- Clean, modern typography with the quote text prominently displayed
-- A subtle branded footer area (leave space for a name/handle)
-- Visually appealing background (gradient, abstract pattern, or subtle texture)
+    quote_card: `Crée une image de carte de citation professionnelle avec une citation inspirante ou éducative sur « ${topic} ». Inclus :
+- Une citation percutante d'UNE LIGNE maximum (en français parfait, sans faute) liée au sujet
+- Typographie moderne et épurée avec le texte de la citation bien visible
+- Un espace subtil en bas pour un nom/handle
+- Arrière-plan visuellement attrayant (dégradé, motif abstrait ou texture subtile)
+- IMPORTANT : le texte NE DOIT PAS être tronqué — tout le texte doit être entièrement visible et lisible
 - ${platformSpecs[platform] || platformSpecs.instagram}
-Do NOT include any real person's name. The quote should be generic wisdom about the topic.`,
+N'inclus aucun nom réel. La citation doit être une sagesse générique sur le sujet. Tout le texte DOIT être en français correct.`,
 
-    infographic: `Create a clean infographic-style image about "${topic}". Include:
-- A clear title at the top
-- 3-5 key data points or facts visualized with icons and short text
-- Clean layout with sections clearly separated
-- Professional color scheme with good contrast
+    infographic: `Crée une image de style infographie épurée sur « ${topic} ». Inclus :
+- Un titre clair en haut (en français, maximum 8 mots)
+- 3-5 points clés ou faits visualisés avec icônes et texte court (chaque texte en français parfait)
+- Mise en page propre avec sections clairement séparées
+- Palette de couleurs professionnelle avec bon contraste
+- IMPORTANT : tout le texte doit être COMPLET, jamais tronqué, et en français impeccable
 - ${platformSpecs[platform] || platformSpecs.instagram}
-Use placeholder numbers/stats that look realistic. Focus on visual clarity.`,
+Utilise des chiffres/statistiques réalistes. Concentre-toi sur la clarté visuelle.`,
 
-    carousel: `Create ONE slide for a carousel post about "${topic}". This should be the TITLE/COVER slide. Include:
-- A bold, attention-grabbing title
-- A subtitle or hook line that makes people want to swipe
-- Visual elements (icons, shapes, patterns) that suggest there's more content
-- "Swipe →" indicator
+    carousel: `Crée UNE diapositive pour un post carrousel sur « ${topic} ». Ceci doit être la diapositive TITRE/COUVERTURE. Inclus :
+- Un titre accrocheur et audacieux (en français, maximum 8 mots, sans faute)
+- Un sous-titre ou accroche qui donne envie de swiper
+- Éléments visuels (icônes, formes, motifs) suggérant qu'il y a plus de contenu
+- Indicateur « Swipe → »
+- IMPORTANT : tout le texte doit être COMPLET et en français correct
 - ${platformSpecs[platform] || platformSpecs.instagram}
-Make it bold and engaging to encourage swiping.`,
+Rends-le audacieux et engageant pour encourager le swipe.`,
   };
 
   const imagePrompt = contentTypePrompts[contentType] || contentTypePrompts.quote_card;
@@ -238,6 +257,9 @@ Make it bold and engaging to encourage swiping.`,
   // Generate caption and hashtags
   const { caption, hashtags } = await generateCaptionAndHashtags(apiKey, topic, description, contentType, platform);
 
+  // AI proofreading step
+  const proofreadCaption = await proofreadFrenchText(apiKey, caption);
+
   const { data: saved, error: saveError } = await supabase
     .from("content_queue")
     .insert({
@@ -247,7 +269,7 @@ Make it bold and engaging to encourage swiping.`,
       platform,
       image_url: publicUrl,
       text_content: description || "",
-      caption,
+      caption: proofreadCaption,
       hashtags,
       status: scheduledAt ? "scheduled" : "draft",
       scheduled_at: scheduledAt || null,
@@ -274,8 +296,8 @@ async function handleGenerateCarousel(supabase: any, supabaseAdmin: any, apiKey:
   console.log(`Generating ${slideCount}-slide carousel: platform=${platform}, topic=${topic}`);
 
   const platformSpec = platform === "linkedin"
-    ? "Landscape format (1200x627). Professional, clean."
-    : "Square format (1080x1080). Bold, vibrant.";
+    ? "Format paysage (1200x627). Professionnel, épuré."
+    : "Format carré (1080x1080). Audacieux, vibrant.";
 
   const carouselGroupId = crypto.randomUUID();
   const slides: any[] = [];
@@ -283,8 +305,8 @@ async function handleGenerateCarousel(supabase: any, supabaseAdmin: any, apiKey:
   const planResponse = await callAI(apiKey, {
     model: "google/gemini-3-flash-preview",
     messages: [
-      { role: "system", content: "You are a social media carousel expert. Plan concise slide content." },
-      { role: "user", content: `Plan a ${slideCount}-slide carousel about "${topic}". ${description || ""}\n\nFor each slide provide a short title (max 8 words) and a key point (max 20 words). Slide 1 is the cover, last slide is the CTA.` },
+      { role: "system", content: `Tu es un expert en carrousels pour réseaux sociaux. Planifie un contenu concis par diapositive. ${FRENCH_QUALITY_RULES}` },
+      { role: "user", content: `Planifie un carrousel de ${slideCount} diapositives sur « ${topic} ». ${description || ""}\n\nPour chaque diapositive, fournis un titre court (max 8 mots, en français impeccable) et un point clé (max 20 mots, en français parfait). La diapositive 1 est la couverture, la dernière est le CTA.` },
     ],
     tools: [{
       type: "function",
@@ -328,17 +350,17 @@ async function handleGenerateCarousel(supabase: any, supabaseAdmin: any, apiKey:
     const isFirst = i === 0;
     const isLast = i === slidePlan.length - 1;
 
-    let slidePrompt = `Create slide ${i + 1} of ${slidePlan.length} for a carousel post about "${topic}". ${platformSpec}\n`;
+    let slidePrompt = `Crée la diapositive ${i + 1} sur ${slidePlan.length} pour un post carrousel sur « ${topic} ». ${platformSpec}\n`;
 
     if (isFirst) {
-      slidePrompt += `This is the COVER slide. Title: "${slide.title}". Add a "Swipe →" indicator. Make it bold and eye-catching.`;
+      slidePrompt += `Ceci est la diapositive COUVERTURE. Titre : « ${slide.title} ». Ajoute un indicateur « Swipe → ». Rends-la audacieuse et accrocheuse. Tout le texte en français parfait, JAMAIS tronqué.`;
     } else if (isLast) {
-      slidePrompt += `This is the CTA/CLOSING slide. Title: "${slide.title}". Key point: "${slide.key_point}". Include a call-to-action like "Follow for more" or "Save this post".`;
+      slidePrompt += `Ceci est la diapositive CTA/FERMETURE. Titre : « ${slide.title} ». Point clé : « ${slide.key_point} ». Inclus un appel à l'action comme « Suivez pour plus » ou « Enregistrez ce post ». Texte en français, complet et sans faute.`;
     } else {
-      slidePrompt += `Content slide. Title: "${slide.title}". Key point: "${slide.key_point}". Use consistent style with other slides. Add slide number "${i + 1}/${slidePlan.length}" in corner.`;
+      slidePrompt += `Diapositive de contenu. Titre : « ${slide.title} ». Point clé : « ${slide.key_point} ». Style visuel cohérent avec les autres. Numéro « ${i + 1}/${slidePlan.length} » dans un coin. Texte en français, COMPLET et sans faute.`;
     }
 
-    slidePrompt += `\nKeep the visual style consistent across all slides. Use the same color palette and typography.`;
+    slidePrompt += `\nGarde un style visuel cohérent sur toutes les diapositives. Même palette de couleurs et typographie. IMPORTANT : tout texte incrusté doit être en français impeccable et ne JAMAIS être tronqué.`;
 
     const imgResp = await callAI(apiKey, {
       model: "google/gemini-2.5-flash-image",
@@ -363,6 +385,9 @@ async function handleGenerateCarousel(supabase: any, supabaseAdmin: any, apiKey:
 
   const { caption, hashtags } = await generateCaptionAndHashtags(apiKey, topic, description, "carousel", platform);
 
+  // AI proofreading step
+  const proofreadCaption = await proofreadFrenchText(apiKey, caption);
+
   const insertData = slides.map((slide) => ({
     suggestion_id: suggestionId || null,
     title: `${topic} - Slide ${slide.slide_number}`,
@@ -370,7 +395,7 @@ async function handleGenerateCarousel(supabase: any, supabaseAdmin: any, apiKey:
     platform,
     image_url: slide.image_url,
     text_content: `${slide.title}: ${slide.key_point}`,
-    caption: slide.slide_number === 1 ? caption : null,
+    caption: slide.slide_number === 1 ? proofreadCaption : null,
     hashtags: slide.slide_number === 1 ? hashtags : [],
     status: scheduledAt ? "scheduled" : "draft",
     scheduled_at: scheduledAt || null,
@@ -419,24 +444,25 @@ async function handleAutoPipeline(supabase: any, supabaseAdmin: any, apiKey: str
 
   const generatedContent: any[] = [];
 
-  // Step 3: Generate visual for each platform
+  // Compute a SINGLE scheduled_at for all platforms (synchronized)
+  const scheduleDate = new Date();
+  scheduleDate.setDate(scheduleDate.getDate() + 1); // tomorrow
+  scheduleDate.setHours(9, 0, 0, 0);
+  const syncScheduledAt = autoSchedule ? scheduleDate.toISOString() : null;
+
+  // Step 3: Generate visual for each platform — ALL get the SAME scheduled_at
   for (let i = 0; i < platforms.length; i++) {
     const platform = platforms[i];
-    // Schedule with 1-day intervals starting tomorrow
-    const scheduleDate = new Date();
-    scheduleDate.setDate(scheduleDate.getDate() + i + 1);
-    scheduleDate.setHours(9, 0, 0, 0);
-    const scheduledAt = autoSchedule ? scheduleDate.toISOString() : null;
 
     try {
       const genBody = {
-        suggestionId: i === 0 ? bestSuggestion.id : null, // Only link first to suggestion
+        suggestionId: i === 0 ? bestSuggestion.id : null,
         topic: bestSuggestion.topic,
         description: bestSuggestion.description,
         contentType,
         platform,
         tags: bestSuggestion.tags || [],
-        scheduledAt,
+        scheduledAt: syncScheduledAt,
       };
 
       const genResult = await handleGenerateVisual(supabase, supabaseAdmin, apiKey, genBody);
@@ -460,6 +486,7 @@ async function handleAutoPipeline(supabase: any, supabaseAdmin: any, apiKey: str
         selectedTopic: bestSuggestion.topic,
         contentGenerated: generatedContent.length,
         platforms: platforms,
+        synchronizedSchedule: syncScheduledAt,
       },
     }),
     { headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -505,6 +532,66 @@ async function handleRepublish(supabase: any, supabaseAdmin: any, apiKey: string
   );
 }
 
+// ─── AI PROOFREADING ───
+async function proofreadFrenchText(apiKey: string, text: string): Promise<string> {
+  if (!text || text.trim().length === 0) return text;
+
+  try {
+    const response = await callAI(apiKey, {
+      model: "google/gemini-3-flash-preview",
+      messages: [
+        {
+          role: "system",
+          content: `Tu es un correcteur professionnel de langue française. Ta SEULE tâche est de corriger les fautes d'orthographe, de grammaire, de ponctuation et de typographie dans le texte fourni.
+Règles :
+- Corrige les fautes de frappe et d'orthographe
+- Assure la ponctuation française correcte (espaces insécables avant ; : ! ?)
+- Utilise les guillemets français « … »
+- NE MODIFIE PAS le sens, le ton ou la structure du texte
+- NE RAJOUTE PAS de contenu
+- Retourne UNIQUEMENT le texte corrigé, rien d'autre`,
+        },
+        { role: "user", content: text },
+      ],
+      tools: [{
+        type: "function",
+        function: {
+          name: "return_proofread_text",
+          description: "Return the proofread text",
+          parameters: {
+            type: "object",
+            properties: {
+              corrected_text: { type: "string" },
+              had_errors: { type: "boolean" },
+            },
+            required: ["corrected_text", "had_errors"],
+            additionalProperties: false,
+          },
+        },
+      }],
+      tool_choice: { type: "function", function: { name: "return_proofread_text" } },
+    });
+
+    if (!response.ok) {
+      console.error("Proofreading failed, returning original text");
+      return text;
+    }
+
+    const data = await response.json();
+    const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
+    if (!toolCall?.function?.arguments) return text;
+
+    const parsed = JSON.parse(toolCall.function.arguments);
+    if (parsed.had_errors) {
+      console.log("Proofreading corrected errors in caption");
+    }
+    return parsed.corrected_text || text;
+  } catch (err) {
+    console.error("Proofreading error:", err);
+    return text;
+  }
+}
+
 // ─── HELPERS ───
 async function uploadBase64Image(supabaseAdmin: any, base64Url: string, contentType: string, platform: string, suffix = "") {
   const base64Data = base64Url.replace(/^data:image\/\w+;base64,/, "");
@@ -527,8 +614,15 @@ async function generateCaptionAndHashtags(apiKey: string, topic: string, descrip
   const captionResponse = await callAI(apiKey, {
     model: "google/gemini-3-flash-preview",
     messages: [
-      { role: "system", content: "You are a social media expert. Generate engaging captions and hashtags." },
-      { role: "user", content: `Generate a ${platform} caption and hashtags for a ${contentType.replace("_", " ")} about "${topic}". Description: ${description || ""}` },
+      { role: "system", content: SOCIAL_MEDIA_SYSTEM_PROMPT },
+      { role: "user", content: `Génère une légende ${platform} et des hashtags pour un(e) ${contentType.replace("_", " ")} sur « ${topic} ». Description : ${description || ""}
+      
+Règles pour la légende :
+- En français impeccable, ton professionnel d'expert tech
+- Ponctuation française correcte (espaces insécables avant ; : ! ?)
+- Guillemets français « … »
+- Engageante et incitant à l'interaction
+- Adaptée à ${platform}` },
     ],
     tools: [{
       type: "function",
