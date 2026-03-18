@@ -976,6 +976,7 @@ const ContentAgentPage = () => {
                       </div>
                       <div className="flex items-center gap-1">
                         <Button size="sm" variant="outline" className="gap-1" onClick={() => openShareDialog(item)}><Share2 className="h-3.5 w-3.5" /></Button>
+                        <Button size="sm" variant="default" className="gap-1" onClick={() => handleGroupedShare(item)}><Share2 className="h-3.5 w-3.5" />Partage Groupé</Button>
                         <Button size="sm" variant="outline" className="gap-1" onClick={() => markPublishedMutation.mutate({ id: item.id, groupId: item.carousel_group_id })}><Check className="h-3.5 w-3.5" />Done</Button>
                       </div>
                     </CardContent>
