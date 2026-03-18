@@ -483,6 +483,39 @@ const ContentAgentPage = () => {
     setShareDialog(true);
   };
 
+  const handleGroupedShare = (item: ContentQueueItem) => {
+    // 1. Open LinkedIn deep-link
+    const linkedinUrl = buildShareUrl(item, "linkedin");
+    if (linkedinUrl) {
+      window.open(linkedinUrl, "_blank", "noopener,noreferrer,width=600,height=400");
+    }
+
+    // 2. Auto-download image for Instagram
+    if (item.image_url) {
+      const a = document.createElement("a");
+      a.href = item.image_url;
+      a.download = `${item.title.replace(/[^a-zA-Z0-9]/g, "_")}.png`;
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    // 3. Copy caption for manual paste
+    navigator.clipboard.writeText(`${item.caption || ""}\n\n${item.hashtags?.join(" ") || ""}`);
+
+    // 4. Open WhatsApp deep-link after a short delay
+    setTimeout(() => {
+      const whatsappUrl = buildShareUrl(item, "whatsapp");
+      if (whatsappUrl) {
+        window.open(whatsappUrl, "_blank", "noopener,noreferrer,width=600,height=400");
+      }
+    }, 1500);
+
+    toast.success("Partage groupé lancé : LinkedIn ouvert, image téléchargée pour Instagram, WhatsApp en cours...");
+  };
+
   const openRepublishDialog = (item: ContentQueueItem) => {
     setRepublishItem(item);
     const otherPlatforms = ["instagram", "linkedin", "whatsapp"].filter((p) => p !== item.platform);
