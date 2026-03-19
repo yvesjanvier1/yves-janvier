@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
+import { createCanvas, loadImage } from "https://deno.land/x/canvas@v1.4.2/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -7,7 +8,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// ─── FRENCH QUALITY SYSTEM PROMPT (shared across all generation) ───
+// ─── FRENCH QUALITY SYSTEM PROMPT ───
 const FRENCH_QUALITY_RULES = `
 RÈGLES LINGUISTIQUES STRICTES — FRANÇAIS :
 1. Grammaire : respecte les accords complexes (participes passés, subjonctif, concordance des temps). Aucune faute tolérée.
@@ -18,6 +19,12 @@ RÈGLES LINGUISTIQUES STRICTES — FRANÇAIS :
 6. Texte sur visuels : le texte incrusté dans les images (quote cards, infographies) doit être COURT, COMPLET (jamais tronqué), et parfaitement orthographié. Maximum 15 mots par ligne, 4 lignes maximum.
 7. Concision : privilégie des phrases percutantes et bien construites plutôt que des phrases longues.
 `;
+
+const VISUAL_TEXT_QC_PROMPT = `CONTRÔLE QUALITÉ OBLIGATOIRE POUR TEXTE VISUEL :
+Toute citation ou texte destiné à une quote card ou une infographie doit être vérifié par un module de correction grammaticale interne avant d'être envoyé au moteur de rendu.
+Respectez les règles d'accord, les majuscules et la ponctuation française (notamment l'espace insécable avant les deux points et points d'exclamation).
+Le texte doit être auto-suffisant : chaque mot doit être complet, aucune troncature, aucune coupure illogique.
+Vérifiez que chaque ligne fait maximum 15 mots et que le texte total ne dépasse pas 4 lignes.`;
 
 const SOCIAL_MEDIA_SYSTEM_PROMPT = `Tu es un expert en réseaux sociaux et marketing de contenu francophone. ${FRENCH_QUALITY_RULES}
 Génère des textes engageants, professionnels et sans aucune faute.`;
@@ -197,67 +204,458 @@ Pour chaque sujet, fournis :
   );
 }
 
-// ─── GENERATE VISUAL HANDLER ───
-async function handleGenerateVisual(supabase: any, supabaseAdmin: any, apiKey: string, body: any) {
-  const { suggestionId, topic, description, contentType, platform, tags, scheduledAt } = body;
-
-  console.log(`Generating visual: type=${contentType}, platform=${platform}, topic=${topic}`);
-
-  const platformSpecs: Record<string, string> = {
-    instagram: "Format carré (1080x1080). Audacieux, vibrant, accrocheur au défilement. Texte large et lisible. Couleurs de marque.",
-    linkedin: "Format paysage (1200x627). Professionnel, épuré, adapté au monde corporate. Dégradés subtils.",
-    whatsapp: "Format carré (800x800). Simple, fort contraste, lisible en petit. Texte minimal.",
+// ─── STEP 1: AI GENERATES STRUCTURED TEXT FOR VISUAL ───
+async function generateVisualText(apiKey: string, topic: string, description: string, contentType: string, platform: string): Promise<{
+  lines: string[];
+  subtitle?: string;
+  attribution?: string;
+  keyPoints?: { icon: string; text: string }[];
+}> {
+  const contentTypeInstructions: Record<string, string> = {
+    quote_card: `Génère une CITATION inspirante ou éducative sur « ${topic} ».
+Retourne :
+- lines : un tableau de 1 à 3 lignes de texte. Chaque ligne fait maximum 12 mots. La citation doit être percutante et complète.
+- attribution : un court crédit (ex : "— Sagesse tech", "— Conseil pro"). Pas de nom réel.
+- subtitle : null`,
+    infographic: `Génère le CONTENU TEXTUEL d'une infographie sur « ${topic} ».
+Retourne :
+- lines : un tableau contenant le titre principal (max 8 mots) comme premier élément.
+- keyPoints : un tableau de 3-5 objets { icon: (un emoji pertinent), text: (max 15 mots, un fait ou chiffre clé) }.
+- attribution : null
+- subtitle : un sous-titre optionnel (max 10 mots)`,
+    carousel: `Génère le TEXTE DE COUVERTURE d'un carrousel sur « ${topic} ».
+Retourne :
+- lines : un tableau contenant le titre accrocheur (max 8 mots).
+- subtitle : une accroche qui donne envie de swiper (max 12 mots).
+- attribution : null`,
   };
 
-  const contentTypePrompts: Record<string, string> = {
-    quote_card: `Crée une image de carte de citation professionnelle avec une citation inspirante ou éducative sur « ${topic} ». Inclus :
-- Une citation percutante d'UNE LIGNE maximum (en français parfait, sans faute) liée au sujet
-- Typographie moderne et épurée avec le texte de la citation bien visible
-- Un espace subtil en bas pour un nom/handle
-- Arrière-plan visuellement attrayant (dégradé, motif abstrait ou texture subtile)
-- IMPORTANT : le texte NE DOIT PAS être tronqué — tout le texte doit être entièrement visible et lisible
-- ${platformSpecs[platform] || platformSpecs.instagram}
-N'inclus aucun nom réel. La citation doit être une sagesse générique sur le sujet. Tout le texte DOIT être en français correct.`,
+  const response = await callAI(apiKey, {
+    model: "google/gemini-3-flash-preview",
+    messages: [
+      {
+        role: "system",
+        content: `Tu es un rédacteur expert en contenu visuel pour réseaux sociaux. ${FRENCH_QUALITY_RULES}
+${VISUAL_TEXT_QC_PROMPT}
+Tu génères UNIQUEMENT le texte qui sera incrusté programmatiquement sur une image. Le texte doit être PARFAIT car il sera rendu tel quel.`,
+      },
+      { role: "user", content: contentTypeInstructions[contentType] || contentTypeInstructions.quote_card },
+    ],
+    tools: [{
+      type: "function",
+      function: {
+        name: "return_visual_text",
+        description: "Return structured text for visual overlay",
+        parameters: {
+          type: "object",
+          properties: {
+            lines: { type: "array", items: { type: "string" } },
+            subtitle: { type: "string" },
+            attribution: { type: "string" },
+            keyPoints: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  icon: { type: "string" },
+                  text: { type: "string" },
+                },
+                required: ["icon", "text"],
+                additionalProperties: false,
+              },
+            },
+          },
+          required: ["lines"],
+          additionalProperties: false,
+        },
+      },
+    }],
+    tool_choice: { type: "function", function: { name: "return_visual_text" } },
+  });
 
-    infographic: `Crée une image de style infographie épurée sur « ${topic} ». Inclus :
-- Un titre clair en haut (en français, maximum 8 mots)
-- 3-5 points clés ou faits visualisés avec icônes et texte court (chaque texte en français parfait)
-- Mise en page propre avec sections clairement séparées
-- Palette de couleurs professionnelle avec bon contraste
-- IMPORTANT : tout le texte doit être COMPLET, jamais tronqué, et en français impeccable
-- ${platformSpecs[platform] || platformSpecs.instagram}
-Utilise des chiffres/statistiques réalistes. Concentre-toi sur la clarté visuelle.`,
+  if (!response.ok) throw new Error("Failed to generate visual text");
 
-    carousel: `Crée UNE diapositive pour un post carrousel sur « ${topic} ». Ceci doit être la diapositive TITRE/COUVERTURE. Inclus :
-- Un titre accrocheur et audacieux (en français, maximum 8 mots, sans faute)
-- Un sous-titre ou accroche qui donne envie de swiper
-- Éléments visuels (icônes, formes, motifs) suggérant qu'il y a plus de contenu
-- Indicateur « Swipe → »
-- IMPORTANT : tout le texte doit être COMPLET et en français correct
-- ${platformSpecs[platform] || platformSpecs.instagram}
-Rends-le audacieux et engageant pour encourager le swipe.`,
+  const data = await response.json();
+  const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
+  if (!toolCall?.function?.arguments) throw new Error("Invalid visual text response");
+
+  const parsed = JSON.parse(toolCall.function.arguments);
+
+  // Proofread each line
+  const proofreadLines: string[] = [];
+  for (const line of parsed.lines) {
+    const corrected = await proofreadFrenchText(apiKey, line);
+    proofreadLines.push(corrected);
+  }
+
+  // Proofread subtitle and attribution if present
+  let subtitle = parsed.subtitle || undefined;
+  let attribution = parsed.attribution || undefined;
+  if (subtitle) subtitle = await proofreadFrenchText(apiKey, subtitle);
+  if (attribution) attribution = await proofreadFrenchText(apiKey, attribution);
+
+  // Proofread key points
+  let keyPoints = parsed.keyPoints || undefined;
+  if (keyPoints) {
+    for (let i = 0; i < keyPoints.length; i++) {
+      keyPoints[i].text = await proofreadFrenchText(apiKey, keyPoints[i].text);
+    }
+  }
+
+  return { lines: proofreadLines, subtitle, attribution, keyPoints };
+}
+
+// ─── STEP 2: GENERATE BACKGROUND IMAGE (NO TEXT) ───
+async function generateBackgroundImage(apiKey: string, topic: string, contentType: string, platform: string): Promise<string> {
+  const platformDims: Record<string, string> = {
+    instagram: "carré (1080x1080)",
+    linkedin: "paysage (1200x627)",
+    whatsapp: "carré (800x800)",
   };
 
-  const imagePrompt = contentTypePrompts[contentType] || contentTypePrompts.quote_card;
+  const bgPrompts: Record<string, string> = {
+    quote_card: `Crée un arrière-plan visuel SANS AUCUN TEXTE pour une carte de citation sur « ${topic} ». 
+Style : dégradé moderne, motifs géométriques subtils ou texture abstraite. Couleurs professionnelles (bleu, violet, sarcelle). 
+Format ${platformDims[platform] || platformDims.instagram}.
+IMPORTANT : NE PAS inclure de texte, lettres, mots ou caractères dans l'image. Uniquement un fond visuel esthétique.`,
+    infographic: `Crée un arrière-plan visuel SANS AUCUN TEXTE pour une infographie sur « ${topic} ».
+Style : fond clair avec zones délimitées pour du contenu, look professionnel et épuré.
+Format ${platformDims[platform] || platformDims.instagram}.
+IMPORTANT : NE PAS inclure de texte, lettres, mots ou caractères. Uniquement le fond graphique avec des zones vides pour le texte.`,
+    carousel: `Crée un arrière-plan visuel SANS AUCUN TEXTE pour une diapositive de couverture de carrousel sur « ${topic} ».
+Style : audacieux, vibrant, moderne. Éléments graphiques dynamiques.
+Format ${platformDims[platform] || platformDims.instagram}.
+IMPORTANT : NE PAS inclure de texte, lettres, mots ou caractères. Uniquement le fond graphique.`,
+  };
 
-  const imageResponse = await callAI(apiKey, {
+  const response = await callAI(apiKey, {
     model: "google/gemini-2.5-flash-image",
-    messages: [{ role: "user", content: imagePrompt }],
+    messages: [{ role: "user", content: bgPrompts[contentType] || bgPrompts.quote_card }],
     modalities: ["image", "text"],
   });
 
-  if (!imageResponse.ok) return handleAIError(imageResponse);
+  if (!response.ok) throw new Error("Failed to generate background image");
 
-  const imageData = await imageResponse.json();
-  const base64ImageUrl = imageData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-  if (!base64ImageUrl) throw new Error("No image generated by AI");
+  const data = await response.json();
+  const base64Url = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+  if (!base64Url) throw new Error("No background image generated");
 
-  const publicUrl = await uploadBase64Image(supabaseAdmin, base64ImageUrl, contentType, platform);
+  return base64Url;
+}
 
-  // Generate caption and hashtags
+// ─── STEP 3: PROGRAMMATIC TEXT OVERLAY VIA CANVAS ───
+function getDimensions(platform: string): { width: number; height: number } {
+  switch (platform) {
+    case "linkedin": return { width: 1200, height: 627 };
+    case "whatsapp": return { width: 800, height: 800 };
+    case "instagram":
+    default: return { width: 1080, height: 1080 };
+  }
+}
+
+async function overlayTextOnImage(
+  base64Background: string,
+  visualText: {
+    lines: string[];
+    subtitle?: string;
+    attribution?: string;
+    keyPoints?: { icon: string; text: string }[];
+  },
+  contentType: string,
+  platform: string
+): Promise<Uint8Array> {
+  const { width, height } = getDimensions(platform);
+  const canvas = createCanvas(width, height);
+  const ctx = canvas.getContext("2d");
+
+  // Draw background image
+  try {
+    const bgData = base64Background.replace(/^data:image\/\w+;base64,/, "");
+    const bgBuffer = Uint8Array.from(atob(bgData), (c) => c.charCodeAt(0));
+    const bgImage = await loadImage(bgBuffer);
+    ctx.drawImage(bgImage, 0, 0, width, height);
+  } catch (err) {
+    console.error("Failed to load background, using gradient fallback:", err);
+    // Fallback gradient
+    const gradient = ctx.createLinearGradient(0, 0, width, height);
+    gradient.addColorStop(0, "#1a1a2e");
+    gradient.addColorStop(0.5, "#16213e");
+    gradient.addColorStop(1, "#0f3460");
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, width, height);
+  }
+
+  // Semi-transparent overlay for text readability
+  ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
+  ctx.fillRect(0, 0, width, height);
+
+  const margin = Math.round(width * 0.08);
+  const textAreaWidth = width - margin * 2;
+
+  if (contentType === "quote_card") {
+    renderQuoteCard(ctx, visualText, width, height, margin, textAreaWidth);
+  } else if (contentType === "infographic") {
+    renderInfographic(ctx, visualText, width, height, margin, textAreaWidth);
+  } else {
+    // carousel cover
+    renderCarouselCover(ctx, visualText, width, height, margin, textAreaWidth);
+  }
+
+  return canvas.toBuffer("image/png");
+}
+
+function renderQuoteCard(
+  ctx: any, text: { lines: string[]; subtitle?: string; attribution?: string },
+  width: number, height: number, margin: number, textAreaWidth: number
+) {
+  // Decorative quote mark
+  const quoteSize = Math.round(width * 0.12);
+  ctx.font = `bold ${quoteSize}px serif`;
+  ctx.fillStyle = "rgba(255, 255, 255, 0.25)";
+  ctx.fillText("«", margin, margin + quoteSize);
+
+  // Main quote lines
+  const fontSize = Math.round(width * 0.045);
+  ctx.font = `bold ${fontSize}px sans-serif`;
+  ctx.fillStyle = "#FFFFFF";
+  ctx.textAlign = "center";
+
+  const lineHeight = fontSize * 1.5;
+  const totalTextHeight = text.lines.length * lineHeight;
+  let startY = (height - totalTextHeight) / 2;
+
+  for (const line of text.lines) {
+    const wrappedLines = wrapText(ctx, line, textAreaWidth);
+    for (const wl of wrappedLines) {
+      ctx.fillText(wl, width / 2, startY);
+      startY += lineHeight;
+    }
+  }
+
+  // Attribution
+  if (text.attribution) {
+    const attrSize = Math.round(fontSize * 0.6);
+    ctx.font = `italic ${attrSize}px sans-serif`;
+    ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+    ctx.fillText(text.attribution, width / 2, startY + lineHeight * 0.8);
+  }
+
+  // Closing quote mark
+  ctx.font = `bold ${quoteSize}px serif`;
+  ctx.fillStyle = "rgba(255, 255, 255, 0.25)";
+  ctx.textAlign = "right";
+  ctx.fillText("»", width - margin, height - margin);
+  ctx.textAlign = "left";
+}
+
+function renderInfographic(
+  ctx: any, text: { lines: string[]; subtitle?: string; keyPoints?: { icon: string; text: string }[] },
+  width: number, height: number, margin: number, textAreaWidth: number
+) {
+  // Title
+  const titleSize = Math.round(width * 0.05);
+  ctx.font = `bold ${titleSize}px sans-serif`;
+  ctx.fillStyle = "#FFFFFF";
+  ctx.textAlign = "center";
+  const title = text.lines[0] || "";
+  ctx.fillText(title, width / 2, margin + titleSize + 10);
+
+  // Subtitle
+  let currentY = margin + titleSize + 20;
+  if (text.subtitle) {
+    const subSize = Math.round(titleSize * 0.6);
+    ctx.font = `${subSize}px sans-serif`;
+    ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+    currentY += subSize + 10;
+    ctx.fillText(text.subtitle, width / 2, currentY);
+  }
+
+  // Divider
+  currentY += 30;
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(margin, currentY);
+  ctx.lineTo(width - margin, currentY);
+  ctx.stroke();
+  currentY += 30;
+
+  // Key points
+  if (text.keyPoints && text.keyPoints.length > 0) {
+    const pointSize = Math.round(width * 0.032);
+    const pointHeight = (height - currentY - margin) / text.keyPoints.length;
+
+    ctx.textAlign = "left";
+    for (const kp of text.keyPoints) {
+      // Icon
+      ctx.font = `${Math.round(pointSize * 1.4)}px sans-serif`;
+      ctx.fillStyle = "#FFFFFF";
+      ctx.fillText(kp.icon, margin + 10, currentY + pointSize);
+
+      // Text
+      ctx.font = `${pointSize}px sans-serif`;
+      ctx.fillStyle = "#FFFFFF";
+      const iconWidth = Math.round(pointSize * 2);
+      const wrappedLines = wrapText(ctx, kp.text, textAreaWidth - iconWidth);
+      for (const wl of wrappedLines) {
+        ctx.fillText(wl, margin + iconWidth + 10, currentY + pointSize);
+        currentY += pointSize * 1.4;
+      }
+      currentY += Math.max(0, pointHeight - pointSize * 1.4 * 2);
+    }
+  }
+}
+
+function renderCarouselCover(
+  ctx: any, text: { lines: string[]; subtitle?: string },
+  width: number, height: number, margin: number, textAreaWidth: number
+) {
+  // Title
+  const titleSize = Math.round(width * 0.06);
+  ctx.font = `bold ${titleSize}px sans-serif`;
+  ctx.fillStyle = "#FFFFFF";
+  ctx.textAlign = "center";
+
+  const title = text.lines[0] || "";
+  const wrappedTitle = wrapText(ctx, title, textAreaWidth);
+  const lineHeight = titleSize * 1.4;
+  let startY = height * 0.35;
+
+  for (const line of wrappedTitle) {
+    ctx.fillText(line, width / 2, startY);
+    startY += lineHeight;
+  }
+
+  // Subtitle
+  if (text.subtitle) {
+    const subSize = Math.round(titleSize * 0.55);
+    ctx.font = `${subSize}px sans-serif`;
+    ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+    startY += 15;
+    const wrappedSub = wrapText(ctx, text.subtitle, textAreaWidth);
+    for (const line of wrappedSub) {
+      ctx.fillText(line, width / 2, startY);
+      startY += subSize * 1.4;
+    }
+  }
+
+  // Swipe indicator
+  const swipeSize = Math.round(width * 0.03);
+  ctx.font = `${swipeSize}px sans-serif`;
+  ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
+  ctx.fillText("Swipe →", width / 2, height - margin);
+}
+
+// ─── TEXT WRAPPING UTILITY ───
+function wrapText(ctx: any, text: string, maxWidth: number): string[] {
+  const words = text.split(" ");
+  const lines: string[] = [];
+  let currentLine = "";
+
+  for (const word of words) {
+    const testLine = currentLine ? `${currentLine} ${word}` : word;
+    const metrics = ctx.measureText(testLine);
+    if (metrics.width > maxWidth && currentLine) {
+      lines.push(currentLine);
+      currentLine = word;
+    } else {
+      currentLine = testLine;
+    }
+  }
+  if (currentLine) lines.push(currentLine);
+  return lines;
+}
+
+// ─── VALIDATION: CHECK NO WORDS ARE TRUNCATED ───
+function validateTextNotTruncated(
+  ctx: any,
+  visualText: { lines: string[]; subtitle?: string; attribution?: string; keyPoints?: { icon: string; text: string }[] },
+  maxWidth: number
+): { valid: boolean; issues: string[] } {
+  const issues: string[] = [];
+
+  const checkLine = (text: string, label: string) => {
+    // Check for common truncation patterns
+    if (text.endsWith("...") || text.endsWith("…")) {
+      issues.push(`${label} semble tronqué : "${text}"`);
+    }
+    // Check for words cut mid-syllable (ending with hyphen not part of compound words)
+    if (/[a-zàâäéèêëïîôùûüÿç]-$/i.test(text) && !/(peut-être|c'est-à-dire|au-dessus|au-dessous|vis-à-vis)/i.test(text)) {
+      issues.push(`${label} contient un mot coupé : "${text}"`);
+    }
+    // Check for incomplete sentences (ending with comma or conjunction)
+    if (/[,\s](et|ou|mais|donc|car|ni|or)\s*$/i.test(text)) {
+      issues.push(`${label} semble incomplet : "${text}"`);
+    }
+  };
+
+  for (let i = 0; i < visualText.lines.length; i++) {
+    checkLine(visualText.lines[i], `Ligne ${i + 1}`);
+  }
+  if (visualText.subtitle) checkLine(visualText.subtitle, "Sous-titre");
+  if (visualText.attribution) checkLine(visualText.attribution, "Attribution");
+  if (visualText.keyPoints) {
+    for (let i = 0; i < visualText.keyPoints.length; i++) {
+      checkLine(visualText.keyPoints[i].text, `Point clé ${i + 1}`);
+    }
+  }
+
+  return { valid: issues.length === 0, issues };
+}
+
+// ─── GENERATE VISUAL HANDLER (REFACTORED: TEXT → BG → OVERLAY) ───
+async function handleGenerateVisual(supabase: any, supabaseAdmin: any, apiKey: string, body: any) {
+  const { suggestionId, topic, description, contentType, platform, tags, scheduledAt } = body;
+
+  console.log(`Generating visual (text-first pipeline): type=${contentType}, platform=${platform}, topic=${topic}`);
+
+  // PHASE 1: Generate structured text via AI (with proofreading)
+  console.log("Phase 1: Generating and proofreading visual text...");
+  const visualText = await generateVisualText(apiKey, topic, description || "", contentType, platform);
+  console.log("Visual text generated:", JSON.stringify(visualText).substring(0, 200));
+
+  // PHASE 2: Validate text is not truncated
+  console.log("Phase 2: Validating text integrity...");
+  const { width } = getDimensions(platform);
+  const tempCanvas = createCanvas(width, 100);
+  const tempCtx = tempCanvas.getContext("2d");
+  const fontSize = Math.round(width * 0.045);
+  tempCtx.font = `bold ${fontSize}px sans-serif`;
+  const margin = Math.round(width * 0.08);
+  const textAreaWidth = width - margin * 2;
+
+  const validation = validateTextNotTruncated(tempCtx, visualText, textAreaWidth);
+  if (!validation.valid) {
+    console.warn("Text validation issues found:", validation.issues);
+    // Auto-fix: regenerate text if truncation detected
+    console.log("Regenerating text to fix truncation...");
+    const fixedText = await generateVisualText(apiKey, topic, description || "", contentType, platform);
+    const revalidation = validateTextNotTruncated(tempCtx, fixedText, textAreaWidth);
+    if (revalidation.valid) {
+      Object.assign(visualText, fixedText);
+      console.log("Text fixed successfully after regeneration.");
+    } else {
+      console.warn("Text still has issues after regeneration, proceeding anyway:", revalidation.issues);
+      Object.assign(visualText, fixedText);
+    }
+  } else {
+    console.log("Text validation passed.");
+  }
+
+  // PHASE 3: Generate background image (NO TEXT in image)
+  console.log("Phase 3: Generating background image...");
+  const base64Background = await generateBackgroundImage(apiKey, topic, contentType, platform);
+
+  // PHASE 4: Programmatically overlay text on background
+  console.log("Phase 4: Overlaying text on background...");
+  const compositeBuffer = await overlayTextOnImage(base64Background, visualText, contentType, platform);
+
+  // PHASE 5: Upload composite image
+  console.log("Phase 5: Uploading final composite image...");
+  const publicUrl = await uploadImageBuffer(supabaseAdmin, compositeBuffer, contentType, platform);
+
+  // Generate caption and hashtags (separate from image text)
   const { caption, hashtags } = await generateCaptionAndHashtags(apiKey, topic, description, contentType, platform);
-
-  // AI proofreading step
   const proofreadCaption = await proofreadFrenchText(apiKey, caption);
 
   const { data: saved, error: saveError } = await supabase
@@ -293,19 +691,16 @@ Rends-le audacieux et engageant pour encourager le swipe.`,
 async function handleGenerateCarousel(supabase: any, supabaseAdmin: any, apiKey: string, body: any) {
   const { suggestionId, topic, description, platform, tags, slideCount = 4, scheduledAt } = body;
 
-  console.log(`Generating ${slideCount}-slide carousel: platform=${platform}, topic=${topic}`);
-
-  const platformSpec = platform === "linkedin"
-    ? "Format paysage (1200x627). Professionnel, épuré."
-    : "Format carré (1080x1080). Audacieux, vibrant.";
+  console.log(`Generating ${slideCount}-slide carousel (text-first): platform=${platform}, topic=${topic}`);
 
   const carouselGroupId = crypto.randomUUID();
   const slides: any[] = [];
 
+  // Plan carousel slides via text AI
   const planResponse = await callAI(apiKey, {
     model: "google/gemini-3-flash-preview",
     messages: [
-      { role: "system", content: `Tu es un expert en carrousels pour réseaux sociaux. Planifie un contenu concis par diapositive. ${FRENCH_QUALITY_RULES}` },
+      { role: "system", content: `Tu es un expert en carrousels pour réseaux sociaux. Planifie un contenu concis par diapositive. ${FRENCH_QUALITY_RULES} ${VISUAL_TEXT_QC_PROMPT}` },
       { role: "user", content: `Planifie un carrousel de ${slideCount} diapositives sur « ${topic} ». ${description || ""}\n\nPour chaque diapositive, fournis un titre court (max 8 mots, en français impeccable) et un point clé (max 20 mots, en français parfait). La diapositive 1 est la couverture, la dernière est le CTA.` },
     ],
     tools: [{
@@ -345,47 +740,64 @@ async function handleGenerateCarousel(supabase: any, supabaseAdmin: any, apiKey:
 
   const slidePlan = JSON.parse(planTool.function.arguments).slides;
 
+  // Proofread each slide's text
+  for (let i = 0; i < slidePlan.length; i++) {
+    slidePlan[i].title = await proofreadFrenchText(apiKey, slidePlan[i].title);
+    slidePlan[i].key_point = await proofreadFrenchText(apiKey, slidePlan[i].key_point);
+  }
+
   for (let i = 0; i < slidePlan.length; i++) {
     const slide = slidePlan[i];
     const isFirst = i === 0;
     const isLast = i === slidePlan.length - 1;
 
-    let slidePrompt = `Crée la diapositive ${i + 1} sur ${slidePlan.length} pour un post carrousel sur « ${topic} ». ${platformSpec}\n`;
+    try {
+      // Generate background (no text)
+      const bgPrompt = isFirst
+        ? `Arrière-plan SANS TEXTE pour une couverture de carrousel sur « ${topic} ». Style audacieux, vibrant, accrocheur. Format ${platform === "linkedin" ? "paysage 1200x627" : "carré 1080x1080"}. AUCUN TEXTE dans l'image.`
+        : isLast
+        ? `Arrière-plan SANS TEXTE pour un CTA de carrousel. Style professionnel, invitant. Format ${platform === "linkedin" ? "paysage 1200x627" : "carré 1080x1080"}. AUCUN TEXTE dans l'image.`
+        : `Arrière-plan SANS TEXTE pour diapositive ${i + 1} d'un carrousel sur « ${topic} ». Style cohérent, professionnel. Format ${platform === "linkedin" ? "paysage 1200x627" : "carré 1080x1080"}. AUCUN TEXTE dans l'image.`;
 
-    if (isFirst) {
-      slidePrompt += `Ceci est la diapositive COUVERTURE. Titre : « ${slide.title} ». Ajoute un indicateur « Swipe → ». Rends-la audacieuse et accrocheuse. Tout le texte en français parfait, JAMAIS tronqué.`;
-    } else if (isLast) {
-      slidePrompt += `Ceci est la diapositive CTA/FERMETURE. Titre : « ${slide.title} ». Point clé : « ${slide.key_point} ». Inclus un appel à l'action comme « Suivez pour plus » ou « Enregistrez ce post ». Texte en français, complet et sans faute.`;
-    } else {
-      slidePrompt += `Diapositive de contenu. Titre : « ${slide.title} ». Point clé : « ${slide.key_point} ». Style visuel cohérent avec les autres. Numéro « ${i + 1}/${slidePlan.length} » dans un coin. Texte en français, COMPLET et sans faute.`;
+      const imgResp = await callAI(apiKey, {
+        model: "google/gemini-2.5-flash-image",
+        messages: [{ role: "user", content: bgPrompt }],
+        modalities: ["image", "text"],
+      });
+
+      if (!imgResp.ok) {
+        console.error(`Failed to generate slide ${i + 1} background`);
+        continue;
+      }
+
+      const imgData = await imgResp.json();
+      const b64 = imgData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+      if (!b64) continue;
+
+      // Build text for this slide
+      const slideLines = [slide.title];
+      const slideSubtitle = isFirst ? "Swipe →" : isLast ? slide.key_point : slide.key_point;
+      const slideAttribution = !isFirst && !isLast ? `${i + 1}/${slidePlan.length}` : undefined;
+
+      const slideText = {
+        lines: slideLines,
+        subtitle: slideSubtitle,
+        attribution: slideAttribution,
+      };
+
+      // Overlay text on background
+      const compositeBuffer = await overlayTextOnImage(b64, slideText, "carousel", platform);
+      const url = await uploadImageBuffer(supabaseAdmin, compositeBuffer, "carousel", platform, `slide${i + 1}`);
+
+      slides.push({ ...slide, image_url: url, slide_number: i + 1 });
+    } catch (err) {
+      console.error(`Failed to generate carousel slide ${i + 1}:`, err);
     }
-
-    slidePrompt += `\nGarde un style visuel cohérent sur toutes les diapositives. Même palette de couleurs et typographie. IMPORTANT : tout texte incrusté doit être en français impeccable et ne JAMAIS être tronqué.`;
-
-    const imgResp = await callAI(apiKey, {
-      model: "google/gemini-2.5-flash-image",
-      messages: [{ role: "user", content: slidePrompt }],
-      modalities: ["image", "text"],
-    });
-
-    if (!imgResp.ok) {
-      console.error(`Failed to generate slide ${i + 1}`);
-      continue;
-    }
-
-    const imgData = await imgResp.json();
-    const b64 = imgData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-    if (!b64) continue;
-
-    const url = await uploadBase64Image(supabaseAdmin, b64, "carousel", platform, `slide${i + 1}`);
-    slides.push({ ...slide, image_url: url, slide_number: i + 1 });
   }
 
   if (slides.length === 0) throw new Error("Failed to generate any carousel slides");
 
   const { caption, hashtags } = await generateCaptionAndHashtags(apiKey, topic, description, "carousel", platform);
-
-  // AI proofreading step
   const proofreadCaption = await proofreadFrenchText(apiKey, caption);
 
   const insertData = slides.map((slide) => ({
@@ -426,7 +838,6 @@ async function handleAutoPipeline(supabase: any, supabaseAdmin: any, apiKey: str
 
   console.log(`Running auto-pipeline: niche=${niche}, type=${contentType}, platforms=${platforms.join(",")}`);
 
-  // Step 1: Discover topics
   const discoverResult = await handleDiscover(supabase, apiKey, { niche, count: 3 });
   const discoverData = await discoverResult.json();
 
@@ -434,26 +845,22 @@ async function handleAutoPipeline(supabase: any, supabaseAdmin: any, apiKey: str
     throw new Error("Pipeline failed at discovery step");
   }
 
-  // Step 2: Pick best topic (highest relevance_score)
   const bestSuggestion = discoverData.suggestions.sort(
     (a: any, b: any) => (b.relevance_score || 0) - (a.relevance_score || 0)
   )[0];
 
-  // Auto-approve the best suggestion
   await supabase.from("content_suggestions").update({ status: "approved" }).eq("id", bestSuggestion.id);
 
   const generatedContent: any[] = [];
 
-  // Compute a SINGLE scheduled_at for all platforms (synchronized)
+  // Synchronized schedule for all platforms
   const scheduleDate = new Date();
-  scheduleDate.setDate(scheduleDate.getDate() + 1); // tomorrow
+  scheduleDate.setDate(scheduleDate.getDate() + 1);
   scheduleDate.setHours(9, 0, 0, 0);
   const syncScheduledAt = autoSchedule ? scheduleDate.toISOString() : null;
 
-  // Step 3: Generate visual for each platform — ALL get the SAME scheduled_at
   for (let i = 0; i < platforms.length; i++) {
     const platform = platforms[i];
-
     try {
       const genBody = {
         suggestionId: i === 0 ? bestSuggestion.id : null,
@@ -499,7 +906,6 @@ async function handleRepublish(supabase: any, supabaseAdmin: any, apiKey: string
 
   console.log(`Republishing content ${contentId} to ${targetPlatform} as ${targetContentType}`);
 
-  // Get original content
   const { data: original, error: fetchError } = await supabase
     .from("content_queue")
     .select("*")
@@ -508,7 +914,6 @@ async function handleRepublish(supabase: any, supabaseAdmin: any, apiKey: string
 
   if (fetchError || !original) throw new Error("Original content not found");
 
-  // Generate new visual adapted for the target platform
   const genBody = {
     suggestionId: original.suggestion_id,
     topic: original.title.replace(/ - Slide \d+$/, ""),
@@ -583,7 +988,7 @@ Règles :
 
     const parsed = JSON.parse(toolCall.function.arguments);
     if (parsed.had_errors) {
-      console.log("Proofreading corrected errors in caption");
+      console.log("Proofreading corrected errors in text");
     }
     return parsed.corrected_text || text;
   } catch (err) {
@@ -593,9 +998,7 @@ Règles :
 }
 
 // ─── HELPERS ───
-async function uploadBase64Image(supabaseAdmin: any, base64Url: string, contentType: string, platform: string, suffix = "") {
-  const base64Data = base64Url.replace(/^data:image\/\w+;base64,/, "");
-  const imageBuffer = Uint8Array.from(atob(base64Data), (c) => c.charCodeAt(0));
+async function uploadImageBuffer(supabaseAdmin: any, imageBuffer: Uint8Array, contentType: string, platform: string, suffix = "") {
   const timestamp = Date.now();
   const randomId = crypto.randomUUID().substring(0, 8);
   const fileName = `visual-${contentType}-${platform}${suffix ? `-${suffix}` : ""}-${timestamp}-${randomId}.png`;
