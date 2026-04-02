@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { SecureHtml } from "@/components/ui/secure-html";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -287,9 +288,9 @@ export function ArticleGenerator({ onArticleGenerated }: ArticleGeneratorProps) 
                   {/* Content Preview */}
                   <div className="space-y-2">
                     <Label className="text-xs text-muted-foreground uppercase tracking-wide">Content Preview</Label>
-                    <div 
+                    <SecureHtml
+                      html={generatedArticle.content}
                       className="prose prose-sm dark:prose-invert max-w-none p-4 rounded-lg border bg-muted/30"
-                      dangerouslySetInnerHTML={{ __html: generatedArticle.content }}
                     />
                   </div>
                 </div>
