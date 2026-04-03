@@ -18,15 +18,28 @@ export const SubscriptionModal = ({ isOpen, onClose, privacyConsent }: Subscript
   const [showSuccess, setShowSuccess] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
+  const focusTimeoutRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
+  const closeTimeoutRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
   const { subscribe } = useNewsletter();
 
   // Focus management
   useEffect(() => {
     if (isOpen && emailInputRef.current) {
-      setTimeout(() => {
+      if (focusTimeoutRef.current) {
+        clearTimeout(focusTimeoutRef.current);
+      }
+
+      focusTimeoutRef.current = window.setTimeout(() => {
         emailInputRef.current?.focus();
       }, 100);
     }
+
+    return () => {
+      if (focusTimeoutRef.current) {
+        clearTimeout(focusTimeoutRef.current);
+        focusTimeoutRef.current = null;
+      }
+    };
   }, [isOpen]);
 
   // Keyboard handling
@@ -75,7 +88,11 @@ export const SubscriptionModal = ({ isOpen, onClose, privacyConsent }: Subscript
         localStorage.setItem('subscription-popup-shown', 'true');
         
         // Close modal after 2 seconds
-        setTimeout(() => {
+        if (closeTimeoutRef.current) {
+          clearTimeout(closeTimeoutRef.current);
+        }
+
+        closeTimeoutRef.current = window.setTimeout(() => {
           onClose();
         }, 2000);
       }
@@ -85,6 +102,14 @@ export const SubscriptionModal = ({ isOpen, onClose, privacyConsent }: Subscript
       setIsSubmitting(false);
     }
   };
+
+  useEffect(() => {
+    return () => {
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {

@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 interface ConsentFlowState {
   showPrivacyBanner: boolean;
@@ -8,6 +8,7 @@ interface ConsentFlowState {
 }
 
 export const useConsentFlow = () => {
+  const subscriptionModalTimeoutRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
   const [state, setState] = useState<ConsentFlowState>({
     showPrivacyBanner: false,
     showSubscriptionModal: false,
@@ -42,6 +43,13 @@ export const useConsentFlow = () => {
         }));
       }
     }
+
+    return () => {
+      if (subscriptionModalTimeoutRef.current) {
+        clearTimeout(subscriptionModalTimeoutRef.current);
+        subscriptionModalTimeoutRef.current = null;
+      }
+    };
   }, []);
 
   const handlePrivacyConsent = useCallback((accepted: boolean) => {
@@ -61,7 +69,11 @@ export const useConsentFlow = () => {
     
     if (!subscriptionShown && !subscriptionDismissed) {
       // Small delay to allow banner to animate out
-      setTimeout(() => {
+      if (subscriptionModalTimeoutRef.current) {
+        clearTimeout(subscriptionModalTimeoutRef.current);
+      }
+
+      subscriptionModalTimeoutRef.current = window.setTimeout(() => {
         setState(prev => ({
           ...prev,
           showSubscriptionModal: true,
@@ -71,6 +83,11 @@ export const useConsentFlow = () => {
   }, []);
 
   const handleSubscriptionModalClose = useCallback(() => {
+    if (subscriptionModalTimeoutRef.current) {
+      clearTimeout(subscriptionModalTimeoutRef.current);
+      subscriptionModalTimeoutRef.current = null;
+    }
+
     localStorage.setItem('subscription-popup-shown', 'true');
     setState(prev => ({
       ...prev,
