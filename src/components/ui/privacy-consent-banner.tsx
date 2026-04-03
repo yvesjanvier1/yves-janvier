@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Button } from './button';
 import { X, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -11,15 +11,30 @@ interface PrivacyConsentBannerProps {
 
 export const PrivacyConsentBanner = ({ onConsent, isVisible }: PrivacyConsentBannerProps) => {
   const [isClosing, setIsClosing] = useState(false);
+  const consentTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (consentTimeoutRef.current) {
+        clearTimeout(consentTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleAccept = () => {
     setIsClosing(true);
-    setTimeout(() => onConsent(true), 200);
+    if (consentTimeoutRef.current) {
+      clearTimeout(consentTimeoutRef.current);
+    }
+    consentTimeoutRef.current = setTimeout(() => onConsent(true), 200);
   };
 
   const handleDecline = () => {
     setIsClosing(true);
-    setTimeout(() => onConsent(false), 200);
+    if (consentTimeoutRef.current) {
+      clearTimeout(consentTimeoutRef.current);
+    }
+    consentTimeoutRef.current = setTimeout(() => onConsent(false), 200);
   };
 
   if (!isVisible) return null;

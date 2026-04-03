@@ -12,27 +12,38 @@ export const useExitIntent = ({
   delay = 200, 
   onExitIntent 
 }: UseExitIntentOptions) => {
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const selectionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isSelectingRef = useRef(false);
   const lastScrollYRef = useRef(0);
   const scrollStartYRef = useRef(0);
   const isTouchingRef = useRef(false);
+  const isMountedRef = useRef(false);
+
+  const clearExitIntentTimeout = useCallback(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+  }, []);
+
+  const scheduleExitIntent = useCallback(() => {
+    clearExitIntentTimeout();
+
+    timeoutRef.current = setTimeout(() => {
+      if (isMountedRef.current && !isSelectingRef.current && enabled) {
+        onExitIntent();
+      }
+    }, delay);
+  }, [clearExitIntentTimeout, delay, enabled, onExitIntent]);
 
   // Desktop: Mouse exit intent detection
   const handleMouseLeave = useCallback((e: MouseEvent) => {
     // Only trigger if cursor is moving towards the top of the screen
     if (e.clientY <= 10 && e.relatedTarget === null) {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-      
-      timeoutRef.current = setTimeout(() => {
-        if (!isSelectingRef.current && enabled) {
-          onExitIntent();
-        }
-      }, delay);
+      scheduleExitIntent();
     }
-  }, [enabled, delay, onExitIntent]);
+  }, [scheduleExitIntent]);
 
   // Mobile: Scroll-up intent detection
   const handleTouchStart = useCallback((e: TouchEvent) => {
@@ -53,19 +64,11 @@ export const useExitIntent = ({
       currentScrollY > 100 && // Not at the very top
       window.innerHeight + currentScrollY >= document.body.offsetHeight - 200 // Near bottom
     ) {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-      
-      timeoutRef.current = setTimeout(() => {
-        if (enabled && !isSelectingRef.current) {
-          onExitIntent();
-        }
-      }, delay);
+      scheduleExitIntent();
     }
     
     lastScrollYRef.current = currentScrollY;
-  }, [enabled, delay, onExitIntent]);
+  }, [scheduleExitIntent]);
 
   const handleTouchEnd = useCallback(() => {
     isTouchingRef.current = false;
@@ -76,16 +79,28 @@ export const useExitIntent = ({
   }, []);
 
   const handleMouseUp = useCallback(() => {
-    setTimeout(() => {
+    if (selectionTimeoutRef.current) {
+      clearTimeout(selectionTimeoutRef.current);
+    }
+
+    selectionTimeoutRef.current = setTimeout(() => {
       isSelectingRef.current = false;
     }, 100);
   }, []);
 
-  const handleBeforeUnload = useCallback(() => {
-    if (enabled) {
-      onExitIntent();
-    }
-  }, [enabled, onExitIntent]);
+  useEffect(() => {
+    isMountedRef.current = true;
+
+    return () => {
+      isMountedRef.current = false;
+      clearExitIntentTimeout();
+
+      if (selectionTimeoutRef.current) {
+        clearTimeout(selectionTimeoutRef.current);
+        selectionTimeoutRef.current = null;
+      }
+    };
+  }, [clearExitIntentTimeout]);
 
   useEffect(() => {
     if (!enabled) return;
@@ -105,7 +120,6 @@ export const useExitIntent = ({
     // Common events
     document.addEventListener('mousedown', handleMouseDown);
     document.addEventListener('mouseup', handleMouseUp);
-    window.addEventListener('beforeunload', handleBeforeUnload);
 
     return () => {
       if (isMobile) {
@@ -118,11 +132,7 @@ export const useExitIntent = ({
       
       document.removeEventListener('mousedown', handleMouseDown);
       document.removeEventListener('mouseup', handleMouseUp);
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
+      clearExitIntentTimeout();
     };
-  }, [enabled, handleMouseLeave, handleTouchStart, handleTouchMove, handleTouchEnd, handleMouseDown, handleMouseUp, handleBeforeUnload]);
+  }, [enabled, clearExitIntentTimeout, handleMouseLeave, handleTouchStart, handleTouchMove, handleTouchEnd, handleMouseDown, handleMouseUp]);
 };
