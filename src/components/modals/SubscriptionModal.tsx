@@ -18,8 +18,8 @@ export const SubscriptionModal = ({ isOpen, onClose, privacyConsent }: Subscript
   const [showSuccess, setShowSuccess] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
-  const focusTimeoutRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
-  const closeTimeoutRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
+  const focusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { subscribe } = useNewsletter();
 
   // Focus management
@@ -29,7 +29,7 @@ export const SubscriptionModal = ({ isOpen, onClose, privacyConsent }: Subscript
         clearTimeout(focusTimeoutRef.current);
       }
 
-      focusTimeoutRef.current = window.setTimeout(() => {
+      focusTimeoutRef.current = setTimeout(() => {
         emailInputRef.current?.focus();
       }, 100);
     }
@@ -92,7 +92,7 @@ export const SubscriptionModal = ({ isOpen, onClose, privacyConsent }: Subscript
           clearTimeout(closeTimeoutRef.current);
         }
 
-        closeTimeoutRef.current = window.setTimeout(() => {
+        closeTimeoutRef.current = setTimeout(() => {
           onClose();
         }, 2000);
       }

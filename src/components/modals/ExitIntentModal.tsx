@@ -14,7 +14,7 @@ interface ExitIntentModalProps {
 export const ExitIntentModal = ({ isOpen, onClose, onSubscribe }: ExitIntentModalProps) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const focusTimeoutRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
+  const focusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Focus trap and keyboard handling
   useEffect(() => {
@@ -57,7 +57,7 @@ export const ExitIntentModal = ({ isOpen, onClose, onSubscribe }: ExitIntentModa
       clearTimeout(focusTimeoutRef.current);
     }
 
-    focusTimeoutRef.current = window.setTimeout(() => {
+    focusTimeoutRef.current = setTimeout(() => {
       closeButtonRef.current?.focus();
     }, 100);
 

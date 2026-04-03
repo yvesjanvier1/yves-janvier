@@ -11,7 +11,7 @@ interface PrivacyConsentBannerProps {
 
 export const PrivacyConsentBanner = ({ onConsent, isVisible }: PrivacyConsentBannerProps) => {
   const [isClosing, setIsClosing] = useState(false);
-  const consentTimeoutRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
+  const consentTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     return () => {
@@ -26,7 +26,7 @@ export const PrivacyConsentBanner = ({ onConsent, isVisible }: PrivacyConsentBan
     if (consentTimeoutRef.current) {
       clearTimeout(consentTimeoutRef.current);
     }
-    consentTimeoutRef.current = window.setTimeout(() => onConsent(true), 200);
+    consentTimeoutRef.current = setTimeout(() => onConsent(true), 200);
   };
 
   const handleDecline = () => {
@@ -34,7 +34,7 @@ export const PrivacyConsentBanner = ({ onConsent, isVisible }: PrivacyConsentBan
     if (consentTimeoutRef.current) {
       clearTimeout(consentTimeoutRef.current);
     }
-    consentTimeoutRef.current = window.setTimeout(() => onConsent(false), 200);
+    consentTimeoutRef.current = setTimeout(() => onConsent(false), 200);
   };
 
   if (!isVisible) return null;

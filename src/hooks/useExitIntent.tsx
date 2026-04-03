@@ -12,8 +12,8 @@ export const useExitIntent = ({
   delay = 200, 
   onExitIntent 
 }: UseExitIntentOptions) => {
-  const timeoutRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
-  const selectionTimeoutRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const selectionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isSelectingRef = useRef(false);
   const lastScrollYRef = useRef(0);
   const scrollStartYRef = useRef(0);
@@ -30,7 +30,7 @@ export const useExitIntent = ({
   const scheduleExitIntent = useCallback(() => {
     clearExitIntentTimeout();
 
-    timeoutRef.current = window.setTimeout(() => {
+    timeoutRef.current = setTimeout(() => {
       if (isMountedRef.current && !isSelectingRef.current && enabled) {
         onExitIntent();
       }
@@ -83,7 +83,7 @@ export const useExitIntent = ({
       clearTimeout(selectionTimeoutRef.current);
     }
 
-    selectionTimeoutRef.current = window.setTimeout(() => {
+    selectionTimeoutRef.current = setTimeout(() => {
       isSelectingRef.current = false;
     }, 100);
   }, []);

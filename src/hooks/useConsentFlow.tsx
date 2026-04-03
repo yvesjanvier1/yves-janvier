@@ -8,7 +8,7 @@ interface ConsentFlowState {
 }
 
 export const useConsentFlow = () => {
-  const subscriptionModalTimeoutRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
+  const subscriptionModalTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [state, setState] = useState<ConsentFlowState>({
     showPrivacyBanner: false,
     showSubscriptionModal: false,
@@ -73,7 +73,7 @@ export const useConsentFlow = () => {
         clearTimeout(subscriptionModalTimeoutRef.current);
       }
 
-      subscriptionModalTimeoutRef.current = window.setTimeout(() => {
+      subscriptionModalTimeoutRef.current = setTimeout(() => {
         setState(prev => ({
           ...prev,
           showSubscriptionModal: true,
