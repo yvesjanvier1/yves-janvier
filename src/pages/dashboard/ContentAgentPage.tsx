@@ -21,7 +21,7 @@ import {
   Instagram, Linkedin, MessageCircle, FileText, Image, Download,
   Quote, BarChart3, Layers, Eye, CalendarIcon, Clock, Share2,
   Copy, ExternalLink, Zap, RefreshCw, PieChart, Activity,
-  ChevronLeft, ChevronRight
+  ChevronLeft, ChevronRight, Send, CheckCircle2
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { PieChart as RechartsPie, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
