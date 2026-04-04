@@ -1381,40 +1381,113 @@ const ContentAgentPage = () => {
         </DialogContent>
       </Dialog>
 
-      {/* ═══ SHARE DIALOG ═══ */}
-      <Dialog open={shareDialog} onOpenChange={setShareDialog}>
-        <DialogContent className="sm:max-w-md">
+      {/* ═══ UNIFIED SHARE DIALOG — SIDE-BY-SIDE PREVIEW ═══ */}
+      <Dialog open={shareDialog} onOpenChange={(open) => { setShareDialog(open); if (!open) { setIsPublishing(false); setPublishSteps({}); } }}>
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2"><Share2 className="h-5 w-5" />Share Content</DialogTitle>
+            <DialogTitle className="flex items-center gap-2"><Send className="h-5 w-5" />Publier sur toutes les plateformes</DialogTitle>
           </DialogHeader>
           {shareItem && (
-            <div className="space-y-4">
-              {shareItem.image_url && <img src={shareItem.image_url} alt={shareItem.title} className="w-full rounded-lg max-h-60 object-cover" />}
-              <div className="space-y-2">
-                <Button variant="outline" className="w-full justify-start gap-3" onClick={() => copyFullCaption(shareItem)}>
-                  <Copy className="h-4 w-4" />Copy Caption + Hashtags
-                </Button>
-                {shareItem.image_url && (
-                  <Button variant="outline" className="w-full justify-start gap-3" asChild>
-                    <a href={shareItem.image_url} download target="_blank" rel="noopener noreferrer"><Download className="h-4 w-4" />Download Image</a>
-                  </Button>
-                )}
-                <div className="border-t pt-3 space-y-2">
-                  <p className="text-sm font-medium">Share to platform</p>
-                  <Button variant="outline" className="w-full justify-start gap-3" onClick={() => { copyFullCaption(shareItem); toast.info("Caption copied! Open Instagram and paste it."); }}>
-                    <Instagram className="h-4 w-4" />Instagram (copy caption first)
-                  </Button>
-                  {buildShareUrl(shareItem, "linkedin") && (
-                    <Button variant="outline" className="w-full justify-start gap-3" asChild>
-                      <a href={buildShareUrl(shareItem, "linkedin")!} target="_blank" rel="noopener noreferrer"><Linkedin className="h-4 w-4" />Share on LinkedIn<ExternalLink className="h-3 w-3 ml-auto" /></a>
-                    </Button>
+            <div className="space-y-5">
+              {/* Side-by-side platform preview */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Instagram Preview */}
+                <Card className={cn("transition-all", publishSteps.instagram === "done" && "ring-2 ring-green-500", publishSteps.instagram === "active" && "ring-2 ring-primary animate-pulse")}>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Instagram className="h-4 w-4" />
+                      Instagram
+                      {publishSteps.instagram === "done" && <CheckCircle2 className="h-4 w-4 text-green-500 ml-auto" />}
+                      {publishSteps.instagram === "active" && <Loader2 className="h-4 w-4 animate-spin ml-auto" />}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    {shareItem.image_url && <img src={shareItem.image_url} alt={shareItem.title} className="w-full aspect-square object-cover rounded-lg" />}
+                    <p className="text-xs text-muted-foreground line-clamp-3">{shareItem.caption}</p>
+                    <p className="text-xs text-primary line-clamp-1">{shareItem.hashtags?.join(" ")}</p>
+                    <p className="text-[10px] text-muted-foreground italic">📥 Image téléchargée + légende copiée</p>
+                  </CardContent>
+                </Card>
+
+                {/* LinkedIn Preview */}
+                <Card className={cn("transition-all", publishSteps.linkedin === "done" && "ring-2 ring-green-500", publishSteps.linkedin === "active" && "ring-2 ring-primary animate-pulse")}>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <Linkedin className="h-4 w-4" />
+                      LinkedIn
+                      {publishSteps.linkedin === "done" && <CheckCircle2 className="h-4 w-4 text-green-500 ml-auto" />}
+                      {publishSteps.linkedin === "active" && <Loader2 className="h-4 w-4 animate-spin ml-auto" />}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    {shareItem.image_url && <img src={shareItem.image_url} alt={shareItem.title} className="w-full aspect-[1.91/1] object-cover rounded-lg" />}
+                    <p className="text-xs font-medium">{shareItem.title}</p>
+                    <p className="text-xs text-muted-foreground line-clamp-3">{shareItem.caption}</p>
+                    <p className="text-[10px] text-muted-foreground italic">🔗 Fenêtre de partage LinkedIn</p>
+                  </CardContent>
+                </Card>
+
+                {/* WhatsApp Preview */}
+                <Card className={cn("transition-all", publishSteps.whatsapp === "done" && "ring-2 ring-green-500", publishSteps.whatsapp === "active" && "ring-2 ring-primary animate-pulse")}>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <MessageCircle className="h-4 w-4" />
+                      WhatsApp
+                      {publishSteps.whatsapp === "done" && <CheckCircle2 className="h-4 w-4 text-green-500 ml-auto" />}
+                      {publishSteps.whatsapp === "active" && <Loader2 className="h-4 w-4 animate-spin ml-auto" />}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    {shareItem.image_url && <img src={shareItem.image_url} alt={shareItem.title} className="w-full aspect-square object-cover rounded-lg" />}
+                    <p className="text-xs text-muted-foreground line-clamp-3">{shareItem.caption}</p>
+                    <p className="text-[10px] text-muted-foreground italic">💬 Message pré-rempli WhatsApp</p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Action buttons */}
+              <div className="flex flex-col sm:flex-row gap-3 pt-2 border-t">
+                <Button
+                  className="flex-1 gap-2"
+                  size="lg"
+                  onClick={() => handleUnifiedPublish(shareItem)}
+                  disabled={isPublishing}
+                >
+                  {isPublishing ? (
+                    <><Loader2 className="h-4 w-4 animate-spin" />Publication en cours...</>
+                  ) : Object.values(publishSteps).every(s => s === "done") ? (
+                    <><CheckCircle2 className="h-4 w-4" />Publié !</>
+                  ) : (
+                    <><Send className="h-4 w-4" />Tout Publier</>
                   )}
-                  {buildShareUrl(shareItem, "whatsapp") && (
-                    <Button variant="outline" className="w-full justify-start gap-3" asChild>
-                      <a href={buildShareUrl(shareItem, "whatsapp")!} target="_blank" rel="noopener noreferrer"><MessageCircle className="h-4 w-4" />Share on WhatsApp<ExternalLink className="h-3 w-3 ml-auto" /></a>
+                </Button>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" className="gap-1" onClick={() => copyFullCaption(shareItem)}>
+                    <Copy className="h-3.5 w-3.5" />Copier légende
+                  </Button>
+                  {shareItem.image_url && (
+                    <Button variant="outline" size="sm" className="gap-1" asChild>
+                      <a href={shareItem.image_url} download target="_blank" rel="noopener noreferrer"><Download className="h-3.5 w-3.5" />Image</a>
                     </Button>
                   )}
                 </div>
+              </div>
+
+              {/* Individual platform share links */}
+              <div className="flex gap-2 flex-wrap">
+                <Button variant="ghost" size="sm" className="gap-1 text-xs" onClick={() => { copyFullCaption(shareItem); toast.info("Légende copiée ! Ouvrez Instagram et collez-la."); }}>
+                  <Instagram className="h-3 w-3" />Instagram seul
+                </Button>
+                {buildShareUrl(shareItem, "linkedin") && (
+                  <Button variant="ghost" size="sm" className="gap-1 text-xs" asChild>
+                    <a href={buildShareUrl(shareItem, "linkedin")!} target="_blank" rel="noopener noreferrer"><Linkedin className="h-3 w-3" />LinkedIn seul</a>
+                  </Button>
+                )}
+                {buildShareUrl(shareItem, "whatsapp") && (
+                  <Button variant="ghost" size="sm" className="gap-1 text-xs" asChild>
+                    <a href={buildShareUrl(shareItem, "whatsapp")!} target="_blank" rel="noopener noreferrer"><MessageCircle className="h-3 w-3" />WhatsApp seul</a>
+                  </Button>
+                )}
               </div>
             </div>
           )}
