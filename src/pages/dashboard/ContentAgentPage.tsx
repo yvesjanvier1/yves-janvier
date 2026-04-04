@@ -485,14 +485,12 @@ const ContentAgentPage = () => {
     setShareDialog(true);
   };
 
-  const handleGroupedShare = (item: ContentQueueItem) => {
-    // 1. Open LinkedIn deep-link
-    const linkedinUrl = buildShareUrl(item, "linkedin");
-    if (linkedinUrl) {
-      window.open(linkedinUrl, "_blank", "noopener,noreferrer,width=600,height=400");
-    }
+  const handleUnifiedPublish = async (item: ContentQueueItem) => {
+    setIsPublishing(true);
+    setPublishSteps({ instagram: "pending", linkedin: "pending", whatsapp: "pending" });
 
-    // 2. Auto-download image for Instagram
+    // Step 1: Instagram — download image + copy caption
+    setPublishSteps(prev => ({ ...prev, instagram: "active" }));
     if (item.image_url) {
       const a = document.createElement("a");
       a.href = item.image_url;
@@ -503,19 +501,34 @@ const ContentAgentPage = () => {
       a.click();
       document.body.removeChild(a);
     }
+    await navigator.clipboard.writeText(`${item.caption || ""}\n\n${item.hashtags?.join(" ") || ""}`);
+    toast.success("📸 Instagram : image téléchargée + légende copiée !");
+    setPublishSteps(prev => ({ ...prev, instagram: "done" }));
 
-    // 3. Copy caption for manual paste
-    navigator.clipboard.writeText(`${item.caption || ""}\n\n${item.hashtags?.join(" ") || ""}`);
+    // Step 2: LinkedIn — open deep-link
+    await new Promise(r => setTimeout(r, 1200));
+    setPublishSteps(prev => ({ ...prev, linkedin: "active" }));
+    const linkedinUrl = buildShareUrl(item, "linkedin");
+    if (linkedinUrl) {
+      window.open(linkedinUrl, "_blank", "noopener,noreferrer,width=600,height=500");
+    }
+    toast.success("💼 LinkedIn : fenêtre de partage ouverte !");
+    setPublishSteps(prev => ({ ...prev, linkedin: "done" }));
 
-    // 4. Open WhatsApp deep-link after a short delay
-    setTimeout(() => {
-      const whatsappUrl = buildShareUrl(item, "whatsapp");
-      if (whatsappUrl) {
-        window.open(whatsappUrl, "_blank", "noopener,noreferrer,width=600,height=400");
-      }
-    }, 1500);
+    // Step 3: WhatsApp — open deep-link
+    await new Promise(r => setTimeout(r, 1500));
+    setPublishSteps(prev => ({ ...prev, whatsapp: "active" }));
+    const whatsappUrl = buildShareUrl(item, "whatsapp");
+    if (whatsappUrl) {
+      window.open(whatsappUrl, "_blank", "noopener,noreferrer,width=600,height=500");
+    }
+    toast.success("💬 WhatsApp : fenêtre de partage ouverte !");
+    setPublishSteps(prev => ({ ...prev, whatsapp: "done" }));
 
-    toast.success("Partage groupé lancé : LinkedIn ouvert, image téléchargée pour Instagram, WhatsApp en cours...");
+    // Mark as published
+    await new Promise(r => setTimeout(r, 800));
+    markPublishedMutation.mutate({ id: item.id, groupId: item.carousel_group_id });
+    setIsPublishing(false);
   };
 
   const openRepublishDialog = (item: ContentQueueItem) => {
