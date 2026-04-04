@@ -111,6 +111,8 @@ const ContentAgentPage = () => {
   const [previewItem, setPreviewItem] = useState<ContentQueueItem | null>(null);
   const [shareDialog, setShareDialog] = useState(false);
   const [shareItem, setShareItem] = useState<ContentQueueItem | null>(null);
+  const [publishSteps, setPublishSteps] = useState<Record<string, "pending" | "done" | "active">>({});
+  const [isPublishing, setIsPublishing] = useState(false);
 
   // Schedule edit state
   const [scheduleDialog, setScheduleDialog] = useState(false);
