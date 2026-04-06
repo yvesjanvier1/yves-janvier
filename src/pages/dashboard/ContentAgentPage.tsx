@@ -581,6 +581,37 @@ const ContentAgentPage = () => {
   const scheduledCount = contentQueue.filter((i) => i.status === "scheduled").length;
   const publishedCount = contentQueue.filter((i) => i.status === "published").length;
 
+  // Calendar grid data (extracted from IIFE to avoid DOM reconciliation errors)
+  const calendarGrid = useMemo(() => {
+    const monthStart = startOfMonth(calendarMonth);
+    const monthEnd = endOfMonth(calendarMonth);
+    const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
+    const startDayOfWeek = monthStart.getDay();
+    const dayNames = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
+
+    const itemsByDate: Record<string, ContentQueueItem[]> = {};
+    contentQueue.forEach((item) => {
+      const dateStr = item.scheduled_at
+        ? format(new Date(item.scheduled_at), "yyyy-MM-dd")
+        : item.published_at
+        ? format(new Date(item.published_at), "yyyy-MM-dd")
+        : null;
+      if (dateStr) {
+        if (!itemsByDate[dateStr]) itemsByDate[dateStr] = [];
+        itemsByDate[dateStr].push(item);
+      }
+    });
+
+    return { days, startDayOfWeek, dayNames, itemsByDate };
+  }, [calendarMonth, contentQueue]);
+
+  // Upcoming scheduled items
+  const upcomingScheduled = useMemo(() => {
+    return contentQueue
+      .filter((i) => i.scheduled_at && i.status === "scheduled")
+      .sort((a, b) => new Date(a.scheduled_at!).getTime() - new Date(b.scheduled_at!).getTime());
+  }, [contentQueue]);
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -866,140 +897,102 @@ const ContentAgentPage = () => {
               </div>
             </CardHeader>
             <CardContent>
-              {(() => {
-                const monthStart = startOfMonth(calendarMonth);
-                const monthEnd = endOfMonth(calendarMonth);
-                const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
-                const startDayOfWeek = monthStart.getDay(); // 0=Sun
-                const dayNames = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
-
-                // Build map: dateString -> items
-                const itemsByDate: Record<string, ContentQueueItem[]> = {};
-                contentQueue.forEach((item) => {
-                  const dateStr = item.scheduled_at
-                    ? format(new Date(item.scheduled_at), "yyyy-MM-dd")
-                    : item.published_at
-                    ? format(new Date(item.published_at), "yyyy-MM-dd")
-                    : null;
-                  if (dateStr) {
-                    if (!itemsByDate[dateStr]) itemsByDate[dateStr] = [];
-                    itemsByDate[dateStr].push(item);
-                  }
-                });
-
-                return (
-                  <div>
-                    {/* Day headers */}
-                    <div className="grid grid-cols-7 gap-1 mb-1">
-                      {dayNames.map((d) => (
-                        <div key={d} className="text-center text-xs font-medium text-muted-foreground py-1">{d}</div>
-                      ))}
-                    </div>
-                    {/* Calendar grid */}
-                    <div className="grid grid-cols-7 gap-1">
-                      {/* Empty cells before month start */}
-                      {Array.from({ length: startDayOfWeek }).map((_, i) => (
-                        <div key={`empty-${i}`} className="min-h-[90px] rounded-lg" />
-                      ))}
-                      {days.map((day) => {
-                        const dateStr = format(day, "yyyy-MM-dd");
-                        const dayItems = itemsByDate[dateStr] || [];
-                        const today = isToday(day);
-                        return (
-                          <div
-                            key={dateStr}
-                            className={cn(
-                              "min-h-[90px] rounded-lg border p-1 transition-colors",
-                              today && "border-primary bg-primary/5",
-                              !today && "border-border bg-card hover:bg-accent/30"
-                            )}
-                          >
-                            <div className={cn(
-                              "text-xs font-medium mb-0.5 px-1",
-                              today && "text-primary",
-                              !today && "text-muted-foreground"
-                            )}>
-                              {format(day, "d")}
-                            </div>
-                            <div className="space-y-0.5 overflow-hidden max-h-[68px]">
-                              {dayItems.slice(0, 3).map((item) => (
-                                <div
-                                  key={item.id}
-                                  className={cn(
-                                    "text-[10px] leading-tight px-1 py-0.5 rounded truncate cursor-pointer transition-colors",
-                                    item.status === "published"
-                                      ? "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300"
-                                      : item.status === "scheduled"
-                                      ? "bg-primary/10 text-primary"
-                                      : "bg-muted text-muted-foreground"
-                                  )}
-                                  title={`${item.title} (${item.platform})`}
-                                  onClick={() => setPreviewItem(item)}
-                                >
-                                  <span className="inline-flex items-center gap-0.5">
-                                    {platformIcons[item.platform]}
-                                    {item.title.length > 18 ? item.title.slice(0, 18) + "…" : item.title}
-                                  </span>
-                                </div>
-                              ))}
-                              {dayItems.length > 3 && (
-                                <div className="text-[10px] text-muted-foreground px-1">+{dayItems.length - 3} more</div>
+              <div>
+                <div className="grid grid-cols-7 gap-1 mb-1">
+                  {calendarGrid.dayNames.map((d) => (
+                    <div key={d} className="text-center text-xs font-medium text-muted-foreground py-1">{d}</div>
+                  ))}
+                </div>
+                <div className="grid grid-cols-7 gap-1">
+                  {Array.from({ length: calendarGrid.startDayOfWeek }).map((_, i) => (
+                    <div key={`empty-${i}`} className="min-h-[90px] rounded-lg" />
+                  ))}
+                  {calendarGrid.days.map((day) => {
+                    const dateStr = format(day, "yyyy-MM-dd");
+                    const dayItems = calendarGrid.itemsByDate[dateStr] || [];
+                    const todayFlag = isToday(day);
+                    return (
+                      <div
+                        key={dateStr}
+                        className={cn(
+                          "min-h-[90px] rounded-lg border p-1 transition-colors",
+                          todayFlag && "border-primary bg-primary/5",
+                          !todayFlag && "border-border bg-card hover:bg-accent/30"
+                        )}
+                      >
+                        <div className={cn(
+                          "text-xs font-medium mb-0.5 px-1",
+                          todayFlag && "text-primary",
+                          !todayFlag && "text-muted-foreground"
+                        )}>
+                          {format(day, "d")}
+                        </div>
+                        <div className="space-y-0.5 overflow-hidden max-h-[68px]">
+                          {dayItems.slice(0, 3).map((item) => (
+                            <div
+                              key={item.id}
+                              className={cn(
+                                "text-[10px] leading-tight px-1 py-0.5 rounded truncate cursor-pointer transition-colors",
+                                item.status === "published"
+                                  ? "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300"
+                                  : item.status === "scheduled"
+                                  ? "bg-primary/10 text-primary"
+                                  : "bg-muted text-muted-foreground"
                               )}
+                              title={`${item.title} (${item.platform})`}
+                              onClick={() => setPreviewItem(item)}
+                            >
+                              <span className="inline-flex items-center gap-0.5">
+                                {platformIcons[item.platform]}
+                                {item.title.length > 18 ? item.title.slice(0, 18) + "…" : item.title}
+                              </span>
                             </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })()}
+                          ))}
+                          {dayItems.length > 3 && (
+                            <div className="text-[10px] text-muted-foreground px-1">+{dayItems.length - 3} more</div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </CardContent>
           </Card>
 
-          {/* Upcoming list below calendar */}
           <h2 className="text-xl font-semibold">Upcoming Schedule</h2>
-          {(() => {
-            const scheduled = contentQueue
-              .filter((i) => i.scheduled_at && i.status === "scheduled")
-              .sort((a, b) => new Date(a.scheduled_at!).getTime() - new Date(b.scheduled_at!).getTime());
-
-            if (scheduled.length === 0) {
-              return (
-                <Card><CardContent className="flex flex-col items-center justify-center py-8 text-center">
-                  <CalendarIcon className="h-10 w-10 text-muted-foreground mb-3" />
-                  <p className="text-muted-foreground">No scheduled content yet</p>
-                </CardContent></Card>
-              );
-            }
-
-            return (
-              <div className="space-y-3">
-                {scheduled.map((item) => (
-                  <Card key={item.id} className="hover:shadow-sm transition-shadow">
-                    <CardContent className="p-4 flex items-center gap-4">
-                      {item.image_url && <img src={item.image_url} alt={item.title} className="w-16 h-16 object-cover rounded-lg" />}
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm truncate">{item.title}</p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Badge variant="outline" className="text-xs gap-1">{platformIcons[item.platform]}{item.platform}</Badge>
-                          <Badge variant="secondary" className="text-xs">{contentTypeLabel[item.content_type] || item.content_type}</Badge>
-                        </div>
+          {upcomingScheduled.length === 0 ? (
+            <Card><CardContent className="flex flex-col items-center justify-center py-8 text-center">
+              <CalendarIcon className="h-10 w-10 text-muted-foreground mb-3" />
+              <p className="text-muted-foreground">No scheduled content yet</p>
+            </CardContent></Card>
+          ) : (
+            <div className="space-y-3">
+              {upcomingScheduled.map((item) => (
+                <Card key={item.id} className="hover:shadow-sm transition-shadow">
+                  <CardContent className="p-4 flex items-center gap-4">
+                    {item.image_url && <img src={item.image_url} alt={item.title} className="w-16 h-16 object-cover rounded-lg" />}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">{item.title}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge variant="outline" className="text-xs gap-1">{platformIcons[item.platform]}{item.platform}</Badge>
+                        <Badge variant="secondary" className="text-xs">{contentTypeLabel[item.content_type] || item.content_type}</Badge>
                       </div>
-                      <div className="text-right">
-                        <p className="font-medium text-sm">{format(new Date(item.scheduled_at!), "d MMM yyyy", { locale: fr })}</p>
-                        <p className="text-xs text-muted-foreground">{format(new Date(item.scheduled_at!), "HH:mm")}</p>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Button size="sm" variant="outline" className="gap-1" onClick={() => openShareDialog(item)}><Share2 className="h-3.5 w-3.5" /></Button>
-                        <Button size="sm" variant="default" className="gap-1" onClick={() => openShareDialog(item)}><Send className="h-3.5 w-3.5" />Tout Publier</Button>
-                        <Button size="sm" variant="outline" className="gap-1" onClick={() => markPublishedMutation.mutate({ id: item.id, groupId: item.carousel_group_id })}><Check className="h-3.5 w-3.5" />Done</Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            );
-          })()}
+                    </div>
+                    <div className="text-right">
+                      <p className="font-medium text-sm">{format(new Date(item.scheduled_at!), "d MMM yyyy", { locale: fr })}</p>
+                      <p className="text-xs text-muted-foreground">{format(new Date(item.scheduled_at!), "HH:mm")}</p>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Button size="sm" variant="outline" className="gap-1" onClick={() => openShareDialog(item)}><Share2 className="h-3.5 w-3.5" /></Button>
+                      <Button size="sm" variant="default" className="gap-1" onClick={() => openShareDialog(item)}><Send className="h-3.5 w-3.5" />Tout Publier</Button>
+                      <Button size="sm" variant="outline" className="gap-1" onClick={() => markPublishedMutation.mutate({ id: item.id, groupId: item.carousel_group_id })}><Check className="h-3.5 w-3.5" />Done</Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </TabsContent>
 
         {/* ═══ AUTOMATION TAB ═══ */}
