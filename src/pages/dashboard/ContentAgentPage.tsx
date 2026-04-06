@@ -581,6 +581,37 @@ const ContentAgentPage = () => {
   const scheduledCount = contentQueue.filter((i) => i.status === "scheduled").length;
   const publishedCount = contentQueue.filter((i) => i.status === "published").length;
 
+  // Calendar grid data (extracted from IIFE to avoid DOM reconciliation errors)
+  const calendarGrid = useMemo(() => {
+    const monthStart = startOfMonth(calendarMonth);
+    const monthEnd = endOfMonth(calendarMonth);
+    const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
+    const startDayOfWeek = monthStart.getDay();
+    const dayNames = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
+
+    const itemsByDate: Record<string, ContentQueueItem[]> = {};
+    contentQueue.forEach((item) => {
+      const dateStr = item.scheduled_at
+        ? format(new Date(item.scheduled_at), "yyyy-MM-dd")
+        : item.published_at
+        ? format(new Date(item.published_at), "yyyy-MM-dd")
+        : null;
+      if (dateStr) {
+        if (!itemsByDate[dateStr]) itemsByDate[dateStr] = [];
+        itemsByDate[dateStr].push(item);
+      }
+    });
+
+    return { days, startDayOfWeek, dayNames, itemsByDate };
+  }, [calendarMonth, contentQueue]);
+
+  // Upcoming scheduled items
+  const upcomingScheduled = useMemo(() => {
+    return contentQueue
+      .filter((i) => i.scheduled_at && i.status === "scheduled")
+      .sort((a, b) => new Date(a.scheduled_at!).getTime() - new Date(b.scheduled_at!).getTime());
+  }, [contentQueue]);
+
   return (
     <div className="space-y-6">
       {/* Header */}
