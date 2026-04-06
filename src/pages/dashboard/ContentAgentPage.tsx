@@ -897,93 +897,66 @@ const ContentAgentPage = () => {
               </div>
             </CardHeader>
             <CardContent>
-              {(() => {
-                const monthStart = startOfMonth(calendarMonth);
-                const monthEnd = endOfMonth(calendarMonth);
-                const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
-                const startDayOfWeek = monthStart.getDay(); // 0=Sun
-                const dayNames = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
-
-                // Build map: dateString -> items
-                const itemsByDate: Record<string, ContentQueueItem[]> = {};
-                contentQueue.forEach((item) => {
-                  const dateStr = item.scheduled_at
-                    ? format(new Date(item.scheduled_at), "yyyy-MM-dd")
-                    : item.published_at
-                    ? format(new Date(item.published_at), "yyyy-MM-dd")
-                    : null;
-                  if (dateStr) {
-                    if (!itemsByDate[dateStr]) itemsByDate[dateStr] = [];
-                    itemsByDate[dateStr].push(item);
-                  }
-                });
-
-                return (
-                  <div>
-                    {/* Day headers */}
-                    <div className="grid grid-cols-7 gap-1 mb-1">
-                      {dayNames.map((d) => (
-                        <div key={d} className="text-center text-xs font-medium text-muted-foreground py-1">{d}</div>
-                      ))}
-                    </div>
-                    {/* Calendar grid */}
-                    <div className="grid grid-cols-7 gap-1">
-                      {/* Empty cells before month start */}
-                      {Array.from({ length: startDayOfWeek }).map((_, i) => (
-                        <div key={`empty-${i}`} className="min-h-[90px] rounded-lg" />
-                      ))}
-                      {days.map((day) => {
-                        const dateStr = format(day, "yyyy-MM-dd");
-                        const dayItems = itemsByDate[dateStr] || [];
-                        const today = isToday(day);
-                        return (
-                          <div
-                            key={dateStr}
-                            className={cn(
-                              "min-h-[90px] rounded-lg border p-1 transition-colors",
-                              today && "border-primary bg-primary/5",
-                              !today && "border-border bg-card hover:bg-accent/30"
-                            )}
-                          >
-                            <div className={cn(
-                              "text-xs font-medium mb-0.5 px-1",
-                              today && "text-primary",
-                              !today && "text-muted-foreground"
-                            )}>
-                              {format(day, "d")}
-                            </div>
-                            <div className="space-y-0.5 overflow-hidden max-h-[68px]">
-                              {dayItems.slice(0, 3).map((item) => (
-                                <div
-                                  key={item.id}
-                                  className={cn(
-                                    "text-[10px] leading-tight px-1 py-0.5 rounded truncate cursor-pointer transition-colors",
-                                    item.status === "published"
-                                      ? "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300"
-                                      : item.status === "scheduled"
-                                      ? "bg-primary/10 text-primary"
-                                      : "bg-muted text-muted-foreground"
-                                  )}
-                                  title={`${item.title} (${item.platform})`}
-                                  onClick={() => setPreviewItem(item)}
-                                >
-                                  <span className="inline-flex items-center gap-0.5">
-                                    {platformIcons[item.platform]}
-                                    {item.title.length > 18 ? item.title.slice(0, 18) + "…" : item.title}
-                                  </span>
-                                </div>
-                              ))}
-                              {dayItems.length > 3 && (
-                                <div className="text-[10px] text-muted-foreground px-1">+{dayItems.length - 3} more</div>
+              <div>
+                <div className="grid grid-cols-7 gap-1 mb-1">
+                  {calendarGrid.dayNames.map((d) => (
+                    <div key={d} className="text-center text-xs font-medium text-muted-foreground py-1">{d}</div>
+                  ))}
+                </div>
+                <div className="grid grid-cols-7 gap-1">
+                  {Array.from({ length: calendarGrid.startDayOfWeek }).map((_, i) => (
+                    <div key={`empty-${i}`} className="min-h-[90px] rounded-lg" />
+                  ))}
+                  {calendarGrid.days.map((day) => {
+                    const dateStr = format(day, "yyyy-MM-dd");
+                    const dayItems = calendarGrid.itemsByDate[dateStr] || [];
+                    const todayFlag = isToday(day);
+                    return (
+                      <div
+                        key={dateStr}
+                        className={cn(
+                          "min-h-[90px] rounded-lg border p-1 transition-colors",
+                          todayFlag && "border-primary bg-primary/5",
+                          !todayFlag && "border-border bg-card hover:bg-accent/30"
+                        )}
+                      >
+                        <div className={cn(
+                          "text-xs font-medium mb-0.5 px-1",
+                          todayFlag && "text-primary",
+                          !todayFlag && "text-muted-foreground"
+                        )}>
+                          {format(day, "d")}
+                        </div>
+                        <div className="space-y-0.5 overflow-hidden max-h-[68px]">
+                          {dayItems.slice(0, 3).map((item) => (
+                            <div
+                              key={item.id}
+                              className={cn(
+                                "text-[10px] leading-tight px-1 py-0.5 rounded truncate cursor-pointer transition-colors",
+                                item.status === "published"
+                                  ? "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300"
+                                  : item.status === "scheduled"
+                                  ? "bg-primary/10 text-primary"
+                                  : "bg-muted text-muted-foreground"
                               )}
+                              title={`${item.title} (${item.platform})`}
+                              onClick={() => setPreviewItem(item)}
+                            >
+                              <span className="inline-flex items-center gap-0.5">
+                                {platformIcons[item.platform]}
+                                {item.title.length > 18 ? item.title.slice(0, 18) + "…" : item.title}
+                              </span>
                             </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })()}
+                          ))}
+                          {dayItems.length > 3 && (
+                            <div className="text-[10px] text-muted-foreground px-1">+{dayItems.length - 3} more</div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </CardContent>
           </Card>
 
