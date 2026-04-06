@@ -960,50 +960,39 @@ const ContentAgentPage = () => {
             </CardContent>
           </Card>
 
-          {/* Upcoming list below calendar */}
           <h2 className="text-xl font-semibold">Upcoming Schedule</h2>
-          {(() => {
-            const scheduled = contentQueue
-              .filter((i) => i.scheduled_at && i.status === "scheduled")
-              .sort((a, b) => new Date(a.scheduled_at!).getTime() - new Date(b.scheduled_at!).getTime());
-
-            if (scheduled.length === 0) {
-              return (
-                <Card><CardContent className="flex flex-col items-center justify-center py-8 text-center">
-                  <CalendarIcon className="h-10 w-10 text-muted-foreground mb-3" />
-                  <p className="text-muted-foreground">No scheduled content yet</p>
-                </CardContent></Card>
-              );
-            }
-
-            return (
-              <div className="space-y-3">
-                {scheduled.map((item) => (
-                  <Card key={item.id} className="hover:shadow-sm transition-shadow">
-                    <CardContent className="p-4 flex items-center gap-4">
-                      {item.image_url && <img src={item.image_url} alt={item.title} className="w-16 h-16 object-cover rounded-lg" />}
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm truncate">{item.title}</p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Badge variant="outline" className="text-xs gap-1">{platformIcons[item.platform]}{item.platform}</Badge>
-                          <Badge variant="secondary" className="text-xs">{contentTypeLabel[item.content_type] || item.content_type}</Badge>
-                        </div>
+          {upcomingScheduled.length === 0 ? (
+            <Card><CardContent className="flex flex-col items-center justify-center py-8 text-center">
+              <CalendarIcon className="h-10 w-10 text-muted-foreground mb-3" />
+              <p className="text-muted-foreground">No scheduled content yet</p>
+            </CardContent></Card>
+          ) : (
+            <div className="space-y-3">
+              {upcomingScheduled.map((item) => (
+                <Card key={item.id} className="hover:shadow-sm transition-shadow">
+                  <CardContent className="p-4 flex items-center gap-4">
+                    {item.image_url && <img src={item.image_url} alt={item.title} className="w-16 h-16 object-cover rounded-lg" />}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">{item.title}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge variant="outline" className="text-xs gap-1">{platformIcons[item.platform]}{item.platform}</Badge>
+                        <Badge variant="secondary" className="text-xs">{contentTypeLabel[item.content_type] || item.content_type}</Badge>
                       </div>
-                      <div className="text-right">
-                        <p className="font-medium text-sm">{format(new Date(item.scheduled_at!), "d MMM yyyy", { locale: fr })}</p>
-                        <p className="text-xs text-muted-foreground">{format(new Date(item.scheduled_at!), "HH:mm")}</p>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Button size="sm" variant="outline" className="gap-1" onClick={() => openShareDialog(item)}><Share2 className="h-3.5 w-3.5" /></Button>
-                        <Button size="sm" variant="default" className="gap-1" onClick={() => openShareDialog(item)}><Send className="h-3.5 w-3.5" />Tout Publier</Button>
-                        <Button size="sm" variant="outline" className="gap-1" onClick={() => markPublishedMutation.mutate({ id: item.id, groupId: item.carousel_group_id })}><Check className="h-3.5 w-3.5" />Done</Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            );
-          })()}
+                    </div>
+                    <div className="text-right">
+                      <p className="font-medium text-sm">{format(new Date(item.scheduled_at!), "d MMM yyyy", { locale: fr })}</p>
+                      <p className="text-xs text-muted-foreground">{format(new Date(item.scheduled_at!), "HH:mm")}</p>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Button size="sm" variant="outline" className="gap-1" onClick={() => openShareDialog(item)}><Share2 className="h-3.5 w-3.5" /></Button>
+                      <Button size="sm" variant="default" className="gap-1" onClick={() => openShareDialog(item)}><Send className="h-3.5 w-3.5" />Tout Publier</Button>
+                      <Button size="sm" variant="outline" className="gap-1" onClick={() => markPublishedMutation.mutate({ id: item.id, groupId: item.carousel_group_id })}><Check className="h-3.5 w-3.5" />Done</Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </TabsContent>
 
         {/* ═══ AUTOMATION TAB ═══ */}
