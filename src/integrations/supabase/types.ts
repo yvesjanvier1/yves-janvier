@@ -704,17 +704,6 @@ export type Database = {
         }
         Returns: undefined
       }
-      get_current_user_role: {
-        Args: never
-        Returns: Database["public"]["Enums"]["app_role"]
-      }
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
       set_current_locale: { Args: { _locale: string }; Returns: undefined }
       set_locale_and_get_blog_posts: {
         Args: {
