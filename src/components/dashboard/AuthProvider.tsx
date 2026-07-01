@@ -50,6 +50,29 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setLastActivity(Date.now());
   };
 
+  // Fetch roles for a given user id. Uses the SELECT policy
+  // "Users can view their own roles" — no security-definer needed.
+  const fetchRoles = async (userId: string | undefined) => {
+    if (!userId) {
+      setRoles([]);
+      setRolesLoaded(true);
+      return;
+    }
+    try {
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId);
+      if (error) throw error;
+      setRoles((data ?? []).map((r) => r.role as AppRole));
+    } catch (err) {
+      secureLog.error("Failed to load user roles", err);
+      setRoles([]);
+    } finally {
+      setRolesLoaded(true);
+    }
+  };
+
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -59,9 +82,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(session?.user ?? null);
         setIsAuthenticated(!!session?.user);
         setIsLoading(false);
-        
+
         if (session?.user) {
           updateActivity();
+          // Defer supabase call to avoid deadlocks inside auth callback
+          setTimeout(() => { fetchRoles(session.user.id); }, 0);
+        } else {
+          setRoles([]);
+          setRolesLoaded(true);
         }
       }
     );
@@ -73,9 +101,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(session?.user ?? null);
       setIsAuthenticated(!!session?.user);
       setIsLoading(false);
-      
+
       if (session?.user) {
         updateActivity();
+        fetchRoles(session.user.id);
+      } else {
+        setRolesLoaded(true);
       }
     });
 
