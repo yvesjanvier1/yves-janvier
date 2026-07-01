@@ -207,7 +207,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const value = {
+  const value: AuthContextType = {
     user,
     session,
     isLoading,
@@ -216,6 +216,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     signOut,
     lastActivity,
     updateActivity,
+    roles,
+    isAdmin,
+    rolesLoaded,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
