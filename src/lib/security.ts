@@ -78,12 +78,12 @@ export const generateCSRFToken = (): string => {
 export const sanitizeError = (error: unknown): string => {
   if (error instanceof Error) {
     // In production, don't expose sensitive error details
-    const isProduction = process.env.NODE_ENV === 'production';
+    const isProduction = import.meta.env.PROD;
     if (isProduction) {
       // Log the full error for debugging but return sanitized message
       console.error('Internal error:', {
         message: error.message,
-        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+        stack: import.meta.env.DEV ? error.stack : undefined,
         timestamp: new Date().toISOString()
       });
       return 'An error occurred. Please try again later.';
@@ -96,7 +96,7 @@ export const sanitizeError = (error: unknown): string => {
 // Secure logging utility
 export const secureLog = {
   info: (message: string, data?: any) => {
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.DEV) {
       console.info(message, data);
     }
   },
@@ -104,11 +104,11 @@ export const secureLog = {
     console.error(message, {
       error: error?.message || error,
       timestamp: new Date().toISOString(),
-      stack: process.env.NODE_ENV === 'development' ? error?.stack : undefined
+      stack: import.meta.env.DEV ? error?.stack : undefined
     });
   },
   warn: (message: string, data?: any) => {
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.DEV) {
       console.warn(message, data);
     }
   }

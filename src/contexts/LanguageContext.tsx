@@ -112,7 +112,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
                        key;
     
     // Log missing translations in development
-    if (process.env.NODE_ENV === 'development' && !currentTranslations[key]) {
+    if (import.meta.env.DEV && !currentTranslations[key]) {
       console.warn(`Missing translation for key "${key}" in language "${language}"`);
     }
     
