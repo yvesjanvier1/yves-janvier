@@ -18,7 +18,7 @@ export const SecurityProvider = ({ children }: { children: React.ReactNode }) =>
     setCsrfToken(token);
     
     // Set CSP header if possible (for development)
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.DEV) {
       const meta = document.createElement('meta');
       meta.httpEquiv = 'Content-Security-Policy';
       meta.content = getCSPHeader();
