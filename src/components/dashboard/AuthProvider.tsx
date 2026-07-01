@@ -6,6 +6,8 @@ import { Session, User } from "@supabase/supabase-js";
 import { toast } from "sonner";
 import { sanitizeError, secureLog, SESSION_TIMEOUT, isSessionExpired } from "@/lib/security";
 
+type AppRole = "admin" | "moderator" | "user";
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
@@ -15,6 +17,9 @@ interface AuthContextType {
   isAuthenticated: boolean;
   lastActivity: number;
   updateActivity: () => void;
+  roles: AppRole[];
+  isAdmin: boolean;
+  rolesLoaded: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -25,7 +30,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [lastActivity, setLastActivity] = useState(Date.now());
-  
+  const [roles, setRoles] = useState<AppRole[]>([]);
+  const [rolesLoaded, setRolesLoaded] = useState(false);
+  const isAdmin = roles.includes("admin");
+
   // Use navigate and location conditionally
   let navigate: ReturnType<typeof useNavigate> | null = null;
   let location: ReturnType<typeof useLocation> | null = null;
@@ -42,6 +50,29 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setLastActivity(Date.now());
   };
 
+  // Fetch roles for a given user id. Uses the SELECT policy
+  // "Users can view their own roles" — no security-definer needed.
+  const fetchRoles = async (userId: string | undefined) => {
+    if (!userId) {
+      setRoles([]);
+      setRolesLoaded(true);
+      return;
+    }
+    try {
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId);
+      if (error) throw error;
+      setRoles((data ?? []).map((r) => r.role as AppRole));
+    } catch (err) {
+      secureLog.error("Failed to load user roles", err);
+      setRoles([]);
+    } finally {
+      setRolesLoaded(true);
+    }
+  };
+
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -51,9 +82,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(session?.user ?? null);
         setIsAuthenticated(!!session?.user);
         setIsLoading(false);
-        
+
         if (session?.user) {
           updateActivity();
+          // Defer supabase call to avoid deadlocks inside auth callback
+          setTimeout(() => { fetchRoles(session.user.id); }, 0);
+        } else {
+          setRoles([]);
+          setRolesLoaded(true);
         }
       }
     );
@@ -65,9 +101,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(session?.user ?? null);
       setIsAuthenticated(!!session?.user);
       setIsLoading(false);
-      
+
       if (session?.user) {
         updateActivity();
+        fetchRoles(session.user.id);
+      } else {
+        setRolesLoaded(true);
       }
     });
 
@@ -168,7 +207,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const value = {
+  const value: AuthContextType = {
     user,
     session,
     isLoading,
@@ -177,6 +216,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     signOut,
     lastActivity,
     updateActivity,
+    roles,
+    isAdmin,
+    rolesLoaded,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
