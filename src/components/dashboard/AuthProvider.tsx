@@ -6,6 +6,8 @@ import { Session, User } from "@supabase/supabase-js";
 import { toast } from "sonner";
 import { sanitizeError, secureLog, SESSION_TIMEOUT, isSessionExpired } from "@/lib/security";
 
+type AppRole = "admin" | "moderator" | "user";
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
@@ -15,6 +17,9 @@ interface AuthContextType {
   isAuthenticated: boolean;
   lastActivity: number;
   updateActivity: () => void;
+  roles: AppRole[];
+  isAdmin: boolean;
+  rolesLoaded: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
