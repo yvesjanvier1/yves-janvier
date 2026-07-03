@@ -1,23 +1,17 @@
+import React, { useEffect } from 'react';
+import { getCSPHeader, secureLog } from '@/lib/security';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { getCSPHeader, checkRateLimit, secureLog } from '@/lib/security';
-
-interface SecurityContextType {
-  csrfToken: string;
-  checkRateLimit: (identifier: string, maxRequests?: number, windowMs?: number) => boolean;
-}
-
-const SecurityContext = createContext<SecurityContextType | undefined>(undefined);
-
+/**
+ * SecurityProvider — installs runtime security side-effects:
+ *  - Dev-only CSP meta tag
+ *  - Global unhandled error / promise rejection logging
+ *
+ * No React context is exposed anymore — the previous `csrfToken` and
+ * `useSecurity()` API were dead code (zero consumers). If a real CSRF need
+ * arises later, reintroduce it via a dedicated provider.
+ */
 export const SecurityProvider = ({ children }: { children: React.ReactNode }) => {
-  const [csrfToken, setCsrfToken] = useState('');
-
   useEffect(() => {
-    // Generate CSRF token
-    const token = crypto.randomUUID();
-    setCsrfToken(token);
-    
-    // Set CSP header if possible (for development)
     if (import.meta.env.DEV) {
       const meta = document.createElement('meta');
       meta.httpEquiv = 'Content-Security-Policy';
@@ -25,13 +19,12 @@ export const SecurityProvider = ({ children }: { children: React.ReactNode }) =>
       document.head.appendChild(meta);
     }
 
-    // Set up error boundary for unhandled errors
     const handleError = (event: ErrorEvent) => {
       secureLog.error('Unhandled error', {
         message: event.message,
         filename: event.filename,
         lineno: event.lineno,
-        colno: event.colno
+        colno: event.colno,
       });
     };
 
@@ -48,22 +41,5 @@ export const SecurityProvider = ({ children }: { children: React.ReactNode }) =>
     };
   }, []);
 
-  const value = {
-    csrfToken,
-    checkRateLimit,
-  };
-
-  return (
-    <SecurityContext.Provider value={value}>
-      {children}
-    </SecurityContext.Provider>
-  );
-};
-
-export const useSecurity = () => {
-  const context = useContext(SecurityContext);
-  if (context === undefined) {
-    throw new Error('useSecurity must be used within a SecurityProvider');
-  }
-  return context;
+  return <>{children}</>;
 };

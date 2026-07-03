@@ -69,10 +69,8 @@ export const checkRateLimit = (identifier: string, maxRequests: number = 5, wind
   return true;
 };
 
-// CSRF Token generation
-export const generateCSRFToken = (): string => {
-  return crypto.randomUUID();
-};
+// (CSRF token generator removed — no consumers. Reintroduce if a real
+// server-side CSRF check is added.)
 
 // Enhanced error sanitization
 export const sanitizeError = (error: unknown): string => {
