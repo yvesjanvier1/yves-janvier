@@ -51,7 +51,7 @@ export function createCrudService<T extends TableName>(
       const { orderBy = "created_at", ascending = false, limit, offset } = options;
       // Cast to any: the generic table name defeats Supabase's overload inference,
       // but the returned Row type is preserved for consumers.
-      let query = (supabase.from(table as string) as any).select("*").order(orderBy, { ascending });
+      let query = (supabase as any).from(table as string).select("*").order(orderBy, { ascending });
       if (typeof limit === "number") {
         const from = offset ?? 0;
         query = query.range(from, from + limit - 1);
@@ -62,7 +62,7 @@ export function createCrudService<T extends TableName>(
     },
 
     async get(id: string) {
-      const { data, error } = await (supabase.from(table as string) as any)
+      const { data, error } = await (supabase as any).from(table as string)
         .select("*")
         .eq(idColumn, id)
         .maybeSingle();
@@ -71,7 +71,7 @@ export function createCrudService<T extends TableName>(
     },
 
     async create(dto: InsertOf<T>) {
-      const { data, error } = await (supabase.from(table as string) as any)
+      const { data, error } = await (supabase as any).from(table as string)
         .insert(dto as any)
         .select()
         .single();
@@ -80,7 +80,7 @@ export function createCrudService<T extends TableName>(
     },
 
     async update(id: string, dto: UpdateOf<T>) {
-      const { data, error } = await (supabase.from(table as string) as any)
+      const { data, error } = await (supabase as any).from(table as string)
         .update(dto as any)
         .eq(idColumn, id)
         .select()
@@ -90,7 +90,7 @@ export function createCrudService<T extends TableName>(
     },
 
     async remove(id: string) {
-      const { error } = await (supabase.from(table as string) as any)
+      const { error } = await (supabase as any).from(table as string)
         .delete()
         .eq(idColumn, id);
       if (error) throw error;
