@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { DataTable } from "@/components/ui/data-table";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { portfolioService } from "@/services";
 import { ProjectListHeader } from "./project-list-header";
 import { getProjectColumns, PortfolioProject } from "./project-columns";
 
