@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { testimonialsService } from "@/services";
 import { DataTable } from "@/components/ui/data-table";
 import { TestimonialsListHeader } from "./testimonials-list-header";
 import { getTestimonialsColumns, Testimonial } from "./testimonials-columns";
@@ -16,13 +16,8 @@ export function TestimonialsList() {
   const fetchTestimonials = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("testimonials")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setTestimonials(data || []);
+      const data = await testimonialsService.list({ orderBy: "created_at", ascending: false });
+      setTestimonials(data as Testimonial[]);
     } catch (error) {
       toast.error("Failed to fetch testimonials");
     } finally {
@@ -38,12 +33,7 @@ export function TestimonialsList() {
     if (!testimonialToDelete) return;
     
     try {
-      const { error } = await supabase
-        .from("testimonials")
-        .delete()
-        .eq("id", testimonialToDelete);
-        
-      if (error) throw error;
+      await testimonialsService.remove(testimonialToDelete);
       
       setTestimonials(prevTestimonials => 
         prevTestimonials.filter(testimonial => testimonial.id !== testimonialToDelete)
