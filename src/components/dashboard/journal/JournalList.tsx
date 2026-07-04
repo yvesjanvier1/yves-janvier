@@ -50,22 +50,13 @@ export const JournalList = () => {
   const fetchEntries = async () => {
     try {
       setIsLoading(true);
-      
-      const { data, error } = await supabase
-        .from("journal_entries")
-        .select("*")
-        .order("date", { ascending: false });
-
-      if (error) throw error;
-
-      if (data) {
-        const typedData = data.map(entry => ({
-          ...entry,
-          entry_type: entry.entry_type as 'activity' | 'project' | 'learning' | 'achievement' | 'milestone',
-          status: entry.status as 'draft' | 'published' | 'archived'
-        }));
-        setEntries(typedData);
-      }
+      const data = await journalService.list({ orderBy: "date", ascending: false });
+      const typedData = (data as any[]).map(entry => ({
+        ...entry,
+        entry_type: entry.entry_type as 'activity' | 'project' | 'learning' | 'achievement' | 'milestone',
+        status: entry.status as 'draft' | 'published' | 'archived'
+      }));
+      setEntries(typedData);
     } catch (error) {
       console.error("Error fetching journal entries:", error);
       toast.error("Failed to load journal entries");
