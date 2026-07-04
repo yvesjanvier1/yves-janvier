@@ -16,13 +16,8 @@ export function TestimonialsList() {
   const fetchTestimonials = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("testimonials")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setTestimonials(data || []);
+      const data = await testimonialsService.list({ orderBy: "created_at", ascending: false });
+      setTestimonials(data as Testimonial[]);
     } catch (error) {
       toast.error("Failed to fetch testimonials");
     } finally {
