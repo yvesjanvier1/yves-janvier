@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { resourcesService } from "@/services";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -83,12 +83,7 @@ export function ResourcesList({ resources, isLoading, onRefetch }: ResourcesList
 
   const deleteResourceMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from("resources")
-        .delete()
-        .eq("id", id);
-
-      if (error) throw error;
+      await resourcesService.remove(id);
     },
     onSuccess: () => {
       toast({

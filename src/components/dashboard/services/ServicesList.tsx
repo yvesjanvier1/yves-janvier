@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { servicesService } from "@/services";
 import { DataTable } from "@/components/ui/data-table";
 import { ServicesListHeader } from "./services-list-header";
 import { getServicesColumns, Service } from "./services-columns";
@@ -16,13 +16,8 @@ export function ServicesList() {
   const fetchServices = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("services")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setServices(data || []);
+      const data = await servicesService.list({ orderBy: "created_at", ascending: false });
+      setServices(data as Service[]);
     } catch (error) {
       toast.error("Failed to fetch services");
     } finally {
@@ -38,12 +33,7 @@ export function ServicesList() {
     if (!serviceToDelete) return;
     
     try {
-      const { error } = await supabase
-        .from("services")
-        .delete()
-        .eq("id", serviceToDelete);
-        
-      if (error) throw error;
+      await servicesService.remove(serviceToDelete);
       
       setServices(prevServices => 
         prevServices.filter(service => service.id !== serviceToDelete)
