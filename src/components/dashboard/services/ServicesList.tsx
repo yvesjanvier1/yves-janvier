@@ -33,12 +33,7 @@ export function ServicesList() {
     if (!serviceToDelete) return;
     
     try {
-      const { error } = await supabase
-        .from("services")
-        .delete()
-        .eq("id", serviceToDelete);
-        
-      if (error) throw error;
+      await servicesService.remove(serviceToDelete);
       
       setServices(prevServices => 
         prevServices.filter(service => service.id !== serviceToDelete)
