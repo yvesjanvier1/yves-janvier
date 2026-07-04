@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { DataTable } from "@/components/ui/data-table";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { portfolioService } from "@/services";
 import { ProjectListHeader } from "./project-list-header";
 import { getProjectColumns, PortfolioProject } from "./project-columns";
 
@@ -16,13 +16,8 @@ export function ProjectList() {
   const fetchProjects = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("portfolio_projects")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setProjects(data || []);
+      const data = await portfolioService.list({ orderBy: "created_at", ascending: false });
+      setProjects(data as PortfolioProject[]);
     } catch (error) {
       toast.error("Failed to fetch portfolio projects");
     } finally {
@@ -38,12 +33,7 @@ export function ProjectList() {
     if (!projectToDelete) return;
     
     try {
-      const { error } = await supabase
-        .from("portfolio_projects")
-        .delete()
-        .eq("id", projectToDelete);
-        
-      if (error) throw error;
+      await portfolioService.remove(projectToDelete);
       
       setProjects(prevProjects => prevProjects.filter(project => project.id !== projectToDelete));
       toast.success("Project deleted successfully");
@@ -56,12 +46,7 @@ export function ProjectList() {
 
   const toggleFeatured = async (id: string, currentValue: boolean) => {
     try {
-      const { error } = await supabase
-        .from("portfolio_projects")
-        .update({ featured: !currentValue })
-        .eq("id", id);
-        
-      if (error) throw error;
+      await portfolioService.update(id, { featured: !currentValue });
       
       setProjects(prevProjects => 
         prevProjects.map(project => 
