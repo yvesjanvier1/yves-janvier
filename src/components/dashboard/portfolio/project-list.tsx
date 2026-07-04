@@ -33,12 +33,7 @@ export function ProjectList() {
     if (!projectToDelete) return;
     
     try {
-      const { error } = await supabase
-        .from("portfolio_projects")
-        .delete()
-        .eq("id", projectToDelete);
-        
-      if (error) throw error;
+      await portfolioService.remove(projectToDelete);
       
       setProjects(prevProjects => prevProjects.filter(project => project.id !== projectToDelete));
       toast.success("Project deleted successfully");
