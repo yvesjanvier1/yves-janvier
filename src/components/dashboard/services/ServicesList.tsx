@@ -16,13 +16,8 @@ export function ServicesList() {
   const fetchServices = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("services")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setServices(data || []);
+      const data = await servicesService.list({ orderBy: "created_at", ascending: false });
+      setServices(data as Service[]);
     } catch (error) {
       toast.error("Failed to fetch services");
     } finally {

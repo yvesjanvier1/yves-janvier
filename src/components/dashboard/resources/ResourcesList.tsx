@@ -83,12 +83,7 @@ export function ResourcesList({ resources, isLoading, onRefetch }: ResourcesList
 
   const deleteResourceMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from("resources")
-        .delete()
-        .eq("id", id);
-
-      if (error) throw error;
+      await resourcesService.remove(id);
     },
     onSuccess: () => {
       toast({
