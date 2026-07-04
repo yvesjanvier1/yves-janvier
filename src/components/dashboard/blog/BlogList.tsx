@@ -38,12 +38,7 @@ export function BlogList() {
     if (!postToDelete) return;
     
     try {
-      const { error } = await supabase
-        .from("blog_posts")
-        .delete()
-        .eq("id", postToDelete);
-        
-      if (error) throw error;
+      await blogService.remove(postToDelete);
       
       setPosts(prevPosts => prevPosts.filter(post => post.id !== postToDelete));
       toast.success("Post deleted successfully");
