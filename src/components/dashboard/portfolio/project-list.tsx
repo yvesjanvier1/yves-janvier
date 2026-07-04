@@ -46,12 +46,7 @@ export function ProjectList() {
 
   const toggleFeatured = async (id: string, currentValue: boolean) => {
     try {
-      const { error } = await supabase
-        .from("portfolio_projects")
-        .update({ featured: !currentValue })
-        .eq("id", id);
-        
-      if (error) throw error;
+      await portfolioService.update(id, { featured: !currentValue });
       
       setProjects(prevProjects => 
         prevProjects.map(project => 
