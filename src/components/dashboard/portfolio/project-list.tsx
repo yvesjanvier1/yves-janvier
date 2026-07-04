@@ -16,13 +16,8 @@ export function ProjectList() {
   const fetchProjects = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("portfolio_projects")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setProjects(data || []);
+      const data = await portfolioService.list({ orderBy: "created_at", ascending: false });
+      setProjects(data as PortfolioProject[]);
     } catch (error) {
       toast.error("Failed to fetch portfolio projects");
     } finally {
