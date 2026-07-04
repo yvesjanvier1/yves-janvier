@@ -33,12 +33,7 @@ export function TestimonialsList() {
     if (!testimonialToDelete) return;
     
     try {
-      const { error } = await supabase
-        .from("testimonials")
-        .delete()
-        .eq("id", testimonialToDelete);
-        
-      if (error) throw error;
+      await testimonialsService.remove(testimonialToDelete);
       
       setTestimonials(prevTestimonials => 
         prevTestimonials.filter(testimonial => testimonial.id !== testimonialToDelete)
