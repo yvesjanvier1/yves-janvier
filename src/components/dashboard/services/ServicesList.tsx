@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { servicesService } from "@/services";
 import { DataTable } from "@/components/ui/data-table";
 import { ServicesListHeader } from "./services-list-header";
 import { getServicesColumns, Service } from "./services-columns";
