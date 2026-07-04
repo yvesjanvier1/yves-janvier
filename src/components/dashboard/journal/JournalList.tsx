@@ -67,12 +67,7 @@ export const JournalList = () => {
 
   const handleDelete = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from("journal_entries")
-        .delete()
-        .eq("id", id);
-
-      if (error) throw error;
+      await journalService.remove(id);
 
       setEntries(entries.filter(entry => entry.id !== id));
       toast.success("Journal entry deleted successfully");
