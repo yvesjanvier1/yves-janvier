@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { testimonialsService } from "@/services";
 import { DataTable } from "@/components/ui/data-table";
 import { TestimonialsListHeader } from "./testimonials-list-header";
 import { getTestimonialsColumns, Testimonial } from "./testimonials-columns";
