@@ -17,13 +17,11 @@ export function BlogList() {
   const fetchPosts = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("blog_posts")
-        .select("id, title, slug, published, created_at, tags")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setPosts(data || []);
+      const data = await blogService.list({ orderBy: "created_at", ascending: false });
+      setPosts((data as any[]).map(p => ({
+        id: p.id, title: p.title, slug: p.slug, published: p.published,
+        created_at: p.created_at, tags: p.tags,
+      })));
     } catch (error) {
       console.error("Error fetching blog posts:", error);
       toast.error("Failed to fetch blog posts");
