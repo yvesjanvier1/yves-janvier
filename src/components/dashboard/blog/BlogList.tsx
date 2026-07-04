@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { DataTable } from "@/components/ui/data-table";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { blogService } from "@/services";
 import { BlogListHeader } from "./blog-list/BlogListHeader";
 import { getBlogListColumns } from "./blog-list/BlogListColumns";
