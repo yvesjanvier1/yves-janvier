@@ -1,7 +1,7 @@
  
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { blogService } from "@/services";
 import { useAuth } from "@/components/dashboard/AuthProvider";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -22,14 +22,7 @@ const BlogFormPage = () => {
       const fetchPost = async () => {
         setIsLoading(true);
         try {
-          const { data, error } = await supabase
-            .from("blog_posts")
-            .select("*")
-            .eq("id", id)
-            .single();
-            
-          if (error) throw error;
-          
+          const data = await blogService.get(id!) as any;
           if (data) {
             setInitialData({
               title: data.title,

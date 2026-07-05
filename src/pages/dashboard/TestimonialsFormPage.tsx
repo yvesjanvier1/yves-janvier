@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { testimonialsService } from "@/services";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { TestimonialForm } from "@/components/dashboard/testimonials/TestimonialForm";
@@ -26,14 +26,7 @@ const TestimonialsFormPage = () => {
       const fetchTestimonial = async () => {
         setIsLoading(true);
         try {
-          const { data, error } = await supabase
-            .from("testimonials")
-            .select("*")
-            .eq("id", id)
-            .single();
-            
-          if (error) throw error;
-          
+          const data = await testimonialsService.get(id!) as any;
           if (data) {
             setInitialData({
               name: data.name,

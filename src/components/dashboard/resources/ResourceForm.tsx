@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { supabase } from "@/integrations/supabase/client";
+import { resourcesService } from "@/services";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -56,15 +56,7 @@ export function ResourceForm({ resourceId }: ResourceFormProps) {
     queryKey: ["resource", resourceId],
     queryFn: async () => {
       if (!resourceId) return null;
-      
-      const { data, error } = await supabase
-        .from("resources")
-        .select("*")
-        .eq("id", resourceId)
-        .single();
-
-      if (error) throw error;
-      return data;
+      return await resourcesService.get(resourceId);
     },
     enabled: !!resourceId,
   });
