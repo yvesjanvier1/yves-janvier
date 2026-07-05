@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from "react";
 import { SectionHeader } from "@/components/ui/section-header";
-import { supabase } from "@/integrations/supabase/client";
+import { testimonialsService } from "@/services";
 import { sanitizeError, secureLog } from "@/lib/security";
 
 interface Testimonial {
@@ -23,17 +23,12 @@ const TestimonialsSection = () => {
         setIsLoading(true);
         setError(null);
 
-        const { data, error } = await supabase
-          .from("testimonials")
-          .select("*")
-          .order("created_at", { ascending: false });
+        const data = await testimonialsService.list({
+          orderBy: "created_at",
+          ascending: false,
+        });
 
-        if (error) {
-          secureLog.error("Error fetching testimonials", error);
-          throw error;
-        }
-
-        setTestimonials(data || []);
+        setTestimonials((data as any[]) || []);
         secureLog.info("Testimonials loaded successfully");
       } catch (error) {
         const errorMessage = sanitizeError(error);
