@@ -11,7 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { TagInput } from "@/components/ui/tag-input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { supabase } from "@/integrations/supabase/client";
+import { journalService } from "@/services";
 import { toast } from "sonner";
 
 const journalSchema = z.object({
@@ -59,14 +59,7 @@ export const JournalForm = () => {
 
   const fetchEntry = async () => {
     try {
-      const { data, error } = await supabase
-        .from("journal_entries")
-        .select("*")
-        .eq("id", id)
-        .single();
-
-      if (error) throw error;
-
+      const data = await journalService.get(id!) as any;
       if (data) {
         form.reset({
           title: data.title,

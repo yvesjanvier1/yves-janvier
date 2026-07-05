@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { portfolioService } from "@/services";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
@@ -19,14 +19,7 @@ const PortfolioFormPage = () => {
       const fetchProject = async () => {
         setIsLoading(true);
         try {
-          const { data, error } = await supabase
-            .from("portfolio_projects")
-            .select("*")
-            .eq("id", id)
-            .single();
-
-          if (error) throw error;
-
+          const data = await portfolioService.get(id!) as any;
           if (data) {
             // Convert links from JSON to ProjectLink[]
             const links: ProjectLink[] = Array.isArray(data.links) 

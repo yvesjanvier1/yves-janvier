@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { servicesService } from "@/services";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ServiceForm } from "@/components/dashboard/services/ServiceForm";
@@ -25,14 +25,7 @@ const ServiceFormPage = () => {
       const fetchService = async () => {
         setIsLoading(true);
         try {
-          const { data, error } = await supabase
-            .from("services")
-            .select("*")
-            .eq("id", id)
-            .single();
-            
-          if (error) throw error;
-          
+          const data = await servicesService.get(id!) as any;
           if (data) {
             setInitialData({
               title: data.title,
