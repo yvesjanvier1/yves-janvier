@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { resourcesService } from "@/services/resources.service";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Search } from "lucide-react";
@@ -13,13 +13,8 @@ export default function ResourcesManagePage() {
   const { data: resources, isLoading, refetch } = useQuery({
     queryKey: ["dashboard-resources"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("resources")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      return data;
+      const data = await resourcesService.list({ orderBy: "created_at", ascending: false });
+      return data as any[];
     },
   });
 
