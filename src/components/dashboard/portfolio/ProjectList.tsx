@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Edit, Trash2, Plus, Search, Star } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { portfolioService } from "@/services/portfolio.service";
 import { PortfolioProjectListItem } from "@/types/portfolio";
 
 interface ProjectWithTech extends PortfolioProjectListItem {
@@ -24,13 +24,8 @@ export function ProjectList() {
   const fetchProjects = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("portfolio_projects")
-        .select("id, title, slug, category, featured, created_at, tech_stack")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setProjects(data || []);
+      const data = await portfolioService.list({ orderBy: "created_at", ascending: false });
+      setProjects((data as any[]) || []);
     } catch (error) {
       console.error("Error fetching portfolio projects:", error);
       toast.error("Failed to fetch portfolio projects");
@@ -45,15 +40,9 @@ export function ProjectList() {
 
   const handleDeleteProject = async () => {
     if (!projectToDelete) return;
-    
+
     try {
-      const { error } = await supabase
-        .from("portfolio_projects")
-        .delete()
-        .eq("id", projectToDelete);
-        
-      if (error) throw error;
-      
+      await portfolioService.remove(projectToDelete);
       setProjects(prevProjects => prevProjects.filter(project => project.id !== projectToDelete));
       toast.success("Project deleted successfully");
     } catch (error) {
@@ -66,19 +55,14 @@ export function ProjectList() {
 
   const toggleFeatured = async (id: string, currentValue: boolean) => {
     try {
-      const { error } = await supabase
-        .from("portfolio_projects")
-        .update({ featured: !currentValue })
-        .eq("id", id);
-        
-      if (error) throw error;
-      
-      setProjects(prevProjects => 
-        prevProjects.map(project => 
+      await portfolioService.update(id, { featured: !currentValue } as any);
+
+      setProjects(prevProjects =>
+        prevProjects.map(project =>
           project.id === id ? { ...project, featured: !currentValue } : project
         )
       );
-      
+
       toast.success(`Project ${!currentValue ? "featured" : "unfeatured"} successfully`);
     } catch (error) {
       console.error("Error updating project:", error);
