@@ -4,5 +4,6 @@ export { journalService } from "./journal.service";
 export { testimonialsService } from "./testimonials.service";
 export { servicesService } from "./services.service";
 export { resourcesService } from "./resources.service";
+export { nowService } from "./now.service";
 export { contentQueueService } from "./content-queue.service";
 export type { CrudService, ListOptions } from "./_base";

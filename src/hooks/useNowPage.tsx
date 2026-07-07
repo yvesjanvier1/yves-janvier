@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { nowService } from '@/services/now.service';
 import { toast } from 'sonner';
 
 interface NowPageData {
@@ -22,16 +22,8 @@ export const useNowPage = () => {
       setIsLoading(true);
       setError(null);
 
-      const { data: nowData, error } = await supabase
-        .from('now_page')
-        .select('*')
-        .order('updated_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      const nowData = await nowService.getLatest();
 
-      if (error) {
-        throw error;
-      }
 
       if (nowData) {
         setData({
@@ -75,21 +67,11 @@ export const useNowPage = () => {
       };
 
       if (data?.id) {
-        // Update existing record
-        const { error } = await supabase
-          .from('now_page')
-          .update(dataToSave)
-          .eq('id', data.id);
-
-        if (error) throw error;
+        await nowService.update(data.id, dataToSave);
       } else {
-        // Insert new record
-        const { error } = await supabase
-          .from('now_page')
-          .insert(dataToSave);
-
-        if (error) throw error;
+        await nowService.insert(dataToSave);
       }
+
 
       toast.success('Now page updated successfully!');
       await fetchNowPageData(); // Refresh data
