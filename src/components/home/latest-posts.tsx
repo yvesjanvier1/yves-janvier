@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { SectionHeader } from "@/components/ui/section-header";
 import { LazyImage } from "@/components/ui/lazy-image";
-import { supabase } from "@/integrations/supabase/client";
+import { blogService } from "@/services/blog.service";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useResponsive } from "@/hooks/useResponsive";
@@ -36,23 +36,18 @@ const LatestPosts = () => {
         setError(null);
         
         const lang = localStorage.getItem('language') || 'fr';
-        
-        // Use atomic RPC function that sets locale and queries in single transaction
-        const { data, error } = await (supabase.rpc as any)('set_locale_and_get_blog_posts', {
-          _locale: lang,
-          _limit: isMobile ? 2 : 3,
-          _offset: 0,
-          _tag: null,
-          _search: null
+
+        const data = await blogService.listPublic({
+          locale: lang,
+          limit: isMobile ? 2 : 3,
+          offset: 0,
         });
 
-        if (error) throw error;
-
         if (data) {
-          const validPosts = data.filter((post: any) => 
+          const validPosts = (data as any[]).filter((post: any) =>
             post.title && post.slug && post.content
           );
-          setPosts(validPosts);
+          setPosts(validPosts as BlogPost[]);
         }
       } catch (error) {
         console.error("LatestPosts: Error fetching latest posts:", error);
