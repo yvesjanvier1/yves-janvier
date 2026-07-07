@@ -15,7 +15,7 @@ export const testimonialsService = {
   async listPublic({ locale, filters = {}, orderBy }: ListPublicOptions) {
     await (supabase.rpc as any)("set_current_locale", { _locale: locale });
 
-    let query = supabase.from("testimonials").select("*");
+    let query: any = supabase.from("testimonials").select("*");
     Object.entries(filters).forEach(([k, v]) => {
       if (v !== undefined && v !== null) query = query.eq(k, v);
     });
