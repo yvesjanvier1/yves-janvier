@@ -6,4 +6,5 @@ export { servicesService } from "./services.service";
 export { resourcesService } from "./resources.service";
 export { nowService } from "./now.service";
 export { contentQueueService } from "./content-queue.service";
+export { aboutService, skillsService, experienceService } from "./about.service";
 export type { CrudService, ListOptions } from "./_base";
