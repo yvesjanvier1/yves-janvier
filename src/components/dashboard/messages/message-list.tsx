@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Search } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { messagesService } from "@/services";
 import { MessageViewDialog } from "./message-view-dialog";
 import { getMessageColumns } from "./message-columns";
 import { MessageListHeader } from "./message-list-header";
@@ -31,13 +31,8 @@ export function MessageList() {
   const fetchMessages = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("contact_messages")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setMessages(data || []);
+      const data = await messagesService.list({ orderBy: "created_at", ascending: false });
+      setMessages((data as any[]) || []);
     } catch (error) {
       console.error("Error fetching contact messages:", error);
       toast.error("Failed to fetch contact messages");
@@ -52,18 +47,13 @@ export function MessageList() {
 
   const handleDeleteMessage = async () => {
     if (!messageToDelete) return;
-    
+
     try {
-      const { error } = await supabase
-        .from("contact_messages")
-        .delete()
-        .eq("id", messageToDelete);
-        
-      if (error) throw error;
-      
+      await messagesService.remove(messageToDelete);
+
       setMessages(prevMessages => prevMessages.filter(message => message.id !== messageToDelete));
       toast.success("Message deleted successfully");
-      
+
       if (selectedMessage?.id === messageToDelete) {
         setSelectedMessage(null);
         setDialogOpen(false);
@@ -78,12 +68,7 @@ export function MessageList() {
 
   const handleMarkAsRead = async (id: string, currentReadStatus: boolean) => {
     try {
-      const { error } = await supabase
-        .from("contact_messages")
-        .update({ read: !currentReadStatus })
-        .eq("id", id);
-        
-      if (error) throw error;
+      await messagesService.markRead(id, !currentReadStatus);
       
       setMessages(prevMessages => 
         prevMessages.map(message => 

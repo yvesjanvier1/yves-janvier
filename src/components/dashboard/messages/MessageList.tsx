@@ -14,7 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { messagesService } from "@/services";
 
 interface ContactMessage {
   id: string;
@@ -37,13 +37,8 @@ export function MessageList() {
   const fetchMessages = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("contact_messages")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setMessages(data || []);
+      const data = await messagesService.list({ orderBy: "created_at", ascending: false });
+      setMessages((data as any[]) || []);
     } catch (error) {
       console.error("Error fetching contact messages:", error);
       toast.error("Failed to fetch contact messages");
@@ -58,18 +53,13 @@ export function MessageList() {
 
   const handleDeleteMessage = async () => {
     if (!messageToDelete) return;
-    
+
     try {
-      const { error } = await supabase
-        .from("contact_messages")
-        .delete()
-        .eq("id", messageToDelete);
-        
-      if (error) throw error;
-      
+      await messagesService.remove(messageToDelete);
+
       setMessages(prevMessages => prevMessages.filter(message => message.id !== messageToDelete));
       toast.success("Message deleted successfully");
-      
+
       if (selectedMessage?.id === messageToDelete) {
         setSelectedMessage(null);
         setDialogOpen(false);
@@ -84,23 +74,18 @@ export function MessageList() {
 
   const handleMarkAsRead = async (id: string, currentReadStatus: boolean) => {
     try {
-      const { error } = await supabase
-        .from("contact_messages")
-        .update({ read: !currentReadStatus })
-        .eq("id", id);
-        
-      if (error) throw error;
-      
-      setMessages(prevMessages => 
-        prevMessages.map(message => 
+      await messagesService.markRead(id, !currentReadStatus);
+
+      setMessages(prevMessages =>
+        prevMessages.map(message =>
           message.id === id ? { ...message, read: !currentReadStatus } : message
         )
       );
-      
+
       if (selectedMessage?.id === id) {
         setSelectedMessage({ ...selectedMessage, read: !currentReadStatus });
       }
-      
+
       toast.success(`Message marked as ${!currentReadStatus ? 'read' : 'unread'}`);
     } catch (error) {
       console.error("Error updating message:", error);
@@ -111,14 +96,13 @@ export function MessageList() {
   const handleViewMessage = (message: ContactMessage) => {
     setSelectedMessage(message);
     setDialogOpen(true);
-    
-    // If message is unread, mark it as read
     if (!message.read) {
       handleMarkAsRead(message.id, false);
     }
   };
 
   const filteredMessages = messages.filter(message => 
+
     message.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
     message.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (message.subject && message.subject.toLowerCase().includes(searchQuery.toLowerCase())) ||
