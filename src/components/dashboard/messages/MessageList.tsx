@@ -93,7 +93,16 @@ export function MessageList() {
     }
   };
 
+  const handleViewMessage = (message: ContactMessage) => {
+    setSelectedMessage(message);
+    setDialogOpen(true);
+    if (!message.read) {
+      handleMarkAsRead(message.id, false);
+    }
+  };
+
   const filteredMessages = messages.filter(message => 
+
     message.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
     message.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (message.subject && message.subject.toLowerCase().includes(searchQuery.toLowerCase())) ||
