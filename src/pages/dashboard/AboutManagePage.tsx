@@ -51,33 +51,15 @@ const AboutManagePage = () => {
   const fetchAboutData = async () => {
     setIsLoading(true);
     try {
-      // Fetch about page general data
-      const { data: aboutResult, error: aboutError } = await supabase
-        .from("about_page")
-        .select("*")
-        .maybeSingle();
+      const [aboutResult, skillsResult, experienceResult] = await Promise.all([
+        aboutService.get(),
+        skillsService.list({ orderBy: "created_at", ascending: true }),
+        experienceService.list({ orderBy: "year_range", ascending: false }),
+      ]);
 
-      if (aboutError) throw aboutError;
-      
-      // Fetch skills
-      const { data: skillsResult, error: skillsError } = await supabase
-        .from("skills")
-        .select("*")
-        .order("created_at", { ascending: true });
-
-      if (skillsError) throw skillsError;
-
-      // Fetch experience
-      const { data: experienceResult, error: experienceError } = await supabase
-        .from("experience")
-        .select("*")
-        .order("year_range", { ascending: false });
-
-      if (experienceError) throw experienceError;
-
-      setAboutData(aboutResult);
-      setSkills(skillsResult || []);
-      setExperiences(experienceResult || []);
+      setAboutData(aboutResult as AboutData | null);
+      setSkills((skillsResult ?? []) as Skill[]);
+      setExperiences((experienceResult ?? []) as Experience[]);
     } catch (error) {
       console.error("Error fetching about page data:", error);
       toast.error("Failed to load about page data");
