@@ -75,26 +75,11 @@ const AboutManagePage = () => {
   // Handle about page general data update
   const handleAboutUpdate = async (data: AboutData) => {
     try {
-      const updateData = {
-        ...data,
-        updated_at: new Date().toISOString()
-      };
-
+      const { id, ...rest } = data;
       if (aboutData?.id) {
-        // Update existing record
-        const { error } = await supabase
-          .from("about_page")
-          .update(updateData)
-          .eq("id", aboutData.id);
-
-        if (error) throw error;
+        await aboutService.update(aboutData.id, rest as any);
       } else {
-        // Insert new record
-        const { error } = await supabase
-          .from("about_page")
-          .insert([updateData]);
-
-        if (error) throw error;
+        await aboutService.create(rest as any);
       }
 
       toast.success("About page data updated successfully");
@@ -108,29 +93,14 @@ const AboutManagePage = () => {
   // Handle skill operations
   const handleSkillSubmit = async (data: any) => {
     try {
-      const skillData = {
-        ...data,
-        updated_at: new Date().toISOString()
-      };
-
-      let result;
-      
-      if (data.id) {
-        // Update existing skill
-        result = await supabase
-          .from("skills")
-          .update(skillData)
-          .eq("id", data.id);
+      const { id, ...rest } = data;
+      if (id) {
+        await skillsService.update(id, rest as any);
       } else {
-        // Create new skill
-        result = await supabase
-          .from("skills")
-          .insert([skillData]);
+        await skillsService.create(rest as any);
       }
 
-      if (result.error) throw result.error;
-      
-      toast.success(`Skill ${data.id ? "updated" : "created"} successfully`);
+      toast.success(`Skill ${id ? "updated" : "created"} successfully`);
       fetchAboutData();
       setEditingSkill(null);
       setShowSkillForm(false);
@@ -143,29 +113,14 @@ const AboutManagePage = () => {
   // Handle experience operations
   const handleExperienceSubmit = async (data: any) => {
     try {
-      const experienceData = {
-        ...data,
-        updated_at: new Date().toISOString()
-      };
-
-      let result;
-      
-      if (data.id) {
-        // Update existing experience
-        result = await supabase
-          .from("experience")
-          .update(experienceData)
-          .eq("id", data.id);
+      const { id, ...rest } = data;
+      if (id) {
+        await experienceService.update(id, rest as any);
       } else {
-        // Create new experience
-        result = await supabase
-          .from("experience")
-          .insert([experienceData]);
+        await experienceService.create(rest as any);
       }
 
-      if (result.error) throw result.error;
-      
-      toast.success(`Experience ${data.id ? "updated" : "created"} successfully`);
+      toast.success(`Experience ${id ? "updated" : "created"} successfully`);
       fetchAboutData();
       setEditingExperience(null);
       setShowExperienceForm(false);
@@ -179,25 +134,11 @@ const AboutManagePage = () => {
     if (!itemToDelete) return;
 
     try {
-      let error;
-
       if (itemToDelete.type === "skill") {
-        const result = await supabase
-          .from("skills")
-          .delete()
-          .eq("id", itemToDelete.id);
-
-        error = result.error;
+        await skillsService.remove(itemToDelete.id);
       } else {
-        const result = await supabase
-          .from("experience")
-          .delete()
-          .eq("id", itemToDelete.id);
-
-        error = result.error;
+        await experienceService.remove(itemToDelete.id);
       }
-
-      if (error) throw error;
 
       toast.success(`${itemToDelete.type === "skill" ? "Skill" : "Experience"} deleted successfully`);
       fetchAboutData();
@@ -207,6 +148,7 @@ const AboutManagePage = () => {
       setItemToDelete(null);
     }
   };
+
 
   const cancelSkillForm = () => {
     setEditingSkill(null);
