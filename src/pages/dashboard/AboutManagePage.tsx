@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { aboutService, skillsService, experienceService } from "@/services";
 import { toast } from "sonner";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -51,33 +51,15 @@ const AboutManagePage = () => {
   const fetchAboutData = async () => {
     setIsLoading(true);
     try {
-      // Fetch about page general data
-      const { data: aboutResult, error: aboutError } = await supabase
-        .from("about_page")
-        .select("*")
-        .maybeSingle();
+      const [aboutResult, skillsResult, experienceResult] = await Promise.all([
+        aboutService.get(),
+        skillsService.list({ orderBy: "created_at", ascending: true }),
+        experienceService.list({ orderBy: "year_range", ascending: false }),
+      ]);
 
-      if (aboutError) throw aboutError;
-      
-      // Fetch skills
-      const { data: skillsResult, error: skillsError } = await supabase
-        .from("skills")
-        .select("*")
-        .order("created_at", { ascending: true });
-
-      if (skillsError) throw skillsError;
-
-      // Fetch experience
-      const { data: experienceResult, error: experienceError } = await supabase
-        .from("experience")
-        .select("*")
-        .order("year_range", { ascending: false });
-
-      if (experienceError) throw experienceError;
-
-      setAboutData(aboutResult);
-      setSkills(skillsResult || []);
-      setExperiences(experienceResult || []);
+      setAboutData(aboutResult as AboutData | null);
+      setSkills((skillsResult ?? []) as Skill[]);
+      setExperiences((experienceResult ?? []) as Experience[]);
     } catch (error) {
       console.error("Error fetching about page data:", error);
       toast.error("Failed to load about page data");
@@ -93,26 +75,11 @@ const AboutManagePage = () => {
   // Handle about page general data update
   const handleAboutUpdate = async (data: AboutData) => {
     try {
-      const updateData = {
-        ...data,
-        updated_at: new Date().toISOString()
-      };
-
+      const { id, ...rest } = data;
       if (aboutData?.id) {
-        // Update existing record
-        const { error } = await supabase
-          .from("about_page")
-          .update(updateData)
-          .eq("id", aboutData.id);
-
-        if (error) throw error;
+        await aboutService.update(aboutData.id, rest as any);
       } else {
-        // Insert new record
-        const { error } = await supabase
-          .from("about_page")
-          .insert([updateData]);
-
-        if (error) throw error;
+        await aboutService.create(rest as any);
       }
 
       toast.success("About page data updated successfully");
@@ -126,29 +93,14 @@ const AboutManagePage = () => {
   // Handle skill operations
   const handleSkillSubmit = async (data: any) => {
     try {
-      const skillData = {
-        ...data,
-        updated_at: new Date().toISOString()
-      };
-
-      let result;
-      
-      if (data.id) {
-        // Update existing skill
-        result = await supabase
-          .from("skills")
-          .update(skillData)
-          .eq("id", data.id);
+      const { id, ...rest } = data;
+      if (id) {
+        await skillsService.update(id, rest as any);
       } else {
-        // Create new skill
-        result = await supabase
-          .from("skills")
-          .insert([skillData]);
+        await skillsService.create(rest as any);
       }
 
-      if (result.error) throw result.error;
-      
-      toast.success(`Skill ${data.id ? "updated" : "created"} successfully`);
+      toast.success(`Skill ${id ? "updated" : "created"} successfully`);
       fetchAboutData();
       setEditingSkill(null);
       setShowSkillForm(false);
@@ -161,29 +113,14 @@ const AboutManagePage = () => {
   // Handle experience operations
   const handleExperienceSubmit = async (data: any) => {
     try {
-      const experienceData = {
-        ...data,
-        updated_at: new Date().toISOString()
-      };
-
-      let result;
-      
-      if (data.id) {
-        // Update existing experience
-        result = await supabase
-          .from("experience")
-          .update(experienceData)
-          .eq("id", data.id);
+      const { id, ...rest } = data;
+      if (id) {
+        await experienceService.update(id, rest as any);
       } else {
-        // Create new experience
-        result = await supabase
-          .from("experience")
-          .insert([experienceData]);
+        await experienceService.create(rest as any);
       }
 
-      if (result.error) throw result.error;
-      
-      toast.success(`Experience ${data.id ? "updated" : "created"} successfully`);
+      toast.success(`Experience ${id ? "updated" : "created"} successfully`);
       fetchAboutData();
       setEditingExperience(null);
       setShowExperienceForm(false);
@@ -197,25 +134,11 @@ const AboutManagePage = () => {
     if (!itemToDelete) return;
 
     try {
-      let error;
-
       if (itemToDelete.type === "skill") {
-        const result = await supabase
-          .from("skills")
-          .delete()
-          .eq("id", itemToDelete.id);
-
-        error = result.error;
+        await skillsService.remove(itemToDelete.id);
       } else {
-        const result = await supabase
-          .from("experience")
-          .delete()
-          .eq("id", itemToDelete.id);
-
-        error = result.error;
+        await experienceService.remove(itemToDelete.id);
       }
-
-      if (error) throw error;
 
       toast.success(`${itemToDelete.type === "skill" ? "Skill" : "Experience"} deleted successfully`);
       fetchAboutData();
@@ -225,6 +148,7 @@ const AboutManagePage = () => {
       setItemToDelete(null);
     }
   };
+
 
   const cancelSkillForm = () => {
     setEditingSkill(null);
