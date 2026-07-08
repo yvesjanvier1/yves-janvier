@@ -68,12 +68,7 @@ export function MessageList() {
 
   const handleMarkAsRead = async (id: string, currentReadStatus: boolean) => {
     try {
-      const { error } = await supabase
-        .from("contact_messages")
-        .update({ read: !currentReadStatus })
-        .eq("id", id);
-        
-      if (error) throw error;
+      await messagesService.markRead(id, !currentReadStatus);
       
       setMessages(prevMessages => 
         prevMessages.map(message => 
