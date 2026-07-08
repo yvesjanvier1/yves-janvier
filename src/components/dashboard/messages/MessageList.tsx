@@ -14,7 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { messagesService } from "@/services";
 
 interface ContactMessage {
   id: string;
@@ -37,13 +37,8 @@ export function MessageList() {
   const fetchMessages = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("contact_messages")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setMessages(data || []);
+      const data = await messagesService.list({ orderBy: "created_at", ascending: false });
+      setMessages((data as any[]) || []);
     } catch (error) {
       console.error("Error fetching contact messages:", error);
       toast.error("Failed to fetch contact messages");
@@ -58,18 +53,13 @@ export function MessageList() {
 
   const handleDeleteMessage = async () => {
     if (!messageToDelete) return;
-    
+
     try {
-      const { error } = await supabase
-        .from("contact_messages")
-        .delete()
-        .eq("id", messageToDelete);
-        
-      if (error) throw error;
-      
+      await messagesService.remove(messageToDelete);
+
       setMessages(prevMessages => prevMessages.filter(message => message.id !== messageToDelete));
       toast.success("Message deleted successfully");
-      
+
       if (selectedMessage?.id === messageToDelete) {
         setSelectedMessage(null);
         setDialogOpen(false);
