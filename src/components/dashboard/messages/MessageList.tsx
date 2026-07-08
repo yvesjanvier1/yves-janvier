@@ -74,37 +74,22 @@ export function MessageList() {
 
   const handleMarkAsRead = async (id: string, currentReadStatus: boolean) => {
     try {
-      const { error } = await supabase
-        .from("contact_messages")
-        .update({ read: !currentReadStatus })
-        .eq("id", id);
-        
-      if (error) throw error;
-      
-      setMessages(prevMessages => 
-        prevMessages.map(message => 
+      await messagesService.markRead(id, !currentReadStatus);
+
+      setMessages(prevMessages =>
+        prevMessages.map(message =>
           message.id === id ? { ...message, read: !currentReadStatus } : message
         )
       );
-      
+
       if (selectedMessage?.id === id) {
         setSelectedMessage({ ...selectedMessage, read: !currentReadStatus });
       }
-      
+
       toast.success(`Message marked as ${!currentReadStatus ? 'read' : 'unread'}`);
     } catch (error) {
       console.error("Error updating message:", error);
       toast.error("Failed to update message");
-    }
-  };
-
-  const handleViewMessage = (message: ContactMessage) => {
-    setSelectedMessage(message);
-    setDialogOpen(true);
-    
-    // If message is unread, mark it as read
-    if (!message.read) {
-      handleMarkAsRead(message.id, false);
     }
   };
 
