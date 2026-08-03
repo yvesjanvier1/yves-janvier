@@ -12,31 +12,44 @@ export interface ListPublicOptions {
   search?: string | null;
 }
 
+const localeFilter = (locale: string) => `locale.eq.${locale},locale.is.null`;
+
 export const blogService = {
   ...base,
 
   /**
-   * Locale-aware public listing via RPC. The RPC also sets the locale
-   * for RLS in the same transaction, avoiding a race with `set_current_locale`.
+   * Public listing of published posts. Locale filtering is done in the query
+   * (not via RLS) so content stays visible for anonymous visitors.
    */
   async listPublic({ locale, limit = 10, offset = 0, tag, search }: ListPublicOptions) {
-    const { data, error } = await (supabase.rpc as any)("set_locale_and_get_blog_posts", {
-      _locale: locale,
-      _limit: limit,
-      _offset: offset,
-      _tag: tag ?? null,
-      _search: search ?? null,
-    });
+    let query = supabase
+      .from("blog_posts")
+      .select("*")
+      .eq("published", true)
+      .or(localeFilter(locale))
+      .order("created_at", { ascending: false });
+
+    if (tag) query = query.contains("tags", [tag]);
+    if (search) {
+      query = query.or(
+        `title.ilike.%${search}%,excerpt.ilike.%${search}%,content.ilike.%${search}%`,
+      );
+    }
+    if (offset) {
+      query = query.range(offset, offset + limit - 1);
+    } else {
+      query = query.limit(limit);
+    }
+
+    const { data, error } = await query;
     if (error) throw error;
     return (data ?? []) as BlogPost[];
   },
 
   /**
-   * Fetch a published post by slug (fallback to UUID). Sets locale first for RLS.
+   * Fetch a published post by slug (fallback to UUID).
    */
-  async getPublicBySlugOrId(idOrSlug: string, locale: string): Promise<BlogPost> {
-    await (supabase.rpc as any)("set_current_locale", { _locale: locale });
-
+  async getPublicBySlugOrId(idOrSlug: string, _locale?: string): Promise<BlogPost> {
     let { data, error } = await supabase
       .from("blog_posts")
       .select("*")
