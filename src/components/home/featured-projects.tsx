@@ -10,16 +10,15 @@ import { ProjectSkeleton } from "./project-skeleton";
 export const FeaturedProjects = () => {
   const { t } = useLanguage();
   
-  // First try to get featured projects
+  // Featured projects (may be empty)
   const { data: featuredProjects, isLoading: isFeaturedLoading } = usePortfolioProjects({ 
     limit: 3, 
     featured: true 
   });
   
-  // Fallback to latest projects if no featured ones exist
+  // Always fetch latest projects as a fallback
   const { data: latestProjects, isLoading: isLatestLoading, error, refetch } = usePortfolioProjects({ 
-    limit: 3,
-    enabled: !isFeaturedLoading && (!featuredProjects || featuredProjects.length === 0)
+    limit: 3
   });
   
   const isLoading = isFeaturedLoading || isLatestLoading;
