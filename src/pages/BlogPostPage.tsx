@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { blogService } from "@/services/blog.service";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
@@ -50,27 +50,11 @@ const BlogPostPage = () => {
         console.log(`BlogPostPage: Fetching blog post with id/slug: ${id}, locale: ${language}`);
         
         // Use RPC to set locale and fetch posts in the same transaction
-        const { data: posts, error: rpcError } = await (supabase.rpc as any)('set_locale_and_get_blog_posts', {
-          _locale: language,
-          _limit: 100,
-          _offset: 0,
-          _tag: null,
-          _search: null
-        });
-
-        if (rpcError) {
-          console.error("BlogPostPage: RPC error:", rpcError);
-          throw rpcError;
-        }
-
-        // Find the post by slug or ID from the returned posts
-        let foundPost = posts?.find((p: BlogPost) => p.slug === id);
-        
-        if (!foundPost) {
-          const isUuid = /^[0-9a-fA-F-]{36}$/.test(id);
-          if (isUuid) {
-            foundPost = posts?.find((p: BlogPost) => p.id === id);
-          }
+        let foundPost: BlogPost | null = null;
+        try {
+          foundPost = await blogService.getPublicBySlugOrId(id, language);
+        } catch {
+          foundPost = null;
         }
 
         console.log("BlogPostPage: Blog post data:", foundPost);

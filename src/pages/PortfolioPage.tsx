@@ -9,7 +9,7 @@ import ProjectCard from "@/components/portfolio/project-card";
 import { AnimatedSection } from "@/components/ui/animated-section";
 import { ProjectSkeleton } from "@/components/ui/loading-skeletons";
 import { ResponsiveContainer } from "@/components/ui/responsive-container";
-import { supabase } from "@/integrations/supabase/client";
+import { portfolioService } from "@/services/portfolio.service";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -54,17 +54,13 @@ const PortfolioPage = () => {
       setIsLoading(true);
       setError(null);
       
-      const { data, error } = await (supabase.rpc as any)('set_locale_and_get_portfolio_projects', {
-        _locale: language,
-        _limit: 1000,
-        _offset: 0,
-        _category: selectedCategory !== "all" ? selectedCategory : null,
-        _featured: null
+      const data = await portfolioService.listPublic({
+        locale: language,
+        limit: 1000,
+        offset: 0,
+        category: selectedCategory !== "all" ? selectedCategory : null,
+        featured: null,
       });
-      
-      if (error) {
-        throw error;
-      }
       
       if (data) {
         let filteredData = data;
