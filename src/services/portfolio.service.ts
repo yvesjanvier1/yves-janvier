@@ -12,6 +12,8 @@ export interface ListPublicOptions {
   featured?: boolean | null;
 }
 
+const localeFilter = (locale: string) => `locale.eq.${locale},locale.is.null`;
+
 const convertLinks = (links: any): ProjectLink[] => {
   if (!links || !Array.isArray(links)) return [];
   return links
@@ -26,20 +28,23 @@ export const portfolioService = {
   ...base,
 
   /**
-   * Locale-aware public listing. Sets RLS locale first, then applies filters.
+   * Public listing. Locale filtering is applied in the query (not via RLS)
+   * so projects stay visible for anonymous visitors.
    */
   async listPublic({ locale, limit = 12, offset = 0, category, featured }: ListPublicOptions) {
-    await (supabase.rpc as any)("set_current_locale", { _locale: locale });
-
     let query = supabase
       .from("portfolio_projects")
       .select("*")
+      .or(localeFilter(locale))
       .order("created_at", { ascending: false });
 
     if (category) query = query.eq("category", category);
     if (featured !== undefined && featured !== null) query = query.eq("featured", featured);
-    if (limit) query = query.limit(limit);
-    if (offset) query = query.range(offset, offset + limit - 1);
+    if (offset) {
+      query = query.range(offset, offset + limit - 1);
+    } else if (limit) {
+      query = query.limit(limit);
+    }
 
     const { data, error } = await query;
     if (error) throw error;
@@ -47,9 +52,7 @@ export const portfolioService = {
     return (data ?? []).map((p) => ({ ...p, links: convertLinks(p.links) })) as PortfolioProject[];
   },
 
-  async getPublicBySlugOrId(idOrSlug: string, locale: string): Promise<PortfolioProject> {
-    await (supabase.rpc as any)("set_current_locale", { _locale: locale });
-
+  async getPublicBySlugOrId(idOrSlug: string, _locale?: string): Promise<PortfolioProject> {
     let { data, error } = await supabase
       .from("portfolio_projects")
       .select("*")

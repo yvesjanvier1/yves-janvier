@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { Search } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { blogService } from "@/services/blog.service";
 import { SectionHeader } from "@/components/ui/section-header";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
@@ -54,17 +54,13 @@ const BlogPage = () => {
       setIsLoading(true);
       setError(null);
       
-      const { data, error } = await (supabase.rpc as any)('set_locale_and_get_blog_posts', {
-        _locale: language,
-        _limit: 1000,
-        _offset: 0,
-        _tag: selectedTag !== "all" ? selectedTag : null,
-        _search: searchTerm || null
+      const data = await blogService.listPublic({
+        locale: language,
+        limit: 1000,
+        offset: 0,
+        tag: selectedTag !== "all" ? selectedTag : null,
+        search: searchTerm || null,
       });
-
-      if (error) {
-        throw error;
-      }
       
       if (data && data.length > 0) {
         const validPosts = data.filter((post: any) => 
