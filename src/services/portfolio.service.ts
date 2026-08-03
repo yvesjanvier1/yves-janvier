@@ -32,24 +32,31 @@ export const portfolioService = {
    * so projects stay visible for anonymous visitors.
    */
   async listPublic({ locale, limit = 12, offset = 0, category, featured }: ListPublicOptions) {
-    let query = supabase
-      .from("portfolio_projects")
-      .select("*")
-      .or(localeFilter(locale))
-      .order("created_at", { ascending: false });
+    const run = async (withLocale: boolean) => {
+      let query = supabase
+        .from("portfolio_projects")
+        .select("*")
+        .order("created_at", { ascending: false });
 
-    if (category) query = query.eq("category", category);
-    if (featured !== undefined && featured !== null) query = query.eq("featured", featured);
-    if (offset) {
-      query = query.range(offset, offset + limit - 1);
-    } else if (limit) {
-      query = query.limit(limit);
-    }
+      if (withLocale) query = query.or(localeFilter(locale));
+      if (category) query = query.eq("category", category);
+      if (featured !== undefined && featured !== null) query = query.eq("featured", featured);
+      if (offset) {
+        query = query.range(offset, offset + limit - 1);
+      } else if (limit) {
+        query = query.limit(limit);
+      }
 
-    const { data, error } = await query;
-    if (error) throw error;
+      const { data, error } = await query;
+      if (error) throw error;
+      return data ?? [];
+    };
 
-    return (data ?? []).map((p) => ({ ...p, links: convertLinks(p.links) })) as PortfolioProject[];
+    let data = await run(true);
+    // Fallback: some projects are only stored in one locale — never show an empty portfolio.
+    if (data.length === 0) data = await run(false);
+
+    return data.map((p) => ({ ...p, links: convertLinks(p.links) })) as PortfolioProject[];
   },
 
   async getPublicBySlugOrId(idOrSlug: string, _locale?: string): Promise<PortfolioProject> {
