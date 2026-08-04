@@ -45,9 +45,3 @@
   NODE_VERSION = "20"
   VITE_APP_ENV = "production"
 
-# Preview/branch deploys should never be indexed by search engines
-[[headers]]
-  for = "/*"
-  [headers.values]
-    X-Robots-Tag = "noindex"
-
