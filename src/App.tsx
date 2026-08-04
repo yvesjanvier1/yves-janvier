@@ -31,6 +31,7 @@ function App() {
               />
               <SecurityProvider>
                 <BrowserRouter>
+                  <PageViewTracker />
                   <AuthProvider>
                     <div className="min-h-screen bg-background font-sans antialiased">
                       <ErrorBoundary>
