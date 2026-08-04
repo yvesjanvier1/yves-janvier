@@ -10,6 +10,7 @@ import { AuthProvider } from "@/components/dashboard/AuthProvider";
 import { SEOInternational } from "@/components/seo/SEOInternational";
 import AppRouter from "@/router/AppRouter";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { PageViewTracker } from "@/components/PageViewTracker";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +31,7 @@ function App() {
               />
               <SecurityProvider>
                 <BrowserRouter>
+                  <PageViewTracker />
                   <AuthProvider>
                     <div className="min-h-screen bg-background font-sans antialiased">
                       <ErrorBoundary>

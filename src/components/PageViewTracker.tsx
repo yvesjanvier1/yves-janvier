@@ -19,14 +19,19 @@ export const PageViewTracker = () => {
   useEffect(() => {
     const trackPageView = async () => {
       try {
-        const visitorId = generateVisitorId();
         const pagePath = location.pathname;
-        
+
+        // Never track admin/dashboard traffic
+        if (pagePath.startsWith('/dashboard')) return;
+
+        const visitorId = generateVisitorId();
+
         // Rate limit page view tracking (max 10 per minute per visitor)
         if (!checkRateLimit(`pageview-${visitorId}`, 10, 60000)) {
           console.warn('Page view tracking rate limited');
           return;
         }
+
         
         const referrer = document.referrer;
         const userAgent = navigator.userAgent;

@@ -24,8 +24,24 @@
     X-Frame-Options = "SAMEORIGIN"
     Referrer-Policy = "strict-origin-when-cross-origin"
 
+# Deploy Previews: one preview URL per pull request
 [context.deploy-preview]
   command = "npm run build"
 
+[context.deploy-preview.environment]
+  NODE_VERSION = "20"
+  VITE_APP_ENV = "preview"
+
+# Branch deploys: every branch pushed gets its own preview URL
+# (enable "Branch deploys: All" in Netlify > Site configuration > Build & deploy)
 [context.branch-deploy]
   command = "npm run build"
+
+[context.branch-deploy.environment]
+  NODE_VERSION = "20"
+  VITE_APP_ENV = "preview"
+
+[context.production.environment]
+  NODE_VERSION = "20"
+  VITE_APP_ENV = "production"
+
