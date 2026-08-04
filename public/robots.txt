@@ -1,4 +1,3 @@
-
 User-agent: *
 Allow: /
 
@@ -16,5 +15,4 @@ Allow: /
 User-agent: Slurp
 Allow: /
 
-# Sitemap location (uncomment when you have a sitemap.xml)
-# Sitemap: https://yourwebsite.com/sitemap.xml
+Sitemap: https://yves-janvier.lovable.app/sitemap.xml
