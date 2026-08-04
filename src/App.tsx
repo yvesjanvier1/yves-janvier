@@ -10,6 +10,7 @@ import { AuthProvider } from "@/components/dashboard/AuthProvider";
 import { SEOInternational } from "@/components/seo/SEOInternational";
 import AppRouter from "@/router/AppRouter";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { PageViewTracker } from "@/components/PageViewTracker";
 
 const queryClient = new QueryClient();
 
