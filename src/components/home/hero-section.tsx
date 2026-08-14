@@ -142,8 +142,8 @@ const HeroSection = () => {
                   key={title}
                   className="group text-left glass-card p-4 rounded-xl border border-primary/10 hover-lift"
                 >
-                  <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-primary/10 bg-primary/10 text-primary mb-3 transition-transform group-hover:scale-110">
-                    <Icon className="h-4.5 w-4 h-4" />
+                  <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary mb-3 transition-transform group-hover:scale-110">
+                    <Icon className="h-4 w-4" />
                   </span>
                   <div className="text-sm font-semibold text-foreground">{title}</div>
                   <div className="text-xs text-muted-foreground mt-0.5">{desc}</div>
