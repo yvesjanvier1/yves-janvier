@@ -1,6 +1,6 @@
 import { Suspense, useMemo, useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { Float, Icosahedron, Points, PointMaterial, Torus } from "@react-three/drei";
+import { Float, Points, PointMaterial } from "@react-three/drei";
 import * as THREE from "three";
 
 /** Reads an HSL design token from CSS and returns a THREE.Color. */
@@ -79,12 +79,14 @@ const OrbitingShapes = ({ primary, secondary }: { primary: THREE.Color; secondar
   return (
     <group>
       <group ref={ring} rotation={[Math.PI / 2.6, 0, 0]}>
-        <Torus args={[3.1, 0.012, 12, 160]}>
+        <mesh>
+          <torusGeometry args={[3.1, 0.012, 12, 160]} />
           <meshBasicMaterial color={primary} transparent opacity={0.5} />
-        </Torus>
-        <Torus args={[3.9, 0.008, 12, 160]} rotation={[0.5, 0.3, 0]}>
+        </mesh>
+        <mesh rotation={[0.5, 0.3, 0]}>
+          <torusGeometry args={[3.9, 0.008, 12, 160]} />
           <meshBasicMaterial color={secondary} transparent opacity={0.35} />
-        </Torus>
+        </mesh>
       </group>
 
       {[
@@ -94,14 +96,15 @@ const OrbitingShapes = ({ primary, secondary }: { primary: THREE.Color; secondar
         { pos: [-2.4, 1.9, -1.1], scale: 0.24, color: primary },
       ].map((s, i) => (
         <Float key={i} speed={1.4} rotationIntensity={1.2} floatIntensity={1.6}>
-          <Icosahedron args={[s.scale, 0]} position={s.pos as [number, number, number]}>
+          <mesh position={s.pos as [number, number, number]}>
+            <icosahedronGeometry args={[s.scale, 0]} />
             <meshStandardMaterial
               color={s.color}
               wireframe
               emissive={s.color}
               emissiveIntensity={0.6}
             />
-          </Icosahedron>
+          </mesh>
         </Float>
       ))}
     </group>
