@@ -1,11 +1,14 @@
 
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Download } from "lucide-react";
+import { ArrowRight, Download, Database, BrainCircuit, Cpu } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { lazy, Suspense } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useResponsive } from "@/hooks/useResponsive";
 import { ResponsiveContainer } from "@/components/ui/responsive-container";
+
+const HeroScene = lazy(() => import("@/components/home/hero-scene"));
 
 const HeroSection = () => {
   const { t } = useLanguage();
@@ -24,8 +27,19 @@ const HeroSection = () => {
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-float" />
         <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-primary/15 rounded-full blur-3xl animate-float" style={{ animationDelay: '3s' }} />
       </div>
-      
+
+      {/* 3D data / AI scene */}
+      <div className="absolute inset-0 opacity-70 pointer-events-none" aria-hidden="true">
+        <Suspense fallback={null}>
+          <HeroScene />
+        </Suspense>
+      </div>
+
+      {/* Depth vignette keeps copy legible above the 3D layer */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,hsl(var(--background)/0.85)_0%,hsl(var(--background)/0.55)_45%,transparent_75%)] pointer-events-none" />
+
       <ResponsiveContainer className="relative z-10">
+
         <div className="text-center">
           <motion.div
             initial={{ opacity: 0, y: 40 }}
@@ -112,28 +126,31 @@ const HeroSection = () => {
               </Button>
             </motion.div>
 
-            {/* Stats or Features */}
+            {/* Skill pillars: Data, AI, Technology */}
             <motion.div
-              className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-2xl mx-auto"
+              className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1.2, duration: 0.8 }}
             >
               {[
-                { number: "50+", label: "Projects Completed" },
-                { number: "5+", label: "Years Experience" },
-                { number: "100%", label: "Client Satisfaction" }
-              ].map((stat, index) => (
-                <div key={index} className="text-center glass-card p-4 hover-scale">
-                  <div className="text-2xl font-bold text-gradient-accent mb-1">
-                    {stat.number}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    {stat.label}
-                  </div>
+                { icon: Database, title: "Data Engineering", desc: "Pipelines, ETL, analytics" },
+                { icon: BrainCircuit, title: "AI & Machine Learning", desc: "Models, LLMs, automation" },
+                { icon: Cpu, title: "Technology", desc: "Cloud, web, architecture" },
+              ].map(({ icon: Icon, title, desc }) => (
+                <div
+                  key={title}
+                  className="group text-left glass-card p-4 rounded-xl border border-primary/10 hover-lift"
+                >
+                  <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary mb-3 transition-transform group-hover:scale-110">
+                    <Icon className="h-4 w-4" />
+                  </span>
+                  <div className="text-sm font-semibold text-foreground">{title}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">{desc}</div>
                 </div>
               ))}
             </motion.div>
+
           </motion.div>
         </div>
       </ResponsiveContainer>
