@@ -126,28 +126,31 @@ const HeroSection = () => {
               </Button>
             </motion.div>
 
-            {/* Stats or Features */}
+            {/* Skill pillars: Data, AI, Technology */}
             <motion.div
-              className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-2xl mx-auto"
+              className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1.2, duration: 0.8 }}
             >
               {[
-                { number: "50+", label: "Projects Completed" },
-                { number: "5+", label: "Years Experience" },
-                { number: "100%", label: "Client Satisfaction" }
-              ].map((stat, index) => (
-                <div key={index} className="text-center glass-card p-4 hover-scale">
-                  <div className="text-2xl font-bold text-gradient-accent mb-1">
-                    {stat.number}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    {stat.label}
-                  </div>
+                { icon: Database, title: "Data Engineering", desc: "Pipelines, ETL, analytics" },
+                { icon: BrainCircuit, title: "AI & Machine Learning", desc: "Models, LLMs, automation" },
+                { icon: Cpu, title: "Technology", desc: "Cloud, web, architecture" },
+              ].map(({ icon: Icon, title, desc }) => (
+                <div
+                  key={title}
+                  className="group text-left glass-card p-4 rounded-xl border border-primary/10 hover-lift"
+                >
+                  <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-primary/10 bg-primary/10 text-primary mb-3 transition-transform group-hover:scale-110">
+                    <Icon className="h-4.5 w-4 h-4" />
+                  </span>
+                  <div className="text-sm font-semibold text-foreground">{title}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">{desc}</div>
                 </div>
               ))}
             </motion.div>
+
           </motion.div>
         </div>
       </ResponsiveContainer>
