@@ -1,11 +1,14 @@
 
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Download } from "lucide-react";
+import { ArrowRight, Download, Database, BrainCircuit, Cpu } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { lazy, Suspense } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useResponsive } from "@/hooks/useResponsive";
 import { ResponsiveContainer } from "@/components/ui/responsive-container";
+
+const HeroScene = lazy(() => import("@/components/home/hero-scene"));
 
 const HeroSection = () => {
   const { t } = useLanguage();
@@ -24,8 +27,19 @@ const HeroSection = () => {
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-float" />
         <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-primary/15 rounded-full blur-3xl animate-float" style={{ animationDelay: '3s' }} />
       </div>
-      
+
+      {/* 3D data / AI scene */}
+      <div className="absolute inset-0 opacity-70 pointer-events-none" aria-hidden="true">
+        <Suspense fallback={null}>
+          <HeroScene />
+        </Suspense>
+      </div>
+
+      {/* Depth vignette keeps copy legible above the 3D layer */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,hsl(var(--background)/0.85)_0%,hsl(var(--background)/0.55)_45%,transparent_75%)] pointer-events-none" />
+
       <ResponsiveContainer className="relative z-10">
+
         <div className="text-center">
           <motion.div
             initial={{ opacity: 0, y: 40 }}
